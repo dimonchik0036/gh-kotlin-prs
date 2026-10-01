@@ -45,7 +45,7 @@ func (c *Classifier) Show(raw *github.PullRequest) model.PR {
 		merged := c.Merged(raw)
 		pr.MergedAt, pr.Next, pr.Reasons, pr.Hidden = merged.MergedAt, model.NextDone, merged.Reasons, false
 	case "CLOSED":
-		pr.Next, pr.Reasons, pr.Hidden = model.NextDone, []model.Reason{{Text: "closed"}}, false
+		pr.Next, pr.Reasons, pr.Hidden, pr.Closed = model.NextDone, []model.Reason{{Text: "closed"}}, false, true
 	}
 	return pr
 }

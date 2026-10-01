@@ -233,12 +233,14 @@ type PR struct {
 	Draft   bool    `json:"draft,omitempty"`
 	Section Section `json:"section"`
 	// Issues are the referenced issues, the primary one first.
-	Issues    []Issue   `json:"issues"`
-	Updated   time.Time `json:"updated,omitzero"`
-	LastPush  time.Time `json:"lastPush,omitzero"`
-	MergedAt  time.Time `json:"mergedAt,omitzero"`
-	DryRun    Run       `json:"dryRun"`
-	SafeMerge Run       `json:"safeMerge"`
+	Issues   []Issue   `json:"issues"`
+	Updated  time.Time `json:"updated,omitzero"`
+	LastPush time.Time `json:"lastPush,omitzero"`
+	MergedAt time.Time `json:"mergedAt,omitzero"`
+	// Closed: closed without being merged.
+	Closed    bool `json:"closed,omitempty"`
+	DryRun    Run  `json:"dryRun"`
+	SafeMerge Run  `json:"safeMerge"`
 	// Runs is the history, newest first.
 	Runs       []Run            `json:"runs,omitempty"`
 	Reviewers  []Reviewer       `json:"reviewers,omitempty"`
