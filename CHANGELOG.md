@@ -6,6 +6,12 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.3.0 — 2026-10-02
+
+The bot's commands, from the CLI and the interactive view: dry-run, safe-merge and the rest, each shown and confirmed
+before anything is posted, and refused when it can't work. Posting them is the only thing the tool writes to GitHub.
+The JSON output is unchanged (`"version": 1`).
+
 - `gh kotlin-prs run <number> <command>` posts a bot command on a PR of yours: `dry-run`, `dry-run-retry`,
   `safe-merge`, `cancel-coordinator`, `fixup` or `codeowners`. It shows the PR and the exact comment and asks first
   (`--yes` skips that), and refuses what the bot would refuse or what makes no sense now, saying why.
