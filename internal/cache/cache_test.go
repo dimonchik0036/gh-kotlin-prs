@@ -93,9 +93,15 @@ func TestHitMissExpiry(t *testing.T) {
 	if got := f.query(vars); got != "alice_user" || f.github.calls != 1 {
 		t.Errorf("hit: %q after %d calls, want the cached alice_user", got, f.github.calls)
 	}
+	if f.client.Fetched != 1 || f.client.Cached != 1 || !f.client.Oldest.Equal(start) {
+		t.Errorf("fetched %d, cached %d, oldest %v", f.client.Fetched, f.client.Cached, f.client.Oldest)
+	}
 	f.now = start.Add(5 * time.Minute)
 	if got := f.query(vars); got != "bob_user" || f.github.calls != 2 {
 		t.Errorf("expired: %q after %d calls, want a fetch", got, f.github.calls)
+	}
+	if f.client.Fetched != 2 || f.client.Cached != 1 || !f.client.Oldest.Equal(start) {
+		t.Errorf("fetched %d, cached %d, oldest %v", f.client.Fetched, f.client.Cached, f.client.Oldest)
 	}
 	f.now = start.Add(6 * time.Minute)
 	if got := f.query(vars); got != "bob_user" || f.github.calls != 2 {

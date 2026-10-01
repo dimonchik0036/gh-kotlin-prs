@@ -63,6 +63,11 @@ type Client struct {
 	// Debug, when set, gets a line per query: its cost, or the cache entry that answered it,
 	// and any entry the cache had to ignore or couldn't write.
 	Debug io.Writer
+
+	// Fetched counts the queries Next answered, Cached the ones the cache did; Oldest is
+	// when the oldest of the answers was fetched.
+	Fetched, Cached int
+	Oldest          time.Time
 }
 
 // entry is the file of one query: the response's data as GitHub sent it.
@@ -83,6 +88,8 @@ func (c *Client) DoWithContext(ctx context.Context, query string, variables map[
 		switch {
 		case err == nil:
 			c.debugf("%s: from the cache, fetched %s ago\n", op, c.Now().Sub(fetchedAt).Round(time.Second))
+			c.Cached++
+			c.Oldest = oldest(c.Oldest, fetchedAt)
 			return nil
 		case errors.Is(err, os.ErrNotExist):
 			why = " (not cached)"
@@ -103,6 +110,8 @@ func (c *Client) DoWithContext(ctx context.Context, query string, variables map[
 	if err := json.Unmarshal(data, response); err != nil {
 		return err
 	}
+	c.Fetched++
+	c.Oldest = oldest(c.Oldest, c.Now())
 	if c.Debug != nil {
 		var limit struct {
 			RateLimit github.RateLimit `json:"rateLimit"`
