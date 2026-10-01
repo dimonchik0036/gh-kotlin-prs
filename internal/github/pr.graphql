@@ -1,0 +1,71 @@
+fragment PR on PullRequest {
+  number
+  title
+  url
+  isDraft
+  state
+  createdAt
+  updatedAt
+  mergedAt
+  author { __typename login }
+  headRefName
+  headRefOid
+  reviewRequests(first: 20) {
+    nodes { requestedReviewer { __typename ... on User { login } ... on Team { slug } } }
+  }
+  latestOpinionatedReviews(first: 20) {
+    nodes { author { __typename login } state submittedAt url }
+  }
+  reviews(last: 30) {
+    nodes { author { __typename login } state submittedAt url comments { totalCount } }
+  }
+  reviewThreads(last: 50) {
+    nodes {
+      isResolved
+      isOutdated
+      path
+      firstComment: comments(first: 1) { nodes { author { __typename login } body createdAt url } }
+      comments(last: 5) { totalCount nodes { author { __typename login } createdAt url } }
+    }
+  }
+  comments(last: 40) {
+    nodes {
+      author { __typename login }
+      body
+      createdAt
+      updatedAt
+      isMinimized
+      authorAssociation
+      url
+      reactions(content: ROCKET, first: 5) { nodes { user { login } } }
+    }
+  }
+  timelineItems(last: 5, itemTypes: [PULL_REQUEST_COMMIT, HEAD_REF_FORCE_PUSHED_EVENT, REVIEW_REQUESTED_EVENT]) {
+    nodes {
+      __typename
+      ... on PullRequestCommit { commit { committedDate } }
+      ... on HeadRefForcePushedEvent { createdAt }
+      ... on ReviewRequestedEvent {
+        createdAt
+        requestedReviewer { __typename ... on User { login } ... on Team { slug } }
+      }
+    }
+  }
+  history: commits(last: 30) { nodes { commit { message } } }
+  commits(last: 1) {
+    nodes {
+      commit {
+        committedDate
+        statusCheckRollup {
+          contexts(first: 20) {
+            nodes {
+              __typename
+              ... on CheckRun { name conclusion status detailsUrl title summary }
+              ... on StatusContext { context state targetUrl }
+            }
+          }
+        }
+      }
+    }
+  }
+}
