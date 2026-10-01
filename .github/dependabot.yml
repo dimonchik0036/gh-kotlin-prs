@@ -9,7 +9,7 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
   - package-ecosystem: gomod
-    directories: [/, /scripts/screenshots]
+    directory: /
     schedule:
       interval: weekly
     groups:

@@ -3,11 +3,10 @@
 A `gh` extension that shows the open [JetBrains/kotlin](https://github.com/JetBrains/kotlin) PRs you're involved in:
 their dry-run / safe-merge status, where the review stands, and who has the next move. See [SPEC.md](SPEC.md).
 
-![gh kotlin-prs list: your PRs, reviews and recently merged PRs, each with whose move it is, the dry-run and safe-merge state, approvals and code owners, and the main reason](docs/images/list.svg)
+![The interactive view: moving the selection, a PR's details, the filter, --all and the help](docs/images/demo.gif)
 
-![gh kotlin-prs show: one PR with its issues, reasons, reviewers, code-owner rules, run history, threads and checks](docs/images/show.svg)
-
-The screenshots use the anonymized test fixtures (`scripts/screenshots.sh`).
+`gh kotlin-prs list` and `show` print the same rows and details as plain text. The recording uses the anonymized test
+fixtures (`scripts/screenshots.sh`).
 
 ## Install
 
@@ -174,7 +173,8 @@ scripts/fetch-fixtures.sh <pr-number>                    # refresh testdata/raw,
 ```
 
 `GH_KOTLIN_PRS_DEMO=testdata/raw gh kotlin-prs list` (or `show <fixture number>`) serves the fixtures instead of
-GitHub, with the fixtures' clock and viewer: no login, no network. The screenshots come from it.
+GitHub, with the fixtures' clock and viewer: no login, no network. The README's recording comes from it:
+`scripts/screenshots.sh` plays `docs/demo.tape` with [VHS](https://github.com/charmbracelet/vhs).
 
 `testdata/raw` holds GraphQL responses, `testdata/golden` the model JSON
 and table text they produce. `scripts/fetch-fixtures.sh` refetches every fixture and passes the batch through

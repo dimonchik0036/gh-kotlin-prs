@@ -19,8 +19,9 @@ pointer receivers or all value receivers.
 
 Tests never touch gh's auth, the user's config, the user's cache or the network: inject the client, config path,
 cache dir and clock (`internal/cli` env, `classify.Classifier.Now`, `cache.Client`). `GH_KOTLIN_PRS_DEMO=<dir>` runs the CLI on the fixtures in `<dir>`
-through the same seams (`internal/demo`), with their clock and viewer; `scripts/screenshots.sh` renders the README
-screenshots from it (freeze, pinned; the font is trimmed by the `scripts/screenshots` module). Goldens: `go test ./internal/classify ./internal/render -update`,
+through the same seams (`internal/demo`), with their clock and viewer; `scripts/screenshots.sh` records the README
+demo from it (`docs/demo.tape` with VHS, which it needs; it fails when a frame shows an internal host or a real PR
+number). Goldens: `go test ./internal/classify ./internal/render -update`,
 in that order, then review the diff.
 
 ## Fixtures

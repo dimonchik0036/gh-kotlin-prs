@@ -1,7 +1,7 @@
 # Releasing
 
-1. If the output changed since the last release, regenerate the README screenshots with `scripts/screenshots.sh`
-   and commit them.
+1. If the output changed since the last release, re-record the README demo with `scripts/screenshots.sh`
+   and commit it.
 2. On `main`, make a `Release vX.Y.Z` commit that renames `## Unreleased` in [CHANGELOG.md](CHANGELOG.md) to
    `## vX.Y.Z — YYYY-MM-DD` and adds a new empty `## Unreleased` above it.
 3. Tag that commit with an annotated tag and push both:

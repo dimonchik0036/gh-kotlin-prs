@@ -1,31 +1,36 @@
 #!/usr/bin/env bash
-# Regenerates the README screenshots in docs/images/ from the fixtures (demo mode):
-# colors and hyperlinks on, Unicode icons, the fixtures' clock and viewer, no network.
-# freeze renders the SVG; scripts/screenshots trims its embedded font to the glyphs used.
-# Same fixtures and code → same bytes.
+# Records the README demo, docs/images/demo.gif, from docs/demo.tape: the interactive view on
+# the fixtures (demo mode: their clock and viewer, the default config, no network).
+# It needs VHS (https://github.com/charmbracelet/vhs) with ttyd and ffmpeg, e.g. `brew install vhs`.
+# The recording plays the same keys every time; the GIF's frames differ only in timing.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
-out="$root/docs/images"
-mkdir -p "$out"
+if ! command -v vhs > /dev/null; then
+  echo "error: vhs is not installed (https://github.com/charmbracelet/vhs, e.g. brew install vhs)" >&2
+  exit 1
+fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 go build -o "$tmp/gh-kotlin-prs" .
 
-# render <name> <args...>: the output of `gh-kotlin-prs <args...>` as docs/images/<name>.svg.
-render() {
-  local name="$1"
-  shift
-  env -u NO_COLOR -u COLORTERM CLICOLOR_FORCE=1 TERM=xterm-256color \
-    GH_KOTLIN_PRS_DEMO="$root/testdata/raw" GH_KOTLIN_PRS_CONFIG="$tmp/no-config.yml" \
-    "$tmp/gh-kotlin-prs" "$@" --icons unicode --hyperlinks always > "$tmp/$name.ansi"
-  go run github.com/charmbracelet/freeze@v0.2.2 --language ansi --window \
-    -o "$tmp/$name.svg" < "$tmp/$name.ansi" > /dev/null
-  (cd "$root/scripts/screenshots" && go run . "$tmp/$name.svg" "$out/$name.svg")
-  echo "wrote docs/images/$name.svg ($(wc -c < "$out/$name.svg" | tr -d ' ') bytes)"
-}
+# The tape also writes its frames as text, to check them below.
+perl -pe 's|^(Output docs/images/demo\.gif)$|$1\nOutput "'"$tmp"'/demo.txt"|' docs/demo.tape > "$tmp/demo.tape"
+if ! PATH="$tmp:$PATH" vhs "$tmp/demo.tape" > "$tmp/vhs.log" 2>&1; then
+  cat "$tmp/vhs.log" >&2
+  exit 1
+fi
 
-render list list --all
-render show show 90006
+# The recording shows only the fixtures: no internal hosts, only the fake PR numbers 900xx.
+if grep -qiE 'buildserver|intellij\.net|jetbrains\.team|youtrack' "$tmp/demo.txt"; then
+  echo "error: the recording names an internal host" >&2
+  exit 1
+fi
+others="$(grep -oE '#[0-9]+' "$tmp/demo.txt" | grep -vE '^#900[0-9][0-9]$' || true)"
+if [ -n "$others" ]; then
+  echo "error: the recording shows PR numbers that aren't the fixtures': $(echo $others)" >&2
+  exit 1
+fi
+echo "wrote docs/images/demo.gif ($(wc -c < docs/images/demo.gif | tr -d ' ') bytes)"
