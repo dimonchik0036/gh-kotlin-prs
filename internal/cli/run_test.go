@@ -153,7 +153,7 @@ func TestStartFlags(t *testing.T) {
 	}{
 		{[]string{"--post", "fixup"}, true, "--post needs --pr"},
 		{[]string{"--pr", "90006", "--post", "safe-squash-merge"}, true, `unknown command "safe-squash-merge" for --post`},
-		{[]string{"--pr", "90006"}, false, "--pr opens the interactive view, which needs a terminal"},
+		{[]string{"--pr", "90006"}, false, "the interactive view needs a terminal"},
 		{[]string{"--pr", "-3"}, true, "not a PR number: -3"},
 	} {
 		e, _, _, errOut := runEnv(t, tt.terminal, "")

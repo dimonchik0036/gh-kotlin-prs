@@ -250,6 +250,13 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 			return nil, errors.New("no posting in this test")
 		},
 		stdin:       strings.NewReader(""),
+		getenv:      func(string) string { return "" },
+		swiftbarDir: func() string { return "" },
+		lookGH:      func() (string, error) { return "/opt/homebrew/bin/gh", nil },
+		start: func(argv []string) error {
+			t.Errorf("started %q", argv)
+			return nil
+		},
 		cacheDir:    t.TempDir(),
 		now:         func() time.Time { return now },
 		isTerminal:  func() bool { return false },
@@ -269,7 +276,7 @@ func TestExitCodes(t *testing.T) {
 	}{
 		{args: []string{"list", "--bogus"}, want: exitUsage},
 		{args: []string{"list", "--format", "xml"}, want: exitUsage},
-		{args: []string{"list", "--format", "swiftbar"}, want: exitUsage},
+		{args: []string{"show", "90005", "--format", "swiftbar"}, want: exitUsage},
 		{args: []string{"list", "--mine", "--review"}, want: exitUsage},
 		{args: []string{"list", "--icons", "emoji"}, want: exitUsage},
 		{args: []string{"show", "90005", "--icons", "emoji"}, want: exitUsage},

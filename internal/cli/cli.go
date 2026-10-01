@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -60,6 +61,14 @@ type env struct {
 	interactive func() bool
 	// runTUI shows the TUI (tui.Run on the process's terminal).
 	runTUI func(ctx context.Context, opts tui.Options) error
+	// getenv reads the environment (SwiftBar's variables, the plugin's baked-in paths).
+	getenv func(string) string
+	// swiftbarDir is SwiftBar's plugin folder, "" when it has none.
+	swiftbarDir func() string
+	// lookGH finds gh, for the plugin script.
+	lookGH func() (string, error)
+	// start runs a program without waiting for it: a plugin notification.
+	start func(argv []string) error
 }
 
 // configEnv overrides the default config path.
@@ -89,7 +98,11 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 		interactive: func() bool {
 			return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 		},
-		runTUI: func(ctx context.Context, opts tui.Options) error { return tui.Run(ctx, opts, os.Stdin, stdout) },
+		runTUI:      func(ctx context.Context, opts tui.Options) error { return tui.Run(ctx, opts, os.Stdin, stdout) },
+		getenv:      os.Getenv,
+		swiftbarDir: swiftbarPluginDir,
+		lookGH:      func() (string, error) { return exec.LookPath("gh") },
+		start:       startDetached,
 	}
 	if dir := os.Getenv(demoEnv); dir != "" {
 		fixtures, err := demo.Load(dir)
@@ -265,7 +278,7 @@ func newRoot(e env) *cobra.Command {
 	show.Flags().StringVar(&showFormat, "format", "table", "output format: table or json")
 	addMaxAgeFlag(show, &showMaxAge)
 
-	root.AddCommand(list, show, newRunCommand(e, &global), newConfigCommand(e, &global))
+	root.AddCommand(list, show, newRunCommand(e, &global), newSwiftbarCommand(e, &global), newConfigCommand(e, &global))
 	return root
 }
 
@@ -312,9 +325,9 @@ func checkFormat(format string) error {
 	case "table", "json":
 		return nil
 	case "swiftbar":
-		return usageError{errors.New("--format swiftbar is not implemented yet")}
+		return usageError{errors.New("--format swiftbar is only for list")}
 	}
-	return usageError{fmt.Errorf("unknown --format %q, want table or json", format)}
+	return usageError{fmt.Errorf("unknown --format %q, want table, json or swiftbar (list)", format)}
 }
 
 // prepare validates the config and the global flags. It runs before anything touches
@@ -334,6 +347,9 @@ func prepare(e env, global globalOptions, format string) (config.Config, render.
 }
 
 func runList(ctx context.Context, e env, global globalOptions, opts listOptions) error {
+	if opts.format == "swiftbar" {
+		return runSwiftbar(ctx, e, global, opts)
+	}
 	if err := checkFormat(opts.format); err != nil {
 		return err
 	}

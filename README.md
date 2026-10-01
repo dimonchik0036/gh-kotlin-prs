@@ -142,6 +142,51 @@ the login.
 
 Exit codes: 0 ok, 1 error, 2 bad usage.
 
+
+### Menu bar (SwiftBar)
+
+With [SwiftBar](https://github.com/swiftbar/SwiftBar), the menu bar shows how many PRs wait on you, and a menu with
+the same sections as `list`:
+
+```sh
+gh kotlin-prs swiftbar install                 # into SwiftBar's plugin folder, refreshed every 3 minutes
+gh kotlin-prs swiftbar install --interval 5m --force
+```
+
+It needs SwiftBar to have a plugin folder (SwiftBar asks for one on its first start); `--dir` names another. For a
+manual install, write the script yourself and make it executable:
+
+```sh
+gh kotlin-prs swiftbar script > ~/your-plugin-folder/kotlin-prs.3m.sh && chmod +x ~/your-plugin-folder/kotlin-prs.3m.sh
+```
+
+The Version in SwiftBar's plugin details is the version that wrote the plugin: after an upgrade,
+`gh kotlin-prs swiftbar install --force` refreshes it.
+
+The icon turns red while a dry-run or safe-merge of yours failed or was rejected, and shows `⋯` while one runs and `!`
+when refreshes keep failing and the menu shows old data. Each PR's submenu has whose move it is and why, its runs,
+reviewers and missing code owners, links, and the commands you could post now. A click on the PR's row, "Details in the
+interactive view" and the commands open the interactive view on that PR in a terminal, a command with its `[y/N]`
+question; nothing is posted from the menu. Hold ⌥ to open a PR in the browser instead.
+
+They open in the terminal chosen in SwiftBar's Settings → Advanced → Terminal (Terminal, iTerm or Ghostty), in a new
+tab that closes when you quit the interactive view.
+
+The plugin answers from the cache when it's younger than half its interval, so it shares fetches with the interactive
+view. When it fetched live, it notifies of what changed since its last live run. A click on its notification opens
+the interactive view on that PR, like the menu. One that was posted before you reinstalled the plugin with another
+`--interval` can't, since SwiftBar no longer finds the plugin that posted it.
+
+Three things may notify, and they don't coordinate, so the same change can show up more than once:
+
+- the plugin, through SwiftBar, for the `notify.events` you keep;
+- the interactive view, through the terminal (`notify.terminal: none` turns that off);
+- `notify.command`, empty by default, run by both the plugin and the interactive view.
+
+Known SwiftBar quirk: on macOS 26, SwiftBar 2.1.1 shows its "SwiftBar is already running" alert after every click on
+a notification (and on every `swiftbar://` link), next to what the click opens. SwiftBar 2.1.2 fixes it
+([#535](https://github.com/swiftbar/SwiftBar/issues/535)); until then, dismiss the alert.
+
 ## Config
 
 `~/.config/gh-kotlin-prs/config.yml` (or `$XDG_CONFIG_HOME/gh-kotlin-prs/config.yml`); `--config PATH` or

@@ -157,3 +157,16 @@ func TestNotify(t *testing.T) {
 		}
 	}
 }
+
+// With only HOME set, as under SwiftBar, the config is ~/.config/gh-kotlin-prs/config.yml.
+func TestDefaultPath(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "")
+	t.Setenv("HOME", "/Users/alice_user")
+	if got := DefaultPath(); got != "/Users/alice_user/.config/gh-kotlin-prs/config.yml" {
+		t.Errorf("DefaultPath() = %q", got)
+	}
+	t.Setenv("XDG_CONFIG_HOME", "/tmp/xdg")
+	if got := DefaultPath(); got != "/tmp/xdg/gh-kotlin-prs/config.yml" {
+		t.Errorf("DefaultPath() = %q", got)
+	}
+}

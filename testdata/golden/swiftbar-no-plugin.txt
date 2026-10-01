@@ -1,0 +1,67 @@
+2 | sfimage=arrow.triangle.pull sfconfig=eyJyZW5kZXJpbmdNb2RlIjoiUGFsZXR0ZSIsImNvbG9ycyI6WyIjRkYzQjMwIl19
+---
+Your move: 2 ∙ updated 1m ago
+---
+Mine (3) | font=Menlo-Bold size=12
+❯  #90006  KT-990004 +1  Example change  DR ✗  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false href=.
+--KT-990004: Example change | color=gray trim=false emojize=false symbolize=false
+--Your move | color=gray
+--  dry-run failed 7h ago | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/1076982024
+--  new comment from trent_user 7h ago | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/90006#issuecomment-1763978352
+--  waiting: erin_user | trim=false emojize=false symbolize=false
+-----
+--Runs | color=gray
+--  dry-run ✗ failed 9h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076982024
+--  dry-run ~✓ passed (outdated) 27h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076053118
+--Reviewers (1 approved) | color=gray
+--  erin_user pending (code owner) | trim=false
+--  trent_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /analysis/: erin_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90006
+❯  #90006  KT-990004 +1  Example change  DR ✗  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90006
+❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false href=.
+--KT-990001: Example change | color=gray trim=false emojize=false symbolize=false
+--Your move | color=gray
+--  dry-run rejected: A Coordinator build is already in progress for this pull requ⋯ | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693 tooltip="dry-run rejected: A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`"
+--  waiting: bob_user | trim=false emojize=false symbolize=false
+-----
+--Runs | color=gray
+--  dry-run ⊘ rejected 25h ago | trim=false href=https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693
+--  dry-run ~✓ passed (outdated) 26h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076149525
+--Reviewers (0 approved) | color=gray
+--  bob_user pending (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /analysis/: bob_user | trim=false
+--  ✗ *Generated.java: bob_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90007
+❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90007
+∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false href=.
+--KT-990003: Example change | color=gray trim=false emojize=false symbolize=false
+--Waiting on reviewers | color=gray
+--  waiting: bob_user | trim=false emojize=false symbolize=false
+-----
+--Runs | color=gray
+--  dry-run ✓ passed 2h ago | trim=false href=https://buildserver.labs.intellij.net/build/1077449831
+--  dry-run ~✓ passed (outdated) 22h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076451184
+--  dry-run ~✓ passed (outdated) 40h ago | trim=false href=https://buildserver.labs.intellij.net/build/1075403446
+--Reviewers (1 approved) | color=gray
+--  bob_user pending (code owner) | trim=false
+--  trent_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /analysis/: bob_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90005
+∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90005
+Review (0) | font=Menlo-Bold size=12
+  +2 reviews not waiting on you, 1 draft (in the interactive view, a) | size=11 color=gray trim=false
+Recently merged (24h) (1) | font=Menlo-Bold size=12 href=.
+--✓  #90004  KT-990005  Example change | font=Menlo size=12 trim=false emojize=false symbolize=false href=.
+----KT-990005: Example change | color=gray trim=false emojize=false symbolize=false
+-------
+----Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90004
+--✓  #90004  KT-990005  Example change | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90004
+---
+Refresh now | refresh=true

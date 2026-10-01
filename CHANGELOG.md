@@ -6,6 +6,14 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A menu-bar plugin for SwiftBar: `gh kotlin-prs swiftbar install`. The menu bar shows how many PRs wait on you (red
+  when a run of yours failed); the menu lists the sections like `list`, and per PR why it's your move, its runs,
+  reviewers and code owners, links, and the commands you could post, which open the interactive view to ask. It
+  notifies of what changed through SwiftBar; a click on a notification opens its PR in the interactive view.
+  `swiftbar script` prints the plugin for a manual install. It opens the interactive view in the terminal set in
+  SwiftBar's settings, e.g. Ghostty.
+- `list --format swiftbar` prints the plugin's menu.
+
 - `gh kotlin-prs --pr <number>` opens the interactive view on that PR's details; `--post <command>` with it also asks
   to post that command there. Nothing is posted without `y`.
 

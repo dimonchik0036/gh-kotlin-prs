@@ -100,7 +100,7 @@ func (s *tuiStart) check(e env) error {
 		s.command = &c
 	}
 	if !e.interactive() {
-		return usageError{errors.New("--pr opens the interactive view, which needs a terminal")}
+		return usageError{errors.New("the interactive view needs a terminal")}
 	}
 	return nil
 }

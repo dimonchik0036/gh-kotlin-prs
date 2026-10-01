@@ -227,13 +227,15 @@ Every rule lives in one `classify` package, with a test per rule.
 ## 6. CLI
 
 ```
-gh kotlin-prs                      # TUI on a TTY, otherwise `list` (§12; until v0.2.0 always `list`)
+gh kotlin-prs [--pr <number> [--post <command>]]  # TUI on a TTY, otherwise `list` (§12)
 gh kotlin-prs list [--mine|--review] [--waiting-on-me] [--all] [--no-teams] [--no-merged]
                    [--format table|json|swiftbar] [--max-age DURATION]
 gh kotlin-prs show <number> [--max-age DURATION]  # details: reviewers, run history, threads, reasons
 gh kotlin-prs config [path|init [--force]]  # effective config with sources, its path, a commented template
 gh kotlin-prs run <number> <command> [--yes]  # post a bot command (§8): dry-run, dry-run-retry, safe-merge,
                                               # cancel-coordinator, fixup, codeowners
+gh kotlin-prs swiftbar install [--dir D] [--interval 3m] [--force]  # the menu-bar plugin (§15)
+gh kotlin-prs swiftbar script [--interval 3m]  # its script, for a manual install
 gh kotlin-prs open <number>        # browser
 ```
 
@@ -371,9 +373,11 @@ internal/cache/     raw responses with their fetch time (§13)
 internal/classify/  bot parsing, rules → model
 internal/listing/   fetch the sections, classify them with any clock, --all / --waiting-on-me
 internal/model/
-internal/render/    table, json, swiftbar
+internal/render/    table, json
 internal/tui/
-internal/actions/
+internal/actions/   the bot commands and when they may be posted
+internal/notify/    events from two snapshots, terminal notifications, the command hook
+internal/swiftbar/  the menu-bar plugin: its menu, script and notifications
 testdata/           raw GraphQL responses + golden outputs
 scripts/fetch-fixtures.sh
 ```
@@ -394,8 +398,10 @@ scripts/fetch-fixtures.sh
   (`gh extension install dimonchik0036/gh-kotlin-prs`).
 - **v0.2.0, TUI (read-only) + cache + notifications:** §7, §12, §13, §14.
 - **v0.3.0, actions** in the CLI and the TUI, with confirmation (§8).
-- **Later, to be decided after v0.3.0:** SwiftBar output (`--format swiftbar`), a daemon (background refresh and
-  notifications without the TUI, reusing §13 and §14), an MCP mode, snoozing PRs.
+- **v0.4.0, the SwiftBar menu-bar plugin** (§15).
+- **Later:** a daemon (background refresh and notifications without the TUI or the plugin, reusing §13 and §14), an
+  MCP mode, snoozing PRs, shell completion. gh doesn't pass completion on to extensions (`gh __complete kotlin-prs ""`
+  answers nothing, and aliases aren't resolved), so it needs a hook that wraps gh's own completion.
 
 ## 12. CLI and TUI
 
@@ -481,6 +487,79 @@ scripts/fetch-fixtures.sh
 - One notifier: `internal/notify` knows nothing of the TUI (it returns the escapes as a string and runs the command
   where the caller says), so the daemon can reuse it.
 
-## 15. Open questions
+## 15. Menu bar (SwiftBar)
+
+- `list --format swiftbar` (the section flags of `list` apply) prints a [SwiftBar](https://github.com/swiftbar/SwiftBar)
+  plugin's output (`internal/swiftbar`), from the same rows as `list`:
+  - the title: the SF Symbol `arrow.triangle.pull`, template-rendered so it follows light and dark mode, and the number
+    of PRs whose move is mine (none for 0). `⋯` while a dry-run or safe-merge of mine is requested or running; the
+    symbol red while one of mine failed or was rejected (not outdated). `!` last when nothing could be fetched, or when
+    a refresh failed and the cached data shown is older than twice the plugin's `--max-age` (it missed a refresh; one
+    failed refresh alone doesn't mark it, so a blip doesn't flicker), e.g. `3 ⋯ !`; it doesn't change the color. The
+    red is `sfconfig=<base64 {"renderingMode":"Palette","colors":["#FF3B30"]}>` (systemRed, readable on light and dark
+    menu bars): SwiftBar 2.1.1 colors an `sfimage` only through `sfconfig`, and `sfcolor` only colors the symbols in
+    an item's text, so `sfcolor` is ignored for the menu-bar icon;
+  - the dropdown: "Your move: N ∙ updated 1m ago" (or the fetch error, with the cached data's age), the API budget when
+    less than a tenth is left (live responses only), then the sections: Mine and Review at the top level, Team requests
+    and Recently merged as submenus, each with its count and the `--all` note. A PR is one monospace line: who has
+    the move, the number, the issue, the title cut at 33 (the submenu starts with all of it), the dry-run, the
+    safe-merge and `list`'s reviews cell (`1/2 ✗`: approvals of the people reviewing, the code-owners mark), no thread
+    count;
+  - a PR's submenu: the whole title (gray, no action), "Details in the interactive view", whose move it is and every
+    reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the reviewers and
+    the code-owner rules still missing, "Open on GitHub", "Copy link", and the commands `actions.Available` allows
+    now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);
+    nothing is ever posted from the menu. A click on the row itself opens the details too (hovering opens the submenu),
+    and ⌥ shows the row's alternate, which opens the PR in the browser;
+  - the footer: "Refresh now" (a live fetch, then SwiftBar runs the plugin again) and "Open the interactive view".
+  - Item texts are neutralized for SwiftBar: `|` becomes `¦`, newlines spaces, a leading `-` gets a zero-width space,
+    and user text has `emojize=false symbolize=false`; parameter values with blanks are quoted.
+  - Every item with a submenu has an action: a PR row the details' (`bash=exec … --pr N terminal=true`; `href=.`
+    outside SwiftBar, without the plugin), Team requests and Recently merged `href=.`, the href SwiftBar 2.1.1 skips on
+    a click, so the click only closes the menu. SwiftBar 2.1.1 updates the menu in place, and when an item's line
+    changes it patches the item: for an item without an action that clears the action AppKit gave it for its submenu,
+    so the item turns grey and its submenu stays shut until a full rebuild (SwiftBar #512, fixed in 2.1.2-beta-1). An
+    action of its own survives the patch, and AppKit runs it on a click on the item. The ⌥ alternate rows have their
+    main row's text.
+  - It never fails: an error shows in the menu, with the last cached data (any age) when there is some, and exits 0.
+- The plugin script (`swiftbar script`, written by `swiftbar install` as `kotlin-prs.<interval>.sh`, mode 0755) bakes in
+  gh's absolute path, a PATH with its folder, and the config file when `--config` or `$GH_KOTLIN_PRS_CONFIG` names one,
+  since SwiftBar runs it with a bare environment. It hides SwiftBar's "Run in Terminal" and "About" items. Without
+  arguments it runs `list --format swiftbar --max-age <interval/2, at least 10s>`, so a fresh fetch of the TUI or the
+  CLI answers; with `copy <url>` and `refresh` it serves those clicks of the menu.
+  - Its xbar tags fill SwiftBar's plugin details, with the names SwiftBar 2.1.1's `PluginMetadata` reads: `title`,
+    `version` (the `--version` of the tool that wrote it), `author` and `author.github` (dimonchik0036), `desc`,
+    `dependencies` (gh) and `about` (the repo; not xbar's `abouturl`). No schedule: the file name has the interval.
+- `swiftbar install` writes into SwiftBar's plugin folder (`defaults read com.ameba.SwiftBar PluginDirectory`) or
+  `--dir`; it refuses when SwiftBar has no folder yet, and replaces an installed `kotlin-prs.*.sh` only with `--force`
+  (removing the other intervals' files).
+- Opening the interactive view from the menu: the items are `bash=exec param1=<gh> param2=kotlin-prs param3=--pr
+  param4=N [param5=--post param6=<command>] terminal=true`. SwiftBar opens a new tab in the terminal of its Settings →
+  Advanced → Terminal (Terminal, iTerm or Ghostty) and types `export <its SWIFTBAR_*/OS_* variables>; <bash> <params>`
+  into the user's shell, unquoted, with no PATH of its own, so the line reads `…; exec /opt/homebrew/bin/gh kotlin-prs
+  --pr 8563`. `exec` replaces the tab's shell, so the tab closes when the interactive view quits. gh's path is the
+  plugin script's (`GH_KOTLIN_PRS_GH`), the gh the plugin itself runs. There's no config of our own for it.
+- Notifications: a plugin run that fetched every query live (no cache hit) diffs its rows with the last live run's,
+  kept in the cache dir (`swiftbar-baseline.json`), with `notify.Diff` and the `notify.events` of §14. The first run
+  only stores its rows. Each event goes to `notify.command`, and to SwiftBar's
+  `swiftbar://notify?plugin=…&title=…&body=…&bash=exec&param1=<gh>&param2=kotlin-prs&param3=--pr&param4=N&terminal=true`
+  (`osascript display notification`, which no click opens anything from, when SwiftBar isn't the caller). Every event
+  is about a PR, and a click opens the interactive view on its details, the way the menu's items do; one about no PR
+  would carry `href=` and open its page.
+  - SwiftBar 2.1.1 keeps all the URL's parameters for the click and reads them as an item's: joined as `key=value`
+    in no fixed order, a value with a space quoted in `'`, then parsed like a menu line. An apostrophe in a quoted
+    title would end it there and lose `bash` and its params, so the title and body never have a space: SwiftBar shows
+    each `+` in them as a space, so spaces go as a raw `+`, the text's own `+` as `＋` (U+FF0B), other blanks as a
+    space, and a leading quote gets a zero-width space.
+  - A click finds the plugin that posted the notification by its file's path, so notifications from before a
+    reinstall with another interval (another file name) open nothing.
+  - On macOS 26, SwiftBar 2.1.1 also shows its menu-bar recovery alert ("SwiftBar is already running") after every
+    notification click and every `open` of a `swiftbar://` URL: macOS sends a reopen event after them (SwiftBar #535,
+    fixed in 2.1.2-beta-4 by #562). The click's action still runs.
+  - Who notifies: the plugin through SwiftBar, the TUI through the terminal (`notify.terminal`, `none` for nothing,
+    and `notify.bell`), and `notify.command` (empty by default) from both. `notify.events` filters all of them.
+    They don't coordinate: the same change may be notified by each.
+
+## 16. Open questions
 
 None for now.

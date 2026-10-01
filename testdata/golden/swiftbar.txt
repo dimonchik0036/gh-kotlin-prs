@@ -1,0 +1,91 @@
+2 | sfimage=arrow.triangle.pull sfconfig=eyJyZW5kZXJpbmdNb2RlIjoiUGFsZXR0ZSIsImNvbG9ycyI6WyIjRkYzQjMwIl19
+---
+Your move: 2 ∙ updated 1m ago
+---
+Mine (3) | font=Menlo-Bold size=12
+❯  #90006  KT-990004 +1  Example change  DR ✗  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 terminal=true
+--KT-990004: Example change | color=gray trim=false emojize=false symbolize=false
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 terminal=true
+--Your move | color=gray
+--  dry-run failed 7h ago | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/1076982024
+--  new comment from trent_user 7h ago | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/90006#issuecomment-1763978352
+--  waiting: erin_user | trim=false emojize=false symbolize=false
+-----
+--Runs | color=gray
+--  dry-run ✗ failed 9h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076982024
+--  dry-run ~✓ passed (outdated) 27h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076053118
+--Reviewers (1 approved) | color=gray
+--  erin_user pending (code owner) | trim=false
+--  trent_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /analysis/: erin_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90006
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90006 terminal=false
+-----
+--/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
+--/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+❯  #90006  KT-990004 +1  Example change  DR ✗  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90006
+❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 terminal=true
+--KT-990001: Example change | color=gray trim=false emojize=false symbolize=false
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 terminal=true
+--Your move | color=gray
+--  dry-run rejected: A Coordinator build is already in progress for this pull requ⋯ | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693 tooltip="dry-run rejected: A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`"
+--  waiting: bob_user | trim=false emojize=false symbolize=false
+-----
+--Runs | color=gray
+--  dry-run ⊘ rejected 25h ago | trim=false href=https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693
+--  dry-run ~✓ passed (outdated) 26h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076149525
+--Reviewers (0 approved) | color=gray
+--  bob_user pending (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /analysis/: bob_user | trim=false
+--  ✗ *Generated.java: bob_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90007
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90007 terminal=false
+-----
+--/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
+--/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90007
+∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 terminal=true
+--KT-990003: Example change | color=gray trim=false emojize=false symbolize=false
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 terminal=true
+--Waiting on reviewers | color=gray
+--  waiting: bob_user | trim=false emojize=false symbolize=false
+-----
+--Runs | color=gray
+--  dry-run ✓ passed 2h ago | trim=false href=https://buildserver.labs.intellij.net/build/1077449831
+--  dry-run ~✓ passed (outdated) 22h ago | trim=false href=https://buildserver.labs.intellij.net/build/1076451184
+--  dry-run ~✓ passed (outdated) 40h ago | trim=false href=https://buildserver.labs.intellij.net/build/1075403446
+--Reviewers (1 approved) | color=gray
+--  bob_user pending (code owner) | trim=false
+--  trent_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /analysis/: bob_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90005
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90005 terminal=false
+-----
+--/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
+--/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90005
+Review (0) | font=Menlo-Bold size=12
+  +2 reviews not waiting on you, 1 draft (in the interactive view, a) | size=11 color=gray trim=false
+Recently merged (24h) (1) | font=Menlo-Bold size=12 href=.
+--✓  #90004  KT-990005  Example change | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90004 terminal=true
+----KT-990005: Example change | color=gray trim=false emojize=false symbolize=false
+----Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90004 terminal=true
+-------
+----Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90004
+----Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90004 terminal=false
+--✓  #90004  KT-990005  Example change | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90004
+---
+Refresh now | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=refresh terminal=false refresh=true
+Open the interactive view | bash=exec param1=gh param2=kotlin-prs terminal=true
