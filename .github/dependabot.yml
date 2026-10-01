@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: [minor, patch]
+  - package-ecosystem: gomod
+    directories: [/, /scripts/screenshots]
+    schedule:
+      interval: weekly
+    groups:
+      go:
+        patterns: ["*"]
+        update-types: [minor, patch]
