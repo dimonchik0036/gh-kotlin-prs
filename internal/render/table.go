@@ -52,7 +52,7 @@ func SortRows(prs []model.PR) {
 	})
 }
 
-// Options control the table.
+// Options control the table and the detail view.
 type Options struct {
 	Icons Icons
 	// Hyperlinks turns PR numbers, issue IDs, builds and logins into terminal links.
@@ -65,34 +65,67 @@ type Options struct {
 	Hidden map[model.Section]model.Hidden
 }
 
-// Table prints the PRs grouped by section. Mine and Review always print; the other
-// sections only when they have rows or hidden rows.
-func Table(w io.Writer, prs []model.PR, opts Options) error {
+// Block is one section of the list: what the table prints for it, and what a TUI list
+// shows with the same rows.
+type Block struct {
+	Section model.Section
+	// Title is "Mine (3)": the section and how many rows it shows.
+	Title string
+	// Rows come in display order: my move first.
+	Rows []Row
+	// Empty is a section with no rows, shown or hidden: the table says "nothing here".
+	Empty bool
+	// Hidden counts the rows only --all shows: "+4 reviews not waiting on you (--all)".
+	Hidden string
+}
+
+// Blocks groups the PRs by section, in display order. Mine and Review are always there;
+// the other sections only when they have rows or hidden rows.
+func Blocks(prs []model.PR, opts Options) []Block {
 	bySection := map[model.Section][]model.PR{}
 	for _, pr := range prs {
 		bySection[pr.Section] = append(bySection[pr.Section], pr)
 	}
-	var b strings.Builder
-	first := true
+	var blocks []Block
 	for _, section := range sectionOrder {
-		rows, hidden := bySection[section], opts.Hidden[section]
+		prs, hidden := bySection[section], opts.Hidden[section]
 		always := section == model.SectionMine || section == model.SectionReview
-		if !slices.Contains(opts.Sections, section) || (len(rows) == 0 && hidden.Total() == 0 && !always) {
+		if !slices.Contains(opts.Sections, section) || (len(prs) == 0 && hidden.Total() == 0 && !always) {
 			continue
 		}
-		if !first {
+		prs = slices.Clone(prs)
+		SortRows(prs)
+		rows := make([]Row, len(prs))
+		for i, pr := range prs {
+			rows[i] = NewRow(pr, opts.Icons)
+		}
+		blocks = append(blocks, Block{
+			Section: section,
+			Title:   fmt.Sprintf("%s (%d)", sectionTitles[section], len(rows)),
+			Rows:    rows,
+			Empty:   len(rows) == 0 && hidden.Total() == 0,
+			Hidden:  hiddenLine(section, hidden),
+		})
+	}
+	return blocks
+}
+
+// Table prints the PRs grouped by section (Blocks).
+func Table(w io.Writer, prs []model.PR, opts Options) error {
+	var b strings.Builder
+	for i, block := range Blocks(prs, opts) {
+		if i > 0 {
 			b.WriteString("\n")
 		}
-		first = false
-		writef(&b, "%s\n", styleHeader.Render(fmt.Sprintf("%s (%d)", sectionTitles[section], len(rows))))
-		if len(rows) == 0 && hidden.Total() == 0 {
+		writef(&b, "%s\n", styleHeader.Render(block.Title))
+		if block.Empty {
 			b.WriteString(styleFaint.Render("  nothing here") + "\n")
 		}
-		rows = slices.Clone(rows)
-		SortRows(rows)
-		writeRows(&b, rows, opts)
-		if line := hiddenLine(section, hidden); line != "" {
-			b.WriteString(styleFaint.Render("  "+line) + "\n")
+		for _, line := range Lines(block.Rows, opts.Hyperlinks) {
+			b.WriteString(line + "\n")
+		}
+		if block.Hidden != "" {
+			b.WriteString(styleFaint.Render("  "+block.Hidden) + "\n")
 		}
 	}
 	_, err := io.WriteString(w, b.String())
@@ -118,18 +151,29 @@ func hiddenLine(section model.Section, h model.Hidden) string {
 	return "+" + strings.Join(parts, ", ") + " (--all)"
 }
 
-func writeRows(b *strings.Builder, rows []model.PR, opts Options) {
+// Lines renders rows as lines, their cells aligned into columns two spaces apart.
+func Lines(rows []Row, links bool) []string {
 	cells := make([][]string, len(rows))
-	for i, pr := range rows {
-		cells[i] = rowCells(pr, opts)
+	for i, row := range rows {
+		cells[i] = make([]string, len(row.Cells))
+		for j, c := range row.Cells {
+			cells[i][j] = c.Render(links)
+		}
 	}
-	writeGrid(b, cells)
+	return align(cells)
 }
 
-// writeGrid aligns cells into columns two spaces apart.
+// writeGrid writes cells aligned into columns.
 func writeGrid(b *strings.Builder, cells [][]string) {
+	for _, line := range align(cells) {
+		b.WriteString(line + "\n")
+	}
+}
+
+// align pads cells into columns two spaces apart; lines have no trailing blanks.
+func align(cells [][]string) []string {
 	if len(cells) == 0 {
-		return
+		return nil
 	}
 	widths := make([]int, len(cells[0]))
 	for _, row := range cells {
@@ -137,7 +181,8 @@ func writeGrid(b *strings.Builder, cells [][]string) {
 			widths[i] = max(widths[i], ansi.StringWidth(c))
 		}
 	}
-	for _, row := range cells {
+	lines := make([]string, len(cells))
+	for k, row := range cells {
 		var line strings.Builder
 		for i, c := range row {
 			if i > 0 {
@@ -148,151 +193,9 @@ func writeGrid(b *strings.Builder, cells [][]string) {
 				line.WriteString(strings.Repeat(" ", widths[i]-ansi.StringWidth(c)))
 			}
 		}
-		b.WriteString(strings.TrimRight(line.String(), " ") + "\n")
+		lines[k] = strings.TrimRight(line.String(), " ")
 	}
-}
-
-func rowCells(pr model.PR, opts Options) []string {
-	icons := opts.Icons
-	title := trimIssuePrefix(pr.Title, pr.Issues)
-	if pr.Draft {
-		title = "[draft] " + title
-	}
-	title = ansi.Truncate(title, titleWidth, icons.Ellipsis)
-
-	primary := pr.PrimaryReason()
-	reasonStyle := lipgloss.NewStyle()
-	if pr.Next == model.NextMe {
-		reasonStyle = styleMe
-	}
-	reason := styledLink(opts.Hyperlinks, primary.URL, segment{text: ansi.Truncate(primary.Text, reasonWidth, icons.Ellipsis), style: reasonStyle})
-	if pr.Section == model.SectionMerged {
-		return []string{NextMarker(pr.Next, icons), numberCell(pr, opts), issueCell(pr, opts), title, reason}
-	}
-	threads := ""
-	if pr.UnresolvedThreads > 0 {
-		threads = pluralize(pr.UnresolvedThreads, "thread")
-	}
-	return []string{
-		NextMarker(pr.Next, icons),
-		numberCell(pr, opts),
-		issueCell(pr, opts),
-		title,
-		runCell("DR", pr.DryRun, opts),
-		runCell("SM", pr.SafeMerge, opts),
-		ReviewSummary(pr, icons),
-		threads,
-		reason,
-	}
-}
-
-func numberCell(pr model.PR, opts Options) string {
-	return link(opts.Hyperlinks, pr.URL, fmt.Sprintf("#%d", pr.Number))
-}
-
-// issueCell is the primary issue and how many more there are: "KT-123 +1".
-func issueCell(pr model.PR, opts Options) string {
-	if len(pr.Issues) == 0 {
-		return ""
-	}
-	primary := link(opts.Hyperlinks, pr.Issues[0].URL, pr.Issues[0].ID)
-	if len(pr.Issues) == 1 {
-		return primary
-	}
-	return fmt.Sprintf("%s +%d", primary, len(pr.Issues)-1)
-}
-
-// trimIssuePrefix drops the issue IDs Kotlin titles usually start with
-// ("KT-1, KT-2: Fix …"): they have their own column.
-func trimIssuePrefix(title string, issues []model.Issue) string {
-	rest := title
-	for trimmed := true; trimmed; {
-		trimmed = false
-		for _, issue := range issues {
-			if r, ok := strings.CutPrefix(rest, issue.ID); ok && (r == "" || strings.ContainsRune(":, ", rune(r[0]))) {
-				rest, trimmed = strings.TrimLeft(r, ", "), true
-			}
-		}
-	}
-	if rest == title {
-		return title
-	}
-	return strings.TrimSpace(strings.TrimPrefix(rest, ":"))
-}
-
-// NextMarker is the first column: who has the move.
-func NextMarker(next model.NextAction, icons Icons) string {
-	switch next {
-	case model.NextMe:
-		return styleMe.Render(icons.NextMe)
-	case model.NextCI:
-		return styleProgress.Render(icons.NextCI)
-	case model.NextDone:
-		return stylePassed.Render(icons.NextDone)
-	}
-	return icons.NextOther
-}
-
-// runCell is "DR ✓", linked to the run's build (or its comment) when links are on. Only
-// the label looks like a link; the status symbol keeps its own style.
-func runCell(label string, run model.Run, opts Options) string {
-	symbol, style := runSymbol(run, opts.Icons)
-	return styledLink(opts.Hyperlinks, run.Link(),
-		segment{text: label}, segment{text: " "}, segment{text: symbol, style: style, symbol: true})
-}
-
-// RunSymbol is the state of a run; outdated runs get the Outdated prefix and are faint.
-func RunSymbol(run model.Run, icons Icons) string {
-	symbol, style := runSymbol(run, icons)
-	return style.Render(symbol)
-}
-
-func runSymbol(run model.Run, icons Icons) (string, lipgloss.Style) {
-	var s string
-	style := lipgloss.NewStyle()
-	switch run.State {
-	case model.RunRequested:
-		s, style = icons.RunRequested, styleProgress
-		if run.NoResponse {
-			s, style = icons.RunNoResponse, styleFailed
-		}
-	case model.RunAccepted:
-		s, style = icons.RunAccepted, styleProgress
-	case model.RunRunning:
-		s, style = icons.RunRunning, styleProgress
-	case model.RunPassed:
-		s, style = icons.RunPassed, stylePassed
-	case model.RunFailed:
-		s, style = icons.RunFailed, styleFailed
-	case model.RunRejected:
-		s, style = icons.RunRejected, styleFailed
-	case model.RunCancelled:
-		s = icons.RunCancelled
-	default:
-		return icons.RunNone, lipgloss.NewStyle()
-	}
-	if run.Outdated {
-		return icons.Outdated + s, styleFaint
-	}
-	return s, style
-}
-
-// ReviewSummary is "approvals/reviewers" plus the code-owners verdict.
-func ReviewSummary(pr model.PR, icons Icons) string {
-	people := 0
-	for _, r := range pr.Reviewers {
-		if r.Login != "" {
-			people++
-		}
-	}
-	owners := icons.OwnersUnknown
-	switch pr.CodeOwners.State {
-	case model.CodeOwnersOK:
-		owners = stylePassed.Render(icons.OwnersOK)
-	case model.CodeOwnersMissing:
-		owners = styleFailed.Render(icons.OwnersMissing)
-	}
-	return fmt.Sprintf("%d/%d %s", pr.Approvals, people, owners)
+	return lines
 }
 
 func pluralize(n int, noun string) string {

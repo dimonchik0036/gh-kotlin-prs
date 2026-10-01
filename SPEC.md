@@ -348,7 +348,10 @@ scripts/fetch-fixtures.sh
   output for scripts, pipes, JSON and SwiftBar. Changing what the bare command does is user-visible: CHANGELOG.
 - One rendering source: the TUI list rows and the `list` table come from the same row and cell code (same columns,
   symbols and reasons), and the TUI detail pane reuses the `show` renderer. The TUI only adds selection, the detail
-  pane, the filter, the status bar and refresh.
+  pane, the filter, the status bar and refresh. In `internal/render`: `Blocks` are the sections (title, sorted rows,
+  the "nothing here" and `--all` notes), a `Row` is a PR as `Cell`s (column, plain text, link target, an optional
+  max width cut with the ellipsis, rendered with or without links), `Lines` aligns rows into columns, and
+  `DetailView` is the `show` text cut to a given width.
 
 ## 13. Cache and state
 

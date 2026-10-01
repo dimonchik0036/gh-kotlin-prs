@@ -201,14 +201,21 @@ func TestTableColumnsAlign(t *testing.T) {
 				continue
 			}
 			SortRows(rows)
+			cells := make([]Row, len(rows))
+			for i, pr := range rows {
+				cells[i] = NewRow(pr, icons)
+			}
+			lines := Lines(cells, opts.Hyperlinks)
 			var b strings.Builder
-			writeRows(&b, rows, opts)
-			lines := strings.Split(strings.TrimSuffix(b.String(), "\n"), "\n")
+			for _, line := range lines {
+				b.WriteString(line + "\n")
+			}
 			var starts [][]int
 			for i, line := range lines {
 				var cols []int
 				pos := 0
-				for _, cell := range rowCells(rows[i], opts) {
+				for _, c := range cells[i].Cells {
+					cell := c.Render(opts.Hyperlinks)
 					if cell == "" {
 						cols = append(cols, -1)
 						continue
@@ -622,7 +629,7 @@ func TestLinkedSymbolHasNoUnderline(t *testing.T) {
 	run := model.Run{State: model.RunFailed, Outdated: true, BuildURL: "https://example.org/build/1"}
 	var b bytes.Buffer
 	w := &colorprofile.Writer{Forward: &b, Profile: colorprofile.ANSI}
-	if _, err := io.WriteString(w, runCell("DR", run, Options{Icons: Unicode, Hyperlinks: true})); err != nil {
+	if _, err := io.WriteString(w, runCell(ColumnDryRun, "DR", run, Unicode).Render(true)); err != nil {
 		t.Fatal(err)
 	}
 	want := ansi.SetHyperlink(run.BuildURL) + "\x1b[4;34mDR\x1b[m \x1b[2m~" + Unicode.RunFailed + "\x1b[m" + ansi.ResetHyperlink()
@@ -631,5 +638,125 @@ func TestLinkedSymbolHasNoUnderline(t *testing.T) {
 	}
 	if got := ansi.StringWidth(b.String()); got != ansi.StringWidth("DR ~"+Unicode.RunFailed) {
 		t.Errorf("width %d", got)
+	}
+}
+
+// The list's blocks carry what the table prints: titles, sorted rows, notes.
+func TestBlocks(t *testing.T) {
+	prs, hidden := visible(loadModels(t))
+	blocks := Blocks(prs, Options{Icons: Unicode, Sections: allSections, Hidden: hidden})
+	var titles []string
+	for _, b := range blocks {
+		titles = append(titles, b.Title)
+		for i, row := range b.Rows {
+			if row.PR.Section != b.Section {
+				t.Errorf("%s: row #%d from %s", b.Title, row.PR.Number, row.PR.Section)
+			}
+			if i > 0 && row.PR.Next == model.NextMe && b.Rows[i-1].PR.Next != model.NextMe {
+				t.Errorf("%s: #%d of mine after others", b.Title, row.PR.Number)
+			}
+		}
+	}
+	if got, want := titles, []string{"Mine (3)", "Review (0)", "Recently merged (24h) (2)"}; !slices.Equal(got, want) {
+		t.Errorf("titles %q, want %q", got, want)
+	}
+	review := blocks[1]
+	if review.Empty || review.Hidden != "+3 reviews not waiting on you, 1 draft (--all)" {
+		t.Errorf("Review: empty %v, hidden %q", review.Empty, review.Hidden)
+	}
+	empty := Blocks(nil, Options{Icons: Unicode, Sections: allSections})
+	if len(empty) != 2 || !empty[0].Empty || !empty[1].Empty {
+		t.Errorf("without PRs: %+v, want Mine and Review, empty", empty)
+	}
+}
+
+// A row's cells name their column and link target, the same in every renderer.
+func TestRowCells(t *testing.T) {
+	pr := loadModel(t, "pr-90006.json")
+	row := NewRow(pr, Unicode)
+	var columns []Column
+	links := map[Column]string{}
+	for _, c := range row.Cells {
+		columns = append(columns, c.Column)
+		links[c.Column] = c.URL()
+	}
+	want := []Column{ColumnNext, ColumnNumber, ColumnIssue, ColumnTitle, ColumnDryRun, ColumnSafeMerge, ColumnReview, ColumnThreads, ColumnReason}
+	if !slices.Equal(columns, want) {
+		t.Errorf("columns %v, want %v", columns, want)
+	}
+	for column, url := range map[Column]string{
+		ColumnNumber: pr.URL, ColumnIssue: pr.Issues[0].URL, ColumnDryRun: pr.DryRun.Link(),
+		ColumnSafeMerge: pr.SafeMerge.Link(), ColumnReason: pr.PrimaryReason().URL, ColumnTitle: "",
+	} {
+		if links[column] != url {
+			t.Errorf("%s links %q, want %q", column, links[column], url)
+		}
+	}
+	if got := row.Cells[2].Text(); got != pr.Issues[0].ID+" +1" {
+		t.Errorf("issue cell %q", got)
+	}
+	merged := NewRow(model.PR{Number: 1, Section: model.SectionMerged, Next: model.NextDone}, Unicode)
+	columns = nil
+	for _, c := range merged.Cells {
+		columns = append(columns, c.Column)
+	}
+	if want := []Column{ColumnNext, ColumnNumber, ColumnIssue, ColumnTitle, ColumnReason}; !slices.Equal(columns, want) {
+		t.Errorf("merged columns %v, want %v", columns, want)
+	}
+}
+
+// Max cuts a cell like ansi.Truncate, across its segments, keeping links and styles.
+func TestCellMax(t *testing.T) {
+	c := textCell(ColumnReason, "https://example.org", segment{text: "dry-run "}, segment{text: "failed 2h ago", style: styleFailed})
+	c.ellipsis = Unicode.Ellipsis
+	for _, n := range []int{0, 30, 21, 12, 8, 5, 1} {
+		c.Max = n
+		got := c.Render(true)
+		want := ansi.Truncate(c.Text(), n, Unicode.Ellipsis)
+		if n == 0 {
+			want = c.Text()
+		}
+		if ansi.Strip(got) != want {
+			t.Errorf("Max %d: %q, want %q", n, ansi.Strip(got), want)
+		}
+		if strings.Count(got, "\x1b]8;;https") != 1 || !strings.HasSuffix(got, ansi.ResetHyperlink()) {
+			t.Errorf("Max %d: the link is broken: %q", n, got)
+		}
+	}
+	c.Max = 12
+	if got, want := c.Render(false), "dry-run "+styleFailed.Render("fai"+Unicode.Ellipsis); got != want {
+		t.Errorf("the cut segment keeps its style: %q, want %q", got, want)
+	}
+}
+
+// The detail view at a width cuts long lines and closes their links; at 0 it's `show`.
+func TestDetailViewWidth(t *testing.T) {
+	pr := loadModel(t, "pr-90001.json")
+	opts := Options{Icons: Unicode, Hyperlinks: true, Org: "JetBrains"}
+	var b bytes.Buffer
+	if err := Detail(&b, pr, now, opts); err != nil {
+		t.Fatal(err)
+	}
+	if got := DetailView(pr, now, opts, 0); got != b.String() {
+		t.Errorf("DetailView at width 0 differs from Detail")
+	}
+	for _, width := range []int{40, 72} {
+		view := DetailView(pr, now, opts, width)
+		cut := false
+		for _, line := range strings.Split(view, "\n") {
+			if w := ansi.StringWidth(line); w > width {
+				t.Errorf("width %d: a line of %d: %q", width, w, ansi.Strip(line))
+			}
+			cut = cut || strings.HasSuffix(ansi.Strip(line), Unicode.Ellipsis)
+			if strings.Count(line, "\x1b]8;;http") != strings.Count(line, "\x1b]8;;\a") {
+				t.Errorf("width %d: an unclosed link in %q", width, line)
+			}
+		}
+		if !cut {
+			t.Errorf("width %d: nothing was cut:\n%s", width, ansi.Strip(view))
+		}
+		if strings.Count(view, "\n") != strings.Count(b.String(), "\n") {
+			t.Errorf("width %d changes the line count", width)
+		}
 	}
 }

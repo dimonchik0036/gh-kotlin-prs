@@ -50,8 +50,16 @@ type ShowOutput struct {
 	PR          model.PR  `json:"pr"`
 }
 
-// Detail prints everything known about one PR: reasons, reviewers, code owners, runs, threads.
+// Detail prints everything known about one PR (DetailView), at any width.
 func Detail(w io.Writer, pr model.PR, now time.Time, opts Options) error {
+	_, err := io.WriteString(w, DetailView(pr, now, opts, 0))
+	return err
+}
+
+// DetailView is everything known about one PR: reasons, reviewers, code owners, runs,
+// threads and checks; `show` prints it, a TUI detail pane shows it. Lines wider than
+// width (0 for no limit) are cut with the ellipsis, their links and styles closed.
+func DetailView(pr model.PR, now time.Time, opts Options, width int) string {
 	icons, links := opts.Icons, opts.Hyperlinks
 	var b strings.Builder
 	title := " " + pr.Title
@@ -201,8 +209,14 @@ func Detail(w io.Writer, pr model.PR, now time.Time, opts Options) error {
 		}
 		writeGrid(&b, rows)
 	}
-	_, err := io.WriteString(w, b.String())
-	return err
+	if width <= 0 {
+		return b.String()
+	}
+	lines := strings.Split(b.String(), "\n")
+	for i, line := range lines {
+		lines[i] = ansi.Truncate(line, width, icons.Ellipsis)
+	}
+	return strings.Join(lines, "\n")
 }
 
 // runURL prints a run's URL in full without links, the only way to get it from plain

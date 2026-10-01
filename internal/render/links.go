@@ -30,6 +30,8 @@ type segment struct {
 	symbol bool
 }
 
+func (s segment) render() string { return s.style.Render(s.text) }
+
 // styledLink links one or more segments to url; the hyperlink spans all of them. Text
 // segments keep their bold and faint and gain the underline, and take the link color
 // only if they have no color of their own. Symbol segments and blanks stay as they are.
@@ -38,7 +40,7 @@ func styledLink(on bool, url string, segments ...segment) string {
 	var b strings.Builder
 	if !on || url == "" {
 		for _, s := range segments {
-			b.WriteString(s.style.Render(s.text))
+			b.WriteString(s.render())
 		}
 		return b.String()
 	}
