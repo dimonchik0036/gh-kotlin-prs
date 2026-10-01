@@ -54,6 +54,10 @@ type Options struct {
 	Copy func(text string) error
 	// Notifier delivers what changed between two live refreshes; nil for none.
 	Notifier *notify.Notifier
+	// Start opens this PR's details once it's in the data, 0 for the list. StartCommand
+	// then asks to post that command on it, once a live refresh shows the PR's state.
+	Start        int
+	StartCommand *actions.Command
 }
 
 // Run shows the TUI until the user quits or ctx is done.
@@ -103,6 +107,10 @@ type Model struct {
 	// liveAt is when that refresh started.
 	live   []model.PR
 	liveAt time.Time
+
+	// started: Start's details were opened (or given up on); startCommand waits to be asked.
+	started      bool
+	startCommand *actions.Command
 
 	// posts are the commands posted since the refresh that started last, per PR.
 	posts map[int][]post
@@ -157,20 +165,21 @@ func New(ctx context.Context, opts Options) *Model {
 		}
 	}
 	m := &Model{
-		opts:        opts,
-		bindings:    bindings,
-		posts:       map[int][]post{},
-		ctx:         ctx,
-		schedule:    tea.Tick,
-		diff:        notify.Diff,
-		now:         opts.Now(),
-		all:         opts.All,
-		waitingOnMe: opts.WaitingOnMe,
-		filter:      filter,
-		viewport:    viewport.New(),
-		full:        map[int]*github.PRResponse{},
-		loading:     map[int]bool{},
-		spinner:     sp,
+		opts:         opts,
+		bindings:     bindings,
+		posts:        map[int][]post{},
+		startCommand: opts.StartCommand,
+		ctx:          ctx,
+		schedule:     tea.Tick,
+		diff:         notify.Diff,
+		now:          opts.Now(),
+		all:          opts.All,
+		waitingOnMe:  opts.WaitingOnMe,
+		filter:       filter,
+		viewport:     viewport.New(),
+		full:         map[int]*github.PRResponse{},
+		loading:      map[int]bool{},
+		spinner:      sp,
 	}
 	if opts.Initial != nil {
 		m.data, m.fromCache = opts.Initial, true
@@ -198,7 +207,30 @@ type (
 )
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.tick(), m.refresh())
+	return tea.Batch(m.tick(), m.refresh(), m.openStart(false))
+}
+
+// openStart opens Start's details once the PR is in the data (giving up after a live
+// refresh without it), and asks StartCommand's question after a live refresh, if the
+// details are still what's shown.
+func (m *Model) openStart(live bool) tea.Cmd {
+	var cmd tea.Cmd
+	if n := m.opts.Start; n != 0 && !m.started && m.data != nil {
+		if slices.ContainsFunc(m.prs, func(pr model.PR) bool { return pr.Number == n }) {
+			m.started = true
+			cmd = m.openDetail(n)
+		} else if live {
+			m.started, m.startCommand = true, nil
+			m.setNote(fmt.Sprintf("#%d isn't in the list", n))
+		}
+	}
+	if c := m.startCommand; c != nil && live && m.started {
+		m.startCommand = nil
+		if m.screen == screenDetail && m.detail == m.opts.Start {
+			m.ask(*c)
+		}
+	}
+	return cmd
 }
 
 func (m *Model) tick() tea.Cmd {
@@ -318,12 +350,13 @@ func (m *Model) onFetched(msg fetchedMsg) tea.Cmd {
 	m.reclassify()
 	prev := m.live
 	m.live, m.liveAt = m.prs, m.fetchStarted
+	start := m.openStart(true)
 	if prev == nil || m.opts.Notifier == nil {
-		return nil
+		return start
 	}
 	// A PR becoming my move right after I posted on it is my own doing, not news.
 	events := slices.DeleteFunc(m.diff(prev, m.prs), func(e notify.Event) bool { return e.Kind == notify.MyMove && own[e.Number] })
-	return m.deliver(m.opts.Notifier.Enabled(events))
+	return tea.Batch(start, m.deliver(m.opts.Notifier.Enabled(events)))
 }
 
 // deliver writes the terminal notifications, runs the command per event in the

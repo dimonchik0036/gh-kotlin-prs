@@ -403,6 +403,9 @@ scripts/fetch-fixtures.sh
   with `--format json`. `list` and `show` stay plain output for scripts, pipes, JSON and SwiftBar. Changing what the bare
   command does is user-visible: CHANGELOG. The TUI ignores `--max-age` (every refresh fetches) and `--debug` (stderr is
   the screen).
+- `gh kotlin-prs --pr N` opens the TUI on N's details (`esc` goes to the list); `--post <command>` with it also asks
+  to post that command, the same question as its key, once a live refresh shows the PR's state (never on cached data,
+  and only if the details are still shown). Only `y` posts. Both need a terminal.
 - **Startup:** with a snapshot in the cache whose every part is at most `startupMaxAge` (30m) old, the TUI shows it at
   once and refreshes behind it; otherwise it shows "Loading PRs from GitHub⋯" until the first response. After midnight
   UTC the merged search has a new key, so it falls back to the previous day's (`listing.Cached`). When the search's PRs

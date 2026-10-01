@@ -227,3 +227,67 @@ func TestDraftCommands(t *testing.T) {
 		t.Errorf("posted %q, want %q", h.posted, want)
 	}
 }
+
+// --pr opens the PR's details at once; --post asks only after a live refresh.
+func TestStartOnAPR(t *testing.T) {
+	fixup := actions.Fixup
+	h := newHarness(t, func(h *harness, opts *Options) {
+		opts.Initial = h.cached(5 * time.Minute)
+		opts.Start, opts.StartCommand = 90007, &fixup
+	})
+	cmd := h.m.Init()
+	h.contains("#90007 KT-990001: Example change", "esc back")
+	if h.m.confirm != nil {
+		t.Fatal("asked on cached data")
+	}
+	h.run(cmd)
+	if got := h.statusBar(); !strings.HasPrefix(got, "Post /fixup to #90007") {
+		t.Fatalf("after the live refresh: %q", got)
+	}
+	h.keys("y")
+	if want := []string{"#90007 /fixup"}; !slices.Equal(h.posted, want) {
+		t.Errorf("posted %q", h.posted)
+	}
+	h.keys("esc")
+	h.contains("Mine (3)")
+}
+
+func TestStartWithoutCache(t *testing.T) {
+	retry := actions.DryRunRetry
+	h := newHarness(t, func(_ *harness, opts *Options) { opts.Start, opts.StartCommand = 90006, &retry })
+	h.start()
+	h.contains("#90006 KT-990004: Example change")
+	if got := h.statusBar(); !strings.HasPrefix(got, "Post /dry-run --retry to #90006") {
+		t.Errorf("status bar %q", got)
+	}
+	h.keys("n")
+	if len(h.posted) != 0 {
+		t.Errorf("posted %q", h.posted)
+	}
+}
+
+func TestStartRefusesOrMisses(t *testing.T) {
+	merge := actions.SafeMerge
+	h := newHarness(t, func(_ *harness, opts *Options) { opts.Start, opts.StartCommand = 90006, &merge })
+	h.start()
+	if h.m.confirm != nil || !strings.Contains(h.statusBar(), "not posted: #90006 isn't approved") {
+		t.Errorf("an unavailable command: %q", h.statusBar())
+	}
+	h = newHarness(t, func(_ *harness, opts *Options) { opts.Start, opts.StartCommand = 12345, &merge })
+	h.start()
+	if h.m.screen != screenList || h.m.confirm != nil || !strings.Contains(h.statusBar(), "#12345 isn't in the list") {
+		t.Errorf("a PR not in the list: screen %v, %q", h.m.screen, h.statusBar())
+	}
+	// Leaving the details before the live refresh drops the question.
+	fixup := actions.Fixup
+	h = newHarness(t, func(h *harness, opts *Options) {
+		opts.Initial = h.cached(time.Minute)
+		opts.Start, opts.StartCommand = 90006, &fixup
+	})
+	cmd := h.m.Init()
+	h.keys("esc")
+	h.run(cmd)
+	if h.m.confirm != nil {
+		t.Error("asked after leaving the details")
+	}
+}

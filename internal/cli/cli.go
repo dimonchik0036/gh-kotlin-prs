@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/actions"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/cache"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/classify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
@@ -195,6 +196,7 @@ var legend = "Symbols (--icons unicode, the default):\n" + render.Unicode.Legend
 func newRoot(e env) *cobra.Command {
 	var global globalOptions
 	var opts listOptions
+	var start tuiStart
 	root := &cobra.Command{
 		Use:   "kotlin-prs",
 		Short: "Your open PRs (in JetBrains/kotlin by default): quality gate, reviews, and whose move it is",
@@ -206,8 +208,14 @@ func newRoot(e env) *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if start.number != 0 || start.post != "" {
+				if err := start.check(e); err != nil {
+					return err
+				}
+				return runTUI(cmd.Context(), e, global, opts, start)
+			}
 			if e.interactive() && opts.format == "table" {
-				return runTUI(cmd.Context(), e, global, opts)
+				return runTUI(cmd.Context(), e, global, opts, start)
 			}
 			return runList(cmd.Context(), e, global, opts)
 		},
@@ -221,6 +229,8 @@ func newRoot(e env) *cobra.Command {
 	root.PersistentFlags().StringVar(&global.icons, "icons", "", "symbols: unicode or ascii (default: the `icons` config key, else unicode)")
 	root.PersistentFlags().StringVar(&global.hyperlinks, "hyperlinks", "", "terminal links: auto (on a terminal), always or never (default: the `hyperlinks` config key, else auto)")
 	addListFlags(root, &opts)
+	root.Flags().IntVar(&start.number, "pr", 0, "open the interactive view on this PR's details")
+	root.Flags().StringVar(&start.post, "post", "", "with --pr: also ask to post this command on it ("+actions.Names()+"); only y posts")
 
 	var listOpts listOptions
 	list := &cobra.Command{

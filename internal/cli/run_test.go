@@ -137,3 +137,29 @@ func TestTUIPosts(t *testing.T) {
 		t.Errorf("demo mode: exit %d, post %v", got, opts.Post != nil)
 	}
 }
+
+func TestStartFlags(t *testing.T) {
+	e, _, _, errOut := runEnv(t, true, "")
+	var opts tui.Options
+	e.runTUI = func(_ context.Context, o tui.Options) error { opts = o; return nil }
+	if got := run(context.Background(), []string{"--pr", "90006", "--post", "dry-run-retry"}, e); got != exitOK ||
+		opts.Start != 90006 || opts.StartCommand == nil || opts.StartCommand.Text != "/dry-run --retry" {
+		t.Errorf("exit %d, stderr %q, start %d %+v", got, errOut.String(), opts.Start, opts.StartCommand)
+	}
+	for _, tt := range []struct {
+		args     []string
+		terminal bool
+		stderr   string
+	}{
+		{[]string{"--post", "fixup"}, true, "--post needs --pr"},
+		{[]string{"--pr", "90006", "--post", "safe-squash-merge"}, true, `unknown command "safe-squash-merge" for --post`},
+		{[]string{"--pr", "90006"}, false, "--pr opens the interactive view, which needs a terminal"},
+		{[]string{"--pr", "-3"}, true, "not a PR number: -3"},
+	} {
+		e, _, _, errOut := runEnv(t, tt.terminal, "")
+		e.runTUI = func(context.Context, tui.Options) error { t.Errorf("%q started the TUI", tt.args); return nil }
+		if got := run(context.Background(), tt.args, e); got != exitUsage || !strings.Contains(errOut.String(), tt.stderr) {
+			t.Errorf("%q: exit %d, stderr %q", tt.args, got, errOut.String())
+		}
+	}
+}

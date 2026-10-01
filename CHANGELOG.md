@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `gh kotlin-prs --pr <number>` opens the interactive view on that PR's details; `--post <command>` with it also asks
+  to post that command there. Nothing is posted without `y`.
+
 ## v0.3.0 — 2026-10-02
 
 The bot's commands, from the CLI and the interactive view: dry-run, safe-merge and the rest, each shown and confirmed

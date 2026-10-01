@@ -62,7 +62,8 @@ a             toggle --all      g/G    first / last            y  copy its URL  
 x             commands for it: D dry-run, R dry-run --retry, M safe-merge, C cancel-coordinator, F fixup, O codeowners
 ```
 
-A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested
+`gh kotlin-prs --pr 90006` opens it on that PR's details, and `--pr 90006 --post dry-run` also asks to post that
+command there, once the PR's state is fresh. A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested
 until the next refresh shows what the bot made of it.
 
 `keys` in the config rebinds them by action (`keys: {copy: c, refresh: [r, F5]}`; `?` and `config` list the actions);
