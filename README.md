@@ -9,6 +9,17 @@ their dry-run / safe-merge status, where the review stands, and who has the next
 
 The screenshots use the anonymized test fixtures (`scripts/screenshots.sh`).
 
+## Install
+
+```sh
+gh extension install dimonchik0036/gh-kotlin-prs
+gh extension upgrade kotlin-prs   # later updates
+gh alias set kp kotlin-prs        # optional short alias
+```
+
+It needs `gh` logged in (`gh auth login`): the extension uses gh's authentication and stores nothing. For a specific
+version, add `--pin vX.Y.Z` to the install.
+
 ## Usage
 
 ```sh

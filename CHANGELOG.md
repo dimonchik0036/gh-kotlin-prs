@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.1.0 — 2026-10-01
+
+The first release: a read-only view of your open JetBrains/kotlin PRs and the reviews waiting on you.
+
 ### Commands
 - `gh kotlin-prs list` (or just `gh kotlin-prs`): your PRs and review requests in the sections Mine, Review,
   Team requests and Recently merged (24h). Filters: `--mine`, `--review`, `--waiting-on-me`, `--all`, `--no-teams`,
