@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cli/go-gh/v2/pkg/api"
+	"github.com/cli/go-gh/v2/pkg/auth"
 )
 
 //go:embed pr.graphql
@@ -19,8 +20,17 @@ type Client interface {
 	DoWithContext(ctx context.Context, query string, variables map[string]any, response any) error
 }
 
-func DefaultClient() (Client, error) {
-	return api.DefaultGraphQLClient()
+// DefaultClient is gh's GraphQL client for its default host. account identifies the
+// credentials (the host and the token) for the keys of the cache; never store it as is.
+func DefaultClient() (client Client, account string, err error) {
+	host, _ := auth.DefaultHost()
+	token, _ := auth.TokenForHost(host)
+	// With the host and token given, go-gh doesn't resolve them (and run `gh auth token`) again.
+	gql, err := api.NewGraphQLClient(api.ClientOptions{Host: host, AuthToken: token})
+	if err != nil {
+		return nil, "", err
+	}
+	return gql, host + "\x00" + token, nil
 }
 
 // Search holds the PR numbers of every section, as returned by GitHub search.
@@ -39,9 +49,9 @@ type Search struct {
 	RateLimit RateLimit
 }
 
-const searchQuery = `query($mine: String!, $personal: String!, $reviewed: String!, $requested: String!, $merged: String!) {
+const searchQuery = `query Sections($mine: String!, $personal: String!, $reviewed: String!, $requested: String!, $merged: String!) {
   viewer { login }
-  rateLimit { cost remaining resetAt }
+  rateLimit { limit cost remaining resetAt }
   mine: search(type: ISSUE, query: $mine, first: 50) { nodes { ... on PullRequest { number } } }
   personal: search(type: ISSUE, query: $personal, first: 50) { nodes { ... on PullRequest { number } } }
   reviewed: search(type: ISSUE, query: $reviewed, first: 50) { nodes { ... on PullRequest { number } } }
@@ -70,14 +80,17 @@ func (n numberNodes) numbers() []int {
 // SearchSections runs every section search in one request. Searches return only numbers:
 // GitHub charges search connections by their page size, so fetching details for
 // the unique PRs afterwards (FetchPRs) is several times cheaper than inlining them.
+// Merged PRs are searched from the start of mergedSince's UTC day, so that the query
+// stays the same (and cacheable) all day, then filtered by mergedSince.
 func SearchSections(ctx context.Context, client Client, repo string, mergedSince time.Time) (*Search, error) {
 	scope := "repo:" + repo + " is:pr "
+	day := mergedSince.UTC().Truncate(24 * time.Hour)
 	vars := map[string]any{
 		"mine":      scope + "is:open author:@me",
 		"personal":  scope + "is:open user-review-requested:@me",
 		"reviewed":  scope + "is:open reviewed-by:@me -author:@me",
 		"requested": scope + "is:open review-requested:@me",
-		"merged":    scope + "is:merged author:@me merged:>=" + mergedSince.UTC().Format(time.RFC3339),
+		"merged":    scope + "is:merged author:@me merged:>=" + day.Format(time.RFC3339),
 	}
 	var resp struct {
 		Viewer    struct{ Login string } `json:"viewer"`
@@ -97,7 +110,7 @@ func SearchSections(ctx context.Context, client Client, repo string, mergedSince
 		Personal:  resp.Personal.numbers(),
 		Reviewed:  resp.Reviewed.numbers(),
 		Requested: resp.Requested.numbers(),
-		Merged:    resp.Merged.Nodes,
+		Merged:    slices.DeleteFunc(resp.Merged.Nodes, func(pr PullRequest) bool { return pr.MergedAt == nil || pr.MergedAt.Before(mergedSince) }),
 		RateLimit: resp.RateLimit,
 	}, nil
 }
@@ -106,13 +119,14 @@ func SearchSections(ctx context.Context, client Client, repo string, mergedSince
 const prBatch = 40
 
 // FetchPRs fetches full details for the given PRs, aliased into as few requests as possible.
-// It returns the summed query cost.
+// It returns the summed query cost. The PRs are queried in order of their numbers, so the
+// same PRs make the same queries (the cache keys) whatever order they come in.
 func FetchPRs(ctx context.Context, client Client, owner, name string, numbers []int) (map[int]*PullRequest, RateLimit, error) {
 	prs := make(map[int]*PullRequest, len(numbers))
 	var limit RateLimit
-	for batch := range slices.Chunk(numbers, prBatch) {
+	for batch := range slices.Chunk(slices.Compact(slices.Sorted(slices.Values(numbers))), prBatch) {
 		var q strings.Builder
-		q.WriteString("query($owner: String!, $name: String!) {\n  rateLimit { cost remaining resetAt }\n  repository(owner: $owner, name: $name) {\n")
+		q.WriteString("query PullRequests($owner: String!, $name: String!) {\n  rateLimit { limit cost remaining resetAt }\n  repository(owner: $owner, name: $name) {\n")
 		for _, n := range batch {
 			writef(&q, "    pr%d: pullRequest(number: %d) { ...PR }\n", n, n)
 		}
@@ -133,6 +147,7 @@ func FetchPRs(ctx context.Context, client Client, owner, name string, numbers []
 			}
 		}
 		limit.Cost += resp.RateLimit.Cost
+		limit.Limit = resp.RateLimit.Limit
 		limit.Remaining = resp.RateLimit.Remaining
 		limit.ResetAt = resp.RateLimit.ResetAt
 	}
@@ -141,9 +156,9 @@ func FetchPRs(ctx context.Context, client Client, owner, name string, numbers []
 
 // PRQuery is the single-PR query, also used by scripts/fetch-fixtures.sh.
 func PRQuery() string {
-	return `query($owner: String!, $name: String!, $number: Int!) {
+	return `query PullRequest($owner: String!, $name: String!, $number: Int!) {
   viewer { login }
-  rateLimit { cost remaining resetAt }
+  rateLimit { limit cost remaining resetAt }
   repository(owner: $owner, name: $name) { pullRequest(number: $number) { ...PR } }
 }
 ` + prFragment

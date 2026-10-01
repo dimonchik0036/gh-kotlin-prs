@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"io"
 	"slices"
 	"strings"
 	"time"
@@ -22,6 +21,7 @@ type listOptions struct {
 	noTeams      bool
 	noMerged     bool
 	format       string
+	maxAge       time.Duration
 }
 
 // sections returns the sections to show, in display order.
@@ -69,13 +69,10 @@ func (l *listing) add(pr model.PR, o listOptions) {
 }
 
 // collect runs the searches, fetches the PRs of the requested sections and classifies them.
-func collect(ctx context.Context, client github.Client, cfg config.Config, now time.Time, opts listOptions, debug io.Writer) (*listing, error) {
+func collect(ctx context.Context, client github.Client, cfg config.Config, now time.Time, opts listOptions) (*listing, error) {
 	search, err := github.SearchSections(ctx, client, cfg.Repo, now.Add(-mergedWindow))
 	if err != nil {
 		return nil, err
-	}
-	if debug != nil {
-		writef(debug, "search: cost %d, remaining %d\n", search.RateLimit.Cost, search.RateLimit.Remaining)
 	}
 	shown := opts.sections()
 
@@ -101,12 +98,9 @@ func collect(ctx context.Context, client github.Client, cfg config.Config, now t
 			numbers = append(numbers, n)
 		}
 	}
-	raw, limit, err := github.FetchPRs(ctx, client, cfg.Owner(), cfg.Name(), numbers)
+	raw, _, err := github.FetchPRs(ctx, client, cfg.Owner(), cfg.Name(), numbers)
 	if err != nil {
 		return nil, err
-	}
-	if debug != nil {
-		writef(debug, "details: %d PRs, cost %d, remaining %d\n", len(numbers), limit.Cost, limit.Remaining)
 	}
 
 	c := &classify.Classifier{Config: cfg, Viewer: search.Viewer, Now: now}

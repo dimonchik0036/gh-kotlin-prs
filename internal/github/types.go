@@ -132,7 +132,10 @@ type CountedNodes[T any] struct {
 	Nodes      []T `json:"nodes"`
 }
 
+// RateLimit is GitHub's GraphQL budget: Limit points an hour, Remaining of them left
+// until ResetAt, and what the request cost.
 type RateLimit struct {
+	Limit     int       `json:"limit"`
 	Cost      int       `json:"cost"`
 	Remaining int       `json:"remaining"`
 	ResetAt   time.Time `json:"resetAt"`

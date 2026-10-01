@@ -45,10 +45,23 @@ var alias = regexp.MustCompile(`pr(\d+): pullRequest\(number: (\d+)\)`)
 func (f *fakeClient) DoWithContext(_ context.Context, query string, vars map[string]any, resp any) error {
 	f.queries = append(f.queries, query)
 	if strings.Contains(query, "mine: search") {
-		if !strings.Contains(vars["merged"].(string), "merged:>=2026-09-30T13:00:00Z") {
-			f.t.Errorf("merged query %q doesn't cover the last 24h", vars["merged"])
+		if !strings.Contains(vars["merged"].(string), "merged:>=2026-09-30T00:00:00Z") {
+			f.t.Errorf("merged query %q doesn't start at the UTC day 24h ago", vars["merged"])
 		}
 		return json.Unmarshal([]byte(searchResponse), resp)
+	}
+	if n, ok := vars["number"].(int); ok {
+		data, err := os.ReadFile(filepath.Join("../../testdata/raw", fmt.Sprintf("pr-%d.json", n)))
+		if err != nil {
+			return err
+		}
+		var envelope struct {
+			Data json.RawMessage `json:"data"`
+		}
+		if err := json.Unmarshal(data, &envelope); err != nil {
+			return err
+		}
+		return json.Unmarshal(envelope.Data, resp)
 	}
 	repo := map[string]json.RawMessage{}
 	for _, m := range alias.FindAllStringSubmatch(query, -1) {
@@ -157,7 +170,7 @@ func TestCollect(t *testing.T) {
 			cfg := config.Default()
 			cfg.Teams = tt.teams
 			client := &fakeClient{t: t, teamRequest: tt.team}
-			l, err := collect(context.Background(), client, cfg, now, tt.opts, nil)
+			l, err := collect(context.Background(), client, cfg, now, tt.opts)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -182,7 +195,7 @@ func TestCollect(t *testing.T) {
 
 func TestCollectFetchesOnlyShownSections(t *testing.T) {
 	client := &fakeClient{t: t}
-	if _, err := collect(context.Background(), client, config.Default(), now, listOptions{mine: true}, nil); err != nil {
+	if _, err := collect(context.Background(), client, config.Default(), now, listOptions{mine: true}); err != nil {
 		t.Fatal(err)
 	}
 	details := client.queries[1]
@@ -224,13 +237,14 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 		stderr:     &errOut,
 		configPath: path,
 		configFrom: "test",
-		newClient: func() (github.Client, error) {
+		newClient: func() (github.Client, string, error) {
 			if client == nil {
 				t.Error("a GitHub client was requested")
-				return nil, errors.New("no client in this test")
+				return nil, "", errors.New("no client in this test")
 			}
-			return client, nil
+			return client, "test-account", nil
 		},
+		cacheDir:   t.TempDir(),
 		now:        func() time.Time { return now },
 		isTerminal: func() bool { return false },
 	}, &out, &errOut
@@ -255,6 +269,8 @@ func TestExitCodes(t *testing.T) {
 		{args: []string{"frobnicate"}, want: exitUsage},
 		{args: []string{"list"}, config: "icons: emoji\n", want: exitError},
 		{args: []string{"list"}, config: "refresh: soon\n", want: exitError},
+		{args: []string{"list", "--max-age", "-1m"}, want: exitUsage},
+		{args: []string{"show", "90005", "--max-age", "soon"}, want: exitUsage},
 		{args: []string{"--help"}, want: exitOK},
 	}
 	for _, tt := range tests {
@@ -311,8 +327,8 @@ func TestRunListHyperlinks(t *testing.T) {
 
 func TestClientErrorExitsWithError(t *testing.T) {
 	e, _, errOut := testEnv(t, nil, "")
-	e.newClient = func() (github.Client, error) {
-		return nil, errors.New("authentication token not found for host github.com")
+	e.newClient = func() (github.Client, string, error) {
+		return nil, "", errors.New("authentication token not found for host github.com")
 	}
 	if got := run(context.Background(), []string{"list"}, e); got != exitError || !strings.Contains(errOut.String(), "authentication token") {
 		t.Errorf("exit %d, stderr %q", got, errOut.String())
@@ -333,8 +349,57 @@ func TestRunListJSON(t *testing.T) {
 	}
 }
 
-// GH_KOTLIN_PRS_DEMO serves the fixtures through the real classify and render path.
+// --max-age answers from the responses of an earlier run while they're young enough,
+// classified with the current clock.
+func TestMaxAge(t *testing.T) {
+	client := &fakeClient{t: t}
+	e, out, errOut := testEnv(t, client, "")
+	clock := now
+	e.now = func() time.Time { return clock }
+	list := func(args ...string) string {
+		t.Helper()
+		out.Reset()
+		errOut.Reset()
+		if got := run(context.Background(), append([]string{"list", "--format", "json", "--debug"}, args...), e); got != exitOK {
+			t.Fatalf("exit %d, stderr %q", got, errOut.String())
+		}
+		return out.String()
+	}
+	list()
+	if len(client.queries) != 2 {
+		t.Fatalf("%d requests", len(client.queries))
+	}
+	clock = now.Add(4 * time.Minute)
+	cached := list("--max-age", "5m")
+	if len(client.queries) != 2 || strings.Count(errOut.String(), "from the cache, fetched 4m0s ago") != 2 {
+		t.Errorf("%d requests, debug:\n%s", len(client.queries), errOut.String())
+	}
+	var doc model.Output
+	if err := json.Unmarshal([]byte(cached), &doc); err != nil {
+		t.Fatal(err)
+	}
+	if !doc.GeneratedAt.Equal(clock) || len(doc.PRs) != 5 {
+		t.Errorf("generated %v, %d PRs", doc.GeneratedAt, len(doc.PRs))
+	}
+	list("--max-age", "4m")
+	if len(client.queries) != 4 || !strings.Contains(errOut.String(), "(cached 4m0s ago, --max-age 4m0s)") {
+		t.Errorf("%d requests, debug:\n%s", len(client.queries), errOut.String())
+	}
+
+	if got := run(context.Background(), []string{"show", "90005", "--max-age", "5m"}, e); got != exitOK {
+		t.Fatalf("show: exit %d, stderr %q", got, errOut.String())
+	}
+	before := len(client.queries)
+	if got := run(context.Background(), []string{"show", "90005", "--max-age", "5m", "--debug"}, e); got != exitOK || len(client.queries) != before {
+		t.Errorf("show: exit %d, %d requests, want none", got, len(client.queries)-before)
+	}
+}
+
+// GH_KOTLIN_PRS_DEMO serves the fixtures through the real classify and render path,
+// and never touches the cache.
 func TestDemoMode(t *testing.T) {
+	cacheHome := t.TempDir()
+	t.Setenv("XDG_CACHE_HOME", cacheHome)
 	t.Setenv(demoEnv, "../../testdata/raw")
 	t.Setenv(configEnv, filepath.Join(t.TempDir(), "none.yml"))
 	var out, errOut strings.Builder
@@ -356,6 +421,12 @@ func TestDemoMode(t *testing.T) {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("show lacks %q:\n%s", want, out.String())
 		}
+	}
+	if got := Execute(context.Background(), []string{"list", "--max-age", "1h"}, &out, &errOut, "test"); got != exitOK {
+		t.Fatalf("exit %d, stderr %q", got, errOut.String())
+	}
+	if files, _ := os.ReadDir(cacheHome); len(files) != 0 {
+		t.Errorf("demo mode wrote to the cache: %v", files)
 	}
 	t.Setenv(demoEnv, t.TempDir())
 	if got := Execute(context.Background(), []string{"list"}, &out, &errOut, "test"); got != exitError {

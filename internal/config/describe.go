@@ -37,6 +37,7 @@ var fields = []field{
 	{"ownersBot", "Posts the code-owners table and answers commands.", func(c Config) string { return scalar(c.OwnersBot) }},
 	{"teams", "Only show team requests to these team slugs; empty means all.", func(c Config) string { return list(c.Teams) }},
 	{"refresh", "Refresh interval of the TUI.", func(c Config) string { return duration(c.Refresh) }},
+	{"startupMaxAge", "The TUI starts from cached data at most this old (0: never), then refreshes.", func(c Config) string { return duration(c.StartupMaxAge) }},
 	{"requestedTimeout", "A command with no reaction or reply after this long is \"no response\".", func(c Config) string { return duration(c.RequestedTimeout) }},
 	{"icons", "Symbols: unicode or ascii.", func(c Config) string { return scalar(c.Icons) }},
 	{"issueProjects", "Issue IDs recognized in commit trailers, branch names and titles.", func(c Config) string { return list(c.IssueProjects) }},

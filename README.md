@@ -17,7 +17,7 @@ gh extension upgrade kotlin-prs   # later updates
 gh alias set kp kotlin-prs        # optional short alias
 ```
 
-It needs `gh` logged in (`gh auth login`): the extension uses gh's authentication and stores nothing. For a specific
+It needs `gh` logged in (`gh auth login`): the extension uses gh's authentication and never stores the token. For a specific
 version, add `--pin vX.Y.Z` to the install.
 
 ## Usage
@@ -33,7 +33,17 @@ gh kotlin-prs list --format json   # the model with "version": 1
 gh kotlin-prs show <number>   # reviewers, code owners, runs, threads and all reasons
 ```
 
-`--debug` prints the GraphQL cost of each request to stderr.
+`--debug` prints the GraphQL cost of each request to stderr, or the cache entry that answered it.
+
+Every fetch is kept in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`), and `--max-age` lets `list` and `show` use it
+instead of asking GitHub while it's young enough. The ages ("failed 2h ago") are still computed from the current time.
+By default, or with `--max-age 0`, they always fetch:
+
+```sh
+gh kotlin-prs list --max-age 5m   # at most one fetch every 5 minutes, e.g. from a shell prompt or a status bar
+```
+
+The cache is safe to delete at any time; files not written for 3 days are dropped on their own.
 
 On a terminal, PR numbers, issue IDs, the DR / SM cells and the reasons are clickable (OSC 8 hyperlinks): a reason
 opens its build, the bot's reply, the review or the thread; `show` also links builds (as a short `build <id>`), logins and threads.
@@ -95,6 +105,7 @@ gateBot: KotlinBuild
 ownersBot: kotlin-safemerge
 teams: []                 # only show team requests to these teams; empty means all
 refresh: 3m
+startupMaxAge: 30m        # the TUI starts from cached data at most this old
 requestedTimeout: 10m
 icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]   # issue IDs recognized in commit trailers, branch names and titles

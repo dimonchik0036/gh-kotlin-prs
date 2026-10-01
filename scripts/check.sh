@@ -24,8 +24,10 @@ step govulncheck
 go tool govulncheck ./...
 
 # go-gh also asks `gh auth token`, which reads the system keyring: GH_PATH points it at
-# `false`. Any network access fails fast through the dead proxy.
+# `false`. Any network access fails fast through the dead proxy, and a stray cache write
+# lands in a temp dir instead of the user's cache.
 step go test
 env -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN \
   GH_CONFIG_DIR="$(mktemp -d)" GH_PATH=/usr/bin/false HTTPS_PROXY=http://127.0.0.1:9 \
+  XDG_CACHE_HOME="$(mktemp -d)" \
   go test -count=1 ./...

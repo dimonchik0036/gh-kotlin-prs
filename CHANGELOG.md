@@ -6,6 +6,13 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Every fetch is cached in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`); `list --max-age 5m` and `show --max-age 5m`
+  answer from it while it's younger than that. Ages are still computed from the current time. By default they
+  always fetch, as before.
+- `--debug` prints each query's cost under its name (`Sections`, `PullRequests`, `PullRequest`), or the age of the
+  cache entry that answered it.
+- Config: `startupMaxAge` (default 30m), the oldest cached data the TUI starts from; `refresh` must be positive.
+
 ## v0.1.0 — 2026-10-01
 
 The first release: a read-only view of your open JetBrains/kotlin PRs and the reviews waiting on you.

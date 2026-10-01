@@ -42,7 +42,7 @@ func TestParsePartial(t *testing.T) {
 }
 
 func TestParseErrors(t *testing.T) {
-	for _, data := range []string{"refresh: soon\n", "repo: kotlin\n", "bots: {\n", "icons: emoji\n", "issueProjects: [KT-1]\n", "issueURL: https://example.org/\n", "hyperlinks: sometimes\n"} {
+	for _, data := range []string{"refresh: soon\n", "refresh: 0s\n", "startupMaxAge: -1m\n", "repo: kotlin\n", "bots: {\n", "icons: emoji\n", "issueProjects: [KT-1]\n", "issueURL: https://example.org/\n", "hyperlinks: sometimes\n"} {
 		if _, err := Parse([]byte(data)); err == nil {
 			t.Errorf("Parse(%q) succeeded", data)
 		}

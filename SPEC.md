@@ -18,7 +18,9 @@ Two sections:
 
 Then, at the end, two optional groups. Both are shown by default, hidden when empty, and can be switched off:
 - **Team requests:** the team-only requests above (`--no-teams`, TUI `t`).
-- **Recently merged:** your PRs merged in the last 24h (`is:pr is:merged author:@me merged:>=<now-24h>`), confirming that a safe-merge landed (`--no-merged`, TUI `M`).
+- **Recently merged:** your PRs merged in the last 24h, confirming that a safe-merge landed (`--no-merged`, TUI `M`).
+  The search is `is:pr is:merged author:@me merged:>=<UTC day of now-24h>`, the same query all day (so it can be
+  cached, §13), and the result is cut to the last 24h with the current clock.
 
 Drafts are shown in Mine (marked) and hidden in Review unless `--all`.
 
@@ -27,7 +29,8 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
 
 ## 2. Data
 
-- Auth and transport: `go-gh` (`api.DefaultGraphQLClient()`), so the token is `gh`'s. Nothing is stored.
+- Auth and transport: `go-gh` (`api.NewGraphQLClient` with gh's default host and its token), so the token is `gh`'s.
+  The token is never stored; the responses are, in the cache (§13).
 - Two GraphQL requests per refresh. The first runs every section's `search(type: ISSUE, query: …, first: 50)` and returns
   only PR numbers: search connections are charged by page size, so inlining the details would cost ~50 points per search.
   The second fetches the unique PRs by alias (`pr90005: pullRequest(number: 90005) { ...PR }`), ~1 point per PR. Per PR:
@@ -44,7 +47,7 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
   (`KT`, `KTIJ`, `KTI`), matched case-insensitively and upper-cased. One entry per ID, a trailer's resolution wins;
   order: fixed trailers, obsolete, related, branch, title.
 - Last push time: the latest `HeadRefForcePushedEvent`, else the `committedDate` of the last commit. A rebase resets the committer date, so this is close enough.
-- Budget: about one point per PR plus one per refresh (~40 for 27 PRs), within 5000/h even with refreshes every minute. Add `--debug` to print the query cost.
+- Budget: about one point per PR plus one per refresh (~40 for 27 PRs), within 5000/h even with refreshes every minute. Add `--debug` to print the query cost, or the cache entry that answered instead (§13).
 
 ## 3. Bot protocol
 
@@ -226,8 +229,8 @@ Every rule lives in one `classify` package, with a test per rule.
 ```
 gh kotlin-prs                      # TUI on a TTY, otherwise `list` (§12; until v0.2.0 always `list`)
 gh kotlin-prs list [--mine|--review] [--waiting-on-me] [--all] [--no-teams] [--no-merged]
-                   [--format table|json|swiftbar]
-gh kotlin-prs show <number>        # details: reviewers, run history, threads, reasons
+                   [--format table|json|swiftbar] [--max-age DURATION]
+gh kotlin-prs show <number> [--max-age DURATION]  # details: reviewers, run history, threads, reasons
 gh kotlin-prs config [path|init [--force]]  # effective config with sources, its path, a commented template
 gh kotlin-prs dry-run <number> [--retry] [--yes]
 gh kotlin-prs safe-merge <number> [--yes]
@@ -302,6 +305,7 @@ gateBot: KotlinBuild
 ownersBot: kotlin-safemerge
 teams: []                 # slugs for --teams
 refresh: 3m
+startupMaxAge: 30m        # the TUI starts from cached data at most this old
 requestedTimeout: 10m
 icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]
@@ -314,6 +318,7 @@ hyperlinks: auto          # always, never
 ```
 main.go
 internal/github/    queries, fetch, raw types
+internal/cache/     raw responses with their fetch time (§13)
 internal/classify/  bot parsing, rules → model
 internal/model/
 internal/render/    table, json, swiftbar
@@ -355,10 +360,21 @@ scripts/fetch-fixtures.sh
 
 ## 13. Cache and state
 
-- **Cache:** the raw GraphQL responses with their fetch time in `$XDG_CACHE_HOME/gh-kotlin-prs/`. Classification always
-  re-runs with the current clock, so cached data still ages correctly ("failed 2h ago" keeps moving).
-- The CLI fetches every time by default; `--max-age DURATION` lets it use a cache entry younger than that. The TUI shows
-  the cache at start and refreshes in the background.
+- **Cache:** the raw GraphQL responses with their fetch time in `$XDG_CACHE_HOME/gh-kotlin-prs/` (default
+  `~/.cache/gh-kotlin-prs/`). Classification always re-runs with the current clock, so cached data still ages correctly
+  ("failed 2h ago" keeps moving).
+  - One file per query, `<operation>-<hash>.json` (`Sections`, `PullRequests`, `PullRequest`), the hash over the
+    account (gh's host and token, never stored), the query and its variables (the repo, the PR numbers, the merged
+    cut-off day). A file is `{"format": 1, "fetchedAt": …, "data": <the response's data as GitHub sent it>}`, mode 0600.
+    The details of ~40 PRs are about 1 MB.
+  - Every successful fetch writes its file atomically (a temp file renamed over it) and drops files not written for
+    3 days. A failed fetch writes nothing.
+  - An unreadable file (corrupt, another `format`, data that doesn't decode) is a miss: `--debug` notes it and the
+    next fetch overwrites it. The cache never fails a command, and neither does a failed write.
+  - Demo mode (`GH_KOTLIN_PRS_DEMO`) neither reads nor writes it.
+- The CLI fetches every time by default; `--max-age DURATION` (`list` and `show`) lets it use a cache entry younger
+  than that, per query: `list`'s search and its details are separate entries. `--max-age 0` always fetches. The TUI
+  shows the cache at start and refreshes in the background.
 - **State**, separately in `$XDG_STATE_HOME/gh-kotlin-prs/`: what was seen, snoozes, and the last notified status per PR.
   Deleting the cache never loses state.
 

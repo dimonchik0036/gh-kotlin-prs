@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 type recordingClient struct {
@@ -42,6 +43,51 @@ func TestFetchPRsBatches(t *testing.T) {
 	}
 	if !strings.Contains(client.queries[0], "fragment PR on PullRequest") {
 		t.Error("the fragment is missing from the query")
+	}
+}
+
+type searchClient struct{ vars map[string]any }
+
+func (c *searchClient) DoWithContext(_ context.Context, _ string, vars map[string]any, resp any) error {
+	c.vars = vars
+	return json.Unmarshal([]byte(`{"merged": {"nodes": [
+	  {"number": 1, "mergedAt": "2026-09-30T08:00:00Z"},
+	  {"number": 2, "mergedAt": "2026-09-30T14:00:00Z"},
+	  {"number": 3, "mergedAt": "2026-10-01T09:00:00Z"}]}}`), resp)
+}
+
+// The merged search covers the whole UTC day, so it's the same query all day; the
+// result is cut to the window.
+func TestSearchMergedWindow(t *testing.T) {
+	client := &searchClient{}
+	since := time.Date(2026, 9, 30, 13, 0, 0, 0, time.UTC)
+	search, err := SearchSections(context.Background(), client, "JetBrains/kotlin", since)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q := client.vars["merged"].(string); !strings.HasSuffix(q, " merged:>=2026-09-30T00:00:00Z") {
+		t.Errorf("merged query %q", q)
+	}
+	var got []int
+	for _, pr := range search.Merged {
+		got = append(got, pr.Number)
+	}
+	if len(got) != 2 || got[0] != 2 || got[1] != 3 {
+		t.Errorf("merged %v, want [2 3]", got)
+	}
+}
+
+// The same PRs in any order make the same queries.
+func TestFetchPRsOrder(t *testing.T) {
+	a, b := &recordingClient{}, &recordingClient{}
+	if _, _, err := FetchPRs(context.Background(), a, "JetBrains", "kotlin", []int{3, 1, 2}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := FetchPRs(context.Background(), b, "JetBrains", "kotlin", []int{2, 3, 1, 3}); err != nil {
+		t.Fatal(err)
+	}
+	if a.queries[0] != b.queries[0] || strings.Count(a.queries[0], ": pullRequest(") != 3 {
+		t.Errorf("queries differ:\n%s\n%s", a.queries[0], b.queries[0])
 	}
 }
 

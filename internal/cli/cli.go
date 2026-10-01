@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/cache"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/classify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/demo"
@@ -38,9 +39,11 @@ type env struct {
 	// configPath is the config file unless --config is given; configFrom says why.
 	configPath, configFrom string
 	// newClient is called only once flags and config are valid, so usage errors never
-	// depend on gh's authentication.
-	newClient func() (github.Client, error)
-	now       func() time.Time
+	// depend on gh's authentication. account identifies its credentials for the cache.
+	newClient func() (client github.Client, account string, err error)
+	// cacheDir holds the cache (internal/cache); "" turns it off.
+	cacheDir string
+	now      func() time.Time
 	// isTerminal reports whether stdout is a terminal, for --hyperlinks auto.
 	isTerminal func() bool
 }
@@ -64,6 +67,7 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 		configPath: configPath,
 		configFrom: configFrom,
 		newClient:  github.DefaultClient,
+		cacheDir:   cache.DefaultDir(),
 		now:        time.Now,
 		isTerminal: func() bool { return term.IsTerminal(int(os.Stdout.Fd())) },
 	}
@@ -78,11 +82,26 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 	return run(ctx, args, e)
 }
 
-// withDemo serves the fixtures through the client and clock seams.
+// withDemo serves the fixtures through the client and clock seams, without the cache.
 func withDemo(e env, fixtures *demo.Client) env {
-	e.newClient = func() (github.Client, error) { return fixtures, nil }
+	e.newClient = func() (github.Client, string, error) { return fixtures, "", nil }
+	e.cacheDir = ""
 	e.now = fixtures.Now
 	return e
+}
+
+// client is the GitHub client behind the cache: responses younger than maxAge come from
+// it, and every fetch updates it. --debug prints each query's cost or cache use.
+func (e env) client(global globalOptions, maxAge time.Duration) (github.Client, error) {
+	next, account, err := e.newClient()
+	if err != nil {
+		return nil, err
+	}
+	c := &cache.Client{Next: next, Dir: e.cacheDir, Account: account, MaxAge: maxAge, Now: e.now}
+	if global.debug {
+		c.Debug = e.stderr
+	}
+	return c, nil
 }
 
 func run(ctx context.Context, args []string, e env) int {
@@ -171,7 +190,7 @@ func newRoot(e env) *cobra.Command {
 	root.SetOut(e.stdout)
 	root.SetErr(e.stderr)
 	root.SetFlagErrorFunc(func(_ *cobra.Command, err error) error { return usageError{err} })
-	root.PersistentFlags().BoolVar(&global.debug, "debug", false, "print the GraphQL query cost to stderr")
+	root.PersistentFlags().BoolVar(&global.debug, "debug", false, "print the GraphQL query cost and cache use to stderr")
 	root.PersistentFlags().StringVar(&global.config, "config", "", "config file (default: $"+configEnv+", else ~/.config/gh-kotlin-prs/config.yml)")
 	root.PersistentFlags().StringVar(&global.icons, "icons", "", "symbols: unicode or ascii (default: the `icons` config key, else unicode)")
 	root.PersistentFlags().StringVar(&global.hyperlinks, "hyperlinks", "", "terminal links: auto (on a terminal), always or never (default: the `hyperlinks` config key, else auto)")
@@ -189,6 +208,7 @@ func newRoot(e env) *cobra.Command {
 	addListFlags(list, &listOpts)
 
 	var showFormat string
+	var showMaxAge time.Duration
 	show := &cobra.Command{
 		Use:   "show <number>",
 		Short: "Show one PR in detail: reviewers, code owners, runs, threads and reasons",
@@ -203,10 +223,11 @@ func newRoot(e env) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			n, _ := parseNumber(args[0])
-			return runShow(cmd.Context(), e, global, n, showFormat)
+			return runShow(cmd.Context(), e, global, n, showFormat, showMaxAge)
 		},
 	}
 	show.Flags().StringVar(&showFormat, "format", "table", "output format: table or json")
+	addMaxAgeFlag(show, &showMaxAge)
 
 	root.AddCommand(list, show, newConfigCommand(e, &global))
 	return root
@@ -221,6 +242,18 @@ func addListFlags(cmd *cobra.Command, opts *listOptions) {
 	f.BoolVar(&opts.noTeams, "no-teams", false, "hide the Team requests section")
 	f.BoolVar(&opts.noMerged, "no-merged", false, "hide the Recently merged section")
 	f.StringVar(&opts.format, "format", "table", "output format: table or json")
+	addMaxAgeFlag(cmd, &opts.maxAge)
+}
+
+func addMaxAgeFlag(cmd *cobra.Command, maxAge *time.Duration) {
+	cmd.Flags().DurationVar(maxAge, "max-age", 0, "use cached data younger than this, e.g. 5m (default: always fetch)")
+}
+
+func checkMaxAge(maxAge time.Duration) error {
+	if maxAge < 0 {
+		return usageError{fmt.Errorf("--max-age %s is negative", maxAge)}
+	}
+	return nil
 }
 
 func noArgs(cmd *cobra.Command, args []string) error {
@@ -271,20 +304,19 @@ func runList(ctx context.Context, e env, global globalOptions, opts listOptions)
 	if opts.mine && opts.review {
 		return usageError{errors.New("--mine and --review are mutually exclusive")}
 	}
+	if err := checkMaxAge(opts.maxAge); err != nil {
+		return err
+	}
 	cfg, ropts, err := prepare(e, global, opts.format)
 	if err != nil {
 		return err
 	}
-	client, err := e.newClient()
+	client, err := e.client(global, opts.maxAge)
 	if err != nil {
 		return err
 	}
-	var debug io.Writer
-	if global.debug {
-		debug = e.stderr
-	}
 	now := e.now()
-	l, err := collect(ctx, client, cfg, now, opts, debug)
+	l, err := collect(ctx, client, cfg, now, opts)
 	if err != nil {
 		return err
 	}
@@ -315,24 +347,24 @@ func sortedForJSON(prs []model.PR, sections []model.Section) []model.PR {
 	return out
 }
 
-func runShow(ctx context.Context, e env, global globalOptions, number int, format string) error {
+func runShow(ctx context.Context, e env, global globalOptions, number int, format string, maxAge time.Duration) error {
 	if err := checkFormat(format); err != nil {
+		return err
+	}
+	if err := checkMaxAge(maxAge); err != nil {
 		return err
 	}
 	cfg, ropts, err := prepare(e, global, format)
 	if err != nil {
 		return err
 	}
-	client, err := e.newClient()
+	client, err := e.client(global, maxAge)
 	if err != nil {
 		return err
 	}
 	resp, err := github.FetchPR(ctx, client, cfg.Owner(), cfg.Name(), number)
 	if err != nil {
 		return err
-	}
-	if global.debug {
-		writef(e.stderr, "cost %d, remaining %d\n", resp.RateLimit.Cost, resp.RateLimit.Remaining)
 	}
 	now := e.now()
 	c := &classify.Classifier{Config: cfg, Viewer: resp.Viewer.Login, Now: now}

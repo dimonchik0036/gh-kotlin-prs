@@ -22,8 +22,11 @@ type Config struct {
 	GateBot   string   `yaml:"gateBot"`
 	OwnersBot string   `yaml:"ownersBot"`
 	// Teams restricts the "Team requests" section to these team slugs. Empty means all teams.
-	Teams            []string `yaml:"teams"`
-	Refresh          Duration `yaml:"refresh"`
+	Teams []string `yaml:"teams"`
+	// Refresh is how often the TUI refreshes in the background.
+	Refresh Duration `yaml:"refresh"`
+	// StartupMaxAge: the TUI starts from cached data at most this old, else it waits for GitHub.
+	StartupMaxAge    Duration `yaml:"startupMaxAge"`
 	RequestedTimeout Duration `yaml:"requestedTimeout"`
 	// Icons is the symbol set: "unicode" or "ascii".
 	Icons string `yaml:"icons"`
@@ -54,6 +57,7 @@ func Default() Config {
 		GateBot:          "KotlinBuild",
 		OwnersBot:        "kotlin-safemerge",
 		Refresh:          Duration(3 * time.Minute),
+		StartupMaxAge:    Duration(30 * time.Minute),
 		RequestedTimeout: Duration(10 * time.Minute),
 		Icons:            "unicode",
 		IssueProjects:    []string{"KT", "KTIJ", "KTI"},
@@ -99,6 +103,12 @@ func Parse(data []byte) (Config, error) {
 	}
 	if _, _, ok := strings.Cut(cfg.Repo, "/"); !ok {
 		return cfg, fmt.Errorf("config: repo must be owner/name, got %q", cfg.Repo)
+	}
+	if cfg.Refresh <= 0 {
+		return cfg, fmt.Errorf("config: refresh must be positive, got %s", time.Duration(cfg.Refresh))
+	}
+	if cfg.StartupMaxAge < 0 {
+		return cfg, fmt.Errorf("config: startupMaxAge must not be negative, got %s", time.Duration(cfg.StartupMaxAge))
 	}
 	if cfg.Icons != "unicode" && cfg.Icons != "ascii" {
 		return cfg, fmt.Errorf("config: icons must be unicode or ascii, got %q", cfg.Icons)

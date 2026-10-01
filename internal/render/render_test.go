@@ -740,23 +740,23 @@ func TestDetailViewWidth(t *testing.T) {
 	if got := DetailView(pr, now, opts, 0); got != b.String() {
 		t.Errorf("DetailView at width 0 differs from Detail")
 	}
-	for _, width := range []int{40, 72} {
-		view := DetailView(pr, now, opts, width)
+	for _, limit := range []int{40, 72} {
+		view := DetailView(pr, now, opts, limit)
 		cut := false
 		for _, line := range strings.Split(view, "\n") {
-			if w := ansi.StringWidth(line); w > width {
-				t.Errorf("width %d: a line of %d: %q", width, w, ansi.Strip(line))
+			if w := ansi.StringWidth(line); w > limit {
+				t.Errorf("limit %d: a line of %d: %q", limit, w, ansi.Strip(line))
 			}
 			cut = cut || strings.HasSuffix(ansi.Strip(line), Unicode.Ellipsis)
 			if strings.Count(line, "\x1b]8;;http") != strings.Count(line, "\x1b]8;;\a") {
-				t.Errorf("width %d: an unclosed link in %q", width, line)
+				t.Errorf("limit %d: an unclosed link in %q", limit, line)
 			}
 		}
 		if !cut {
-			t.Errorf("width %d: nothing was cut:\n%s", width, ansi.Strip(view))
+			t.Errorf("limit %d: nothing was cut:\n%s", limit, ansi.Strip(view))
 		}
 		if strings.Count(view, "\n") != strings.Count(b.String(), "\n") {
-			t.Errorf("width %d changes the line count", width)
+			t.Errorf("limit %d changes the line count", limit)
 		}
 	}
 }

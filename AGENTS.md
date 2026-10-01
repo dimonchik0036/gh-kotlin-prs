@@ -11,12 +11,13 @@ no network. To run it on every commit: `git config core.hooksPath .githooks`.
 
 Workflow actions are pinned to full commit SHAs with the version as a comment (`@<sha> # v7.0.1`); Dependabot bumps them.
 
-GoLand's inspections keep flagging the same things: don't shadow builtins (`real`, `len`, `new`, …), start doc
-comments with the identifier ("RunRequested is …"), don't escape what needs no escape in regexps (`]` outside a
-class), and write intentionally non-nil empty slices as `make([]T, 0)`.
+GoLand's inspections keep flagging the same things: don't shadow builtins (`real`, `len`, `new`, …), don't name
+variables after imported packages (`width`, `ansi`, …), start doc comments with the identifier ("RunRequested is …"),
+don't escape what needs no escape in regexps (`]` outside a class), write intentionally non-nil empty slices as
+`make([]T, 0)`, and use a value only after checking the error that comes with it.
 
-Tests never touch gh's auth, the user's config or the network: inject the client, config path and clock
-(`internal/cli` env, `classify.Classifier.Now`). `GH_KOTLIN_PRS_DEMO=<dir>` runs the CLI on the fixtures in `<dir>`
+Tests never touch gh's auth, the user's config, the user's cache or the network: inject the client, config path,
+cache dir and clock (`internal/cli` env, `classify.Classifier.Now`, `cache.Client`). `GH_KOTLIN_PRS_DEMO=<dir>` runs the CLI on the fixtures in `<dir>`
 through the same seams (`internal/demo`), with their clock and viewer; `scripts/screenshots.sh` renders the README
 screenshots from it (freeze, pinned; the font is trimmed by the `scripts/screenshots` module). Goldens: `go test ./internal/classify ./internal/render -update`,
 in that order, then review the diff.

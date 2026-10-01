@@ -38,9 +38,9 @@ fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-query="query(\$owner: String!, \$name: String!, \$number: Int!) {
+query="query PullRequest(\$owner: String!, \$name: String!, \$number: Int!) {
   viewer { login }
-  rateLimit { cost remaining resetAt }
+  rateLimit { limit cost remaining resetAt }
   repository(owner: \$owner, name: \$name) { pullRequest(number: \$number) { ...PR } }
 }
 $(cat "$root/internal/github/pr.graphql")"
