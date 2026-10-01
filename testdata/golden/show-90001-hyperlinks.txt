@@ -1,0 +1,49 @@
+]8;;https://github.com/JetBrains/kotlin/pull/90001#90001]8;; Example change [draft]
+by alice_user ∙ topic/kt-990002-example ∙ pushed 4d ago
+]8;;https://youtrack.jetbrains.com/issue/KT-990002KT-990002]8;; (related)
+
+❯ Next: me
+  - review requested 3d ago
+
+Reviewers
+  ]8;;https://github.com/dimonchik0036dimonchik0036]8;;  pending                   requested, code owner
+  ]8;;https://github.com/grace_usergrace_user]8;;     changes_requested 4d ago  code owner
+
+Code owners: missing
+  check: FAILURE
+  ✗ /analysis/
+      no review: dimonchik0036 ∙ owners: kotlin-analysis-api
+  ✗ /compiler/ir/backend.jvm/, /compiler/testData/checkLocalVariablesTable/, /compiler/testData/codegen/asmLike/, /plugins/kapt/
+      changes requested: grace_user ∙ owners: kotlin-jvm
+  ✗ /compiler/testData/codegen/boxJvm/
+      changes requested: grace_user ∙ owners: kotlin-compiler
+  ✗ /core/compiler.common.jvm/
+      changes requested: grace_user ∙ owners: kotlin-frontend, kotlin-jvm
+  ✗ /plugins/parcelize/
+      no reviewer assigned ∙ owners: bob3_user, carol3_user, dave3_user, erin3_user, frank3_user, grace3_⋯
+
+Runs
+  dry-run  ✓ passed              4d ago  ]8;;https://buildserver.labs.intellij.net/build/1072585435build 1072585435]8;;
+  dry-run  ~✗ failed (outdated)  4d ago  ]8;;https://buildserver.labs.intellij.net/build/1072552565build 1072552565]8;;
+
+Unresolved threads (8)
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1853677419src/fc76a277a.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1662744976src/fc76a277a.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1888453018src/fc76a277a.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1569677953src/f8aa5e9fa.kt]8;;      last: grace_user 4d ago (outdated)
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1788219394src/f944e962f.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1612536494src/f944e962f.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1300290068src/fc76a277a.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+  ]8;;https://github.com/grace_usergrace_user]8;;  ]8;;https://github.com/JetBrains/kotlin/pull/90001#discussion_r1160664716src/fc76a277a.kt]8;;      last: grace_user 4d ago
+              Review comment text.
+
+Checks
+  Code Owners Approval                 FAILURE
+  Safe-Merge Coordinator (Kotlin Dev)  SUCCESS

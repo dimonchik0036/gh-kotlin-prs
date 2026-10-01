@@ -1,0 +1,11 @@
+Mine (3)
+!  #90006  KT-990004 +1  Example change  DR x  SM -  1/2 x  1 thread  dry-run failed 7h ago
+!  #90007  KT-990001 +1  Example change  DR /  SM -  0/1 x            dry-run rejected: A Coordinator build is already in progress for th...
+.  #90005  KT-990003 +1  Example change  DR +  SM -  1/2 x            waiting: bob_user
+
+Review (0)
+  +3 reviews not waiting on you, 1 draft (--all)
+
+Recently merged (24h) (2)
++  #90002  KT-990006 +5  Example change  merged 2h ago
++  #90004  KT-990005     Example change  merged 21h ago

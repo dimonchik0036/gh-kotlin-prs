@@ -1,0 +1,14 @@
+Mine (3)
+❯  #90006  KT-990004 +1  Example change  DR ✗  SM -  1/2 ✗  1 thread  dry-run failed 7h ago
+❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗            dry-run rejected: A Coordinator build is already in progress for this⋯
+∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗            waiting: bob_user
+
+Review (4)
+❯  #90001  KT-990002  [draft] Example change  DR ✓  SM -  0/2 ✗  8 threads  review requested 3d ago
+∙  #90008             Example change          DR ⟳  SM -  2/2 ✓             not requested from you
+✓  #90009             Example change          DR ✗  SM -  2/2 ✓             approved 6h ago
+✓  #90003             Example change          DR -  SM -  1/2 ✗  7 threads  approved 30h ago; author pushed since
+
+Recently merged (24h) (2)
+✓  #90002  KT-990006 +5  Example change  merged 2h ago
+✓  #90004  KT-990005     Example change  merged 21h ago

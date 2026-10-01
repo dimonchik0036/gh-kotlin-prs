@@ -1,0 +1,50 @@
+#90001 Example change [draft]
+https://github.com/JetBrains/kotlin/pull/90001
+by alice_user | topic/kt-990002-example | pushed 4d ago
+KT-990002 (related)
+
+! Next: me
+  - review requested 3d ago
+
+Reviewers
+  dimonchik0036  pending                   requested, code owner
+  grace_user     changes_requested 4d ago  code owner
+
+Code owners: missing
+  check: FAILURE
+  x /analysis/
+      no review: dimonchik0036 | owners: kotlin-analysis-api
+  x /compiler/ir/backend.jvm/, /compiler/testData/checkLocalVariablesTable/, /compiler/testData/codegen/asmLike/, /plugins/kapt/
+      changes requested: grace_user | owners: kotlin-jvm
+  x /compiler/testData/codegen/boxJvm/
+      changes requested: grace_user | owners: kotlin-compiler
+  x /core/compiler.common.jvm/
+      changes requested: grace_user | owners: kotlin-frontend, kotlin-jvm
+  x /plugins/parcelize/
+      no reviewer assigned | owners: bob3_user, carol3_user, dave3_user, erin3_user, frank3_user, grace...
+
+Runs
+  dry-run  + passed              4d ago  https://buildserver.labs.intellij.net/build/1072585435
+  dry-run  ~x failed (outdated)  4d ago  https://buildserver.labs.intellij.net/build/1072552565
+
+Unresolved threads (8)
+  grace_user  src/fc76a277a.kt      last: grace_user 4d ago
+              Review comment text.
+  grace_user  src/fc76a277a.kt      last: grace_user 4d ago
+              Review comment text.
+  grace_user  src/fc76a277a.kt      last: grace_user 4d ago
+              Review comment text.
+  grace_user  src/f8aa5e9fa.kt      last: grace_user 4d ago (outdated)
+              Review comment text.
+  grace_user  src/f944e962f.kt      last: grace_user 4d ago
+              Review comment text.
+  grace_user  src/f944e962f.kt      last: grace_user 4d ago
+              Review comment text.
+  grace_user  src/fc76a277a.kt      last: grace_user 4d ago
+              Review comment text.
+  grace_user  src/fc76a277a.kt      last: grace_user 4d ago
+              Review comment text.
+
+Checks
+  Code Owners Approval                 FAILURE
+  Safe-Merge Coordinator (Kotlin Dev)  SUCCESS

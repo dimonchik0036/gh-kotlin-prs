@@ -1,0 +1,28 @@
+#90004 KT-990005: Example change
+https://github.com/JetBrains/kotlin/pull/90004
+by dimonchik0036 | topic/KT-990005-example | pushed 23h ago
+KT-990005 (fixed)
+
++ Next: done
+  - merged 21h ago
+
+Reviewers
+  dave_user  approved 27h ago  code owner, final
+
+Code owners: ok
+  check: SUCCESS
+  + /analysis/, /compiler/psi/
+      approved: dave_user (final) | owners: kotlin-analysis-api
+
+Runs
+  safe-merge  + passed              23h ago  https://buildserver.labs.intellij.net/build/1076441911
+  safe-merge  ~x failed (outdated)  25h ago  https://buildserver.labs.intellij.net/build/1076214625  retry 1/1
+  safe-merge  / rejected            25h ago                                                          Missing code owners approval - verify the check 'Code Owners Approval' is green.
+  dry-run     ~+ passed (outdated)  27h ago  https://buildserver.labs.intellij.net/build/1075988492
+  dry-run     ~+ passed (outdated)  40h ago  https://buildserver.labs.intellij.net/build/1075387630
+
+Unresolved threads (0)
+
+Checks
+  Code Owners Approval                 SUCCESS
+  Safe-Merge Coordinator (Kotlin Dev)  SUCCESS

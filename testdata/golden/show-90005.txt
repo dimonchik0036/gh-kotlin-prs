@@ -1,0 +1,31 @@
+#90005 KT-990003: Example change
+https://github.com/JetBrains/kotlin/pull/90005
+by dimonchik0036 ∙ topic/KT-990003-example ∙ pushed 2h ago
+KT-990003 (fixed) ∙ KT-990009 (fixed)
+
+∙ Next: reviewers
+  - waiting: bob_user
+
+Reviewers
+  bob_user    pending          requested, code owner
+  trent_user  approved 2h ago  code owner, final
+
+Code owners: missing
+  check: FAILURE
+  ✗ /analysis/
+      no review: bob_user ∙ owners: kotlin-analysis-api
+  ✓ *Generated.java
+      approved: trent_user (final)
+  ✓ /compiler/fir/, /compiler/testData/diagnostics/, /compiler/tests-common-new/
+      approved: trent_user (final) ∙ owners: kotlin-frontend
+
+Runs
+  dry-run  ✓ passed              2h ago   https://buildserver.labs.intellij.net/build/1077449831
+  dry-run  ~✓ passed (outdated)  22h ago  https://buildserver.labs.intellij.net/build/1076451184
+  dry-run  ~✓ passed (outdated)  40h ago  https://buildserver.labs.intellij.net/build/1075403446
+
+Unresolved threads (0)
+
+Checks
+  Code Owners Approval                 FAILURE
+  Safe-Merge Coordinator (Kotlin Dev)  SUCCESS

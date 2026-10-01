@@ -1,0 +1,27 @@
+#90007 KT-990001: Example change
+https://github.com/JetBrains/kotlin/pull/90007
+by dimonchik0036 ∙ topic/KT-990001-example ∙ pushed 25h ago
+KT-990001 (fixed) ∙ KT-990011 (related)
+
+❯ Next: me
+  - dry-run rejected: A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`
+  - waiting: bob_user
+
+Reviewers
+  bob_user  pending  requested, code owner
+
+Code owners: missing
+  check: FAILURE
+  ✗ /analysis/
+      no review: bob_user ∙ owners: kotlin-analysis-api
+  ✗ *Generated.java
+      no review: bob_user
+
+Runs
+  dry-run  ⊘ rejected            25h ago                                                          A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`
+  dry-run  ~✓ passed (outdated)  26h ago  https://buildserver.labs.intellij.net/build/1076149525
+
+Unresolved threads (0)
+
+Checks
+  Code Owners Approval  FAILURE
