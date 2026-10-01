@@ -1,0 +1,380 @@
+{
+  "data": {
+    "rateLimit": {
+      "cost": 1,
+      "remaining": 4215,
+      "resetAt": "2026-10-01T15:36:05Z"
+    },
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "__typename": "User",
+          "login": "judy3_user"
+        },
+        "comments": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "Bot",
+                "login": "kodee-bot"
+              },
+              "authorAssociation": "NONE",
+              "body": "Hi! It looks like there are no references to any YT issues in the commit messages.\n**If the change is non-functional, feel free to ignore the comment :)**\nOtherwise, please add them as requested in the [guideline](https://github.com/JetBrains/kotlin/blob/master/docs/code_authoring_and_core_review.md#commit-messages-and-yt-tickets).",
+              "createdAt": "2026-09-30T21:13:28Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-30T21:13:28Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1869178480"
+            },
+            {
+              "author": {
+                "__typename": "Bot",
+                "login": "kotlin-safemerge"
+              },
+              "authorAssociation": "NONE",
+              "body": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​.​space/​CODEOWNERS</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-build-infrastructure\">kotlin-build-infrastructure</a></summary><ul><li><a href=\"https://github.com/kevin3_user\"><b><code>kevin3_user</code></b></a></li><li><a href=\"https://github.com/laura3_user\"><b><code>laura3_user</code></b></a></li><li><a href=\"https://github.com/mallory3_user\"><b><code>mallory3_user</code></b></a></li><li><a href=\"https://github.com/judy3_user\"><b><code>judy3_user</code></b></a></li><li><a href=\"https://github.com/niaj3_user\"><b><code>niaj3_user</code></b></a></li><li><a href=\"https://github.com/olivia3_user\"><b><code>olivia3_user</code></b></a></li><li><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a></li><li><a href=\"https://github.com/quinn3_user\"><b><code>quinn3_user</code></b></a> ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a> 🔒</td></tr><tr><td><code>**.​gradle.​kts</code>, <code>/​repo/​</code></td><td><a href=\"https://github.com/rupert3_user\"><b><code>rupert3_user</code></b></a><br><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-build-infrastructure\">kotlin-build-infrastructure</a></summary><ul><li><a href=\"https://github.com/kevin3_user\"><b><code>kevin3_user</code></b></a></li><li><a href=\"https://github.com/laura3_user\"><b><code>laura3_user</code></b></a></li><li><a href=\"https://github.com/mallory3_user\"><b><code>mallory3_user</code></b></a></li><li><a href=\"https://github.com/judy3_user\"><b><code>judy3_user</code></b></a></li><li><a href=\"https://github.com/niaj3_user\"><b><code>niaj3_user</code></b></a></li><li><a href=\"https://github.com/olivia3_user\"><b><code>olivia3_user</code></b></a></li><li><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a></li><li><a href=\"https://github.com/quinn3_user\"><b><code>quinn3_user</code></b></a> ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a> 🔒</td></tr><tr><td><code>*</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin\">kotlin</a></summary><ul><li><a href=\"https://github.com/sybil3_user\"><b><code>sybil3_user</code></b></a></li><li><a href=\"https://github.com/trent3_user\"><b><code>trent3_user</code></b></a></li><li><a href=\"https://github.com/ursula3_user\"><b><code>ursula3_user</code></b></a></li><li><a href=\"https://github.com/victor3_user\"><b><code>victor3_user</code></b></a></li><li><a href=\"https://github.com/walter3_user\"><b><code>walter3_user</code></b></a></li><li><a href=\"https://github.com/xavier3_user\"><b><code>xavier3_user</code></b></a> ⏳</li><li><a href=\"https://github.com/yvonne3_user\"><b><code>yvonne3_user</code></b></a> ⏳</li><li><a href=\"https://github.com/zoe3_user\"><b><code>zoe3_user</code></b></a></li><li><a href=\"https://github.com/alice4_user\"><b><code>alice4_user</code></b></a></li><li><a href=\"https://github.com/bob4_user\"><b><code>bob4_user</code></b></a></li><li><a href=\"https://github.com/carol4_user\"><b><code>carol4_user</code></b></a></li><li><a href=\"https://github.com/dave4_user\"><b><code>dave4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/erin4_user\"><b><code>erin4_user</code></b></a></li><li><a href=\"https://github.com/frank4_user\"><b><code>frank4_user</code></b></a></li><li><a href=\"https://github.com/grace4_user\"><b><code>grace4_user</code></b></a></li><li><a href=\"https://github.com/heidi4_user\"><b><code>heidi4_user</code></b></a></li><li><a href=\"https://github.com/ivan4_user\"><b><code>ivan4_user</code></b></a></li><li><a href=\"https://github.com/judy4_user\"><b><code>judy4_user</code></b></a></li><li><a href=\"https://github.com/kevin4_user\"><b><code>kevin4_user</code></b></a></li><li><a href=\"https://github.com/laura4_user\"><b><code>laura4_user</code></b></a></li><li><a href=\"https://github.com/mallory4_user\"><b><code>mallory4_user</code></b></a> (QA)</li><li><a href=\"https://github.com/niaj4_user\"><b><code>niaj4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/olivia4_user\"><b><code>olivia4_user</code></b></a></li><li><a href=\"https://github.com/peggy4_user\"><b><code>peggy4_user</code></b></a></li><li><a href=\"https://github.com/quinn4_user\"><b><code>quinn4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/rupert4_user\"><b><code>rupert4_user</code></b></a></li><li><a href=\"https://github.com/sybil4_user\"><b><code>sybil4_user</code></b></a></li><li><a href=\"https://github.com/trent4_user\"><b><code>trent4_user</code></b></a></li><li><a href=\"https://github.com/ursula4_user\"><b><code>ursula4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/victor4_user\"><b><code>victor4_user</code></b></a></li><li><a href=\"https://github.com/walter4_user\"><b><code>walter4_user</code></b></a></li><li><a href=\"https://github.com/xavier4_user\"><b><code>xavier4_user</code></b></a></li><li><a href=\"https://github.com/yvonne4_user\"><b><code>yvonne4_user</code></b></a></li><li><a href=\"https://github.com/zoe4_user\"><b><code>zoe4_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice5_user\"><b><code>alice5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/rupert3_user\"><b><code>rupert3_user</code></b></a></li><li><a href=\"https://github.com/bob5_user\"><b><code>bob5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/carol5_user\"><b><code>carol5_user</code></b></a></li><li><a href=\"https://github.com/dave5_user\"><b><code>dave5_user</code></b></a></li><li><a href=\"https://github.com/erin5_user\"><b><code>erin5_user</code></b></a> (QA)</li><li><a href=\"https://github.com/frank5_user\"><b><code>frank5_user</code></b></a></li><li><a href=\"https://github.com/grace5_user\"><b><code>grace5_user</code></b></a></li><li><a href=\"https://github.com/heidi5_user\"><b><code>heidi5_user</code></b></a></li><li><a href=\"https://github.com/ivan5_user\"><b><code>ivan5_user</code></b></a></li><li><a href=\"https://github.com/judy5_user\"><b><code>judy5_user</code></b></a></li><li><a href=\"https://github.com/kevin5_user\"><b><code>kevin5_user</code></b></a> (QA)</li><li><a href=\"https://github.com/laura5_user\"><b><code>laura5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/mallory5_user\"><b><code>mallory5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/niaj5_user\"><b><code>niaj5_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-compiler\">kotlin-compiler</a></summary><ul><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a> ⏳</li><li><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a></li><li><a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a></li><li><a href=\"https://github.com/peggy_user\"><b><code>peggy_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-wasm\">kotlin-wasm</a></summary><ul><li><a href=\"https://github.com/bob2_user\"><b><code>bob2_user</code></b></a></li><li><a href=\"https://github.com/carol2_user\"><b><code>carol2_user</code></b></a></li><li><a href=\"https://github.com/dave2_user\"><b><code>dave2_user</code></b></a></li><li><a href=\"https://github.com/erin2_user\"><b><code>erin2_user</code></b></a></li><li><a href=\"https://github.com/frank2_user\"><b><code>frank2_user</code></b></a></li><li><a href=\"https://github.com/grace2_user\"><b><code>grace2_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a> (QA)</li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-js\">kotlin-js</a></summary><ul><li><a href=\"https://github.com/heidi2_user\"><b><code>heidi2_user</code></b></a></li><li><a href=\"https://github.com/ivan2_user\"><b><code>ivan2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/judy2_user\"><b><code>judy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-common-backend\">kotlin-common-backend</a></summary><ul><li><a href=\"https://github.com/kevin2_user\"><b><code>kevin2_user</code></b></a></li><li><a href=\"https://github.com/laura2_user\"><b><code>laura2_user</code></b></a></li><li><a href=\"https://github.com/niaj2_user\"><b><code>niaj2_user</code></b></a></li><li><a href=\"https://github.com/olivia2_user\"><b><code>olivia2_user</code></b></a></li><li><a href=\"https://github.com/peggy2_user\"><b><code>peggy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-native\">kotlin-native</a></summary><ul><li><a href=\"https://github.com/quinn2_user\"><b><code>quinn2_user</code></b></a></li><li><a href=\"https://github.com/rupert2_user\"><b><code>rupert2_user</code></b></a></li><li><a href=\"https://github.com/sybil2_user\"><b><code>sybil2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/trent2_user\"><b><code>trent2_user</code></b></a></li><li><a href=\"https://github.com/ursula2_user\"><b><code>ursula2_user</code></b></a></li><li><a href=\"https://github.com/victor2_user\"><b><code>victor2_user</code></b></a></li><li><a href=\"https://github.com/walter2_user\"><b><code>walter2_user</code></b></a></li><li><a href=\"https://github.com/xavier2_user\"><b><code>xavier2_user</code></b></a></li><li><a href=\"https://github.com/yvonne2_user\"><b><code>yvonne2_user</code></b></a></li><li><a href=\"https://github.com/zoe2_user\"><b><code>zoe2_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice3_user\"><b><code>alice3_user</code></b></a></li></ul></details></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-language-evolution\">kotlin-language-evolution</a></summary><ul><li><a href=\"https://github.com/ivan3_user\"><b><code>ivan3_user</code></b></a></li><li><a href=\"https://github.com/olivia5_user\"><b><code>olivia5_user</code></b></a></li><li><a href=\"https://github.com/peggy5_user\"><b><code>peggy5_user</code></b></a></li><li><a href=\"https://github.com/quinn5_user\"><b><code>quinn5_user</code></b></a></li><li><a href=\"https://github.com/rupert5_user\"><b><code>rupert5_user</code></b></a></li><li><a href=\"https://github.com/sybil5_user\"><b><code>sybil5_user</code></b></a></li><li><a href=\"https://github.com/trent5_user\"><b><code>trent5_user</code></b></a></li></ul></details></li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​generators/​tests/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-compiler\">kotlin-compiler</a></summary><ul><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a> ⏳</li><li><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a></li><li><a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a></li><li><a href=\"https://github.com/peggy_user\"><b><code>peggy_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-wasm\">kotlin-wasm</a></summary><ul><li><a href=\"https://github.com/bob2_user\"><b><code>bob2_user</code></b></a></li><li><a href=\"https://github.com/carol2_user\"><b><code>carol2_user</code></b></a></li><li><a href=\"https://github.com/dave2_user\"><b><code>dave2_user</code></b></a></li><li><a href=\"https://github.com/erin2_user\"><b><code>erin2_user</code></b></a></li><li><a href=\"https://github.com/frank2_user\"><b><code>frank2_user</code></b></a></li><li><a href=\"https://github.com/grace2_user\"><b><code>grace2_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a> (QA)</li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-js\">kotlin-js</a></summary><ul><li><a href=\"https://github.com/heidi2_user\"><b><code>heidi2_user</code></b></a></li><li><a href=\"https://github.com/ivan2_user\"><b><code>ivan2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/judy2_user\"><b><code>judy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-common-backend\">kotlin-common-backend</a></summary><ul><li><a href=\"https://github.com/kevin2_user\"><b><code>kevin2_user</code></b></a></li><li><a href=\"https://github.com/laura2_user\"><b><code>laura2_user</code></b></a></li><li><a href=\"https://github.com/niaj2_user\"><b><code>niaj2_user</code></b></a></li><li><a href=\"https://github.com/olivia2_user\"><b><code>olivia2_user</code></b></a></li><li><a href=\"https://github.com/peggy2_user\"><b><code>peggy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-native\">kotlin-native</a></summary><ul><li><a href=\"https://github.com/quinn2_user\"><b><code>quinn2_user</code></b></a></li><li><a href=\"https://github.com/rupert2_user\"><b><code>rupert2_user</code></b></a></li><li><a href=\"https://github.com/sybil2_user\"><b><code>sybil2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/trent2_user\"><b><code>trent2_user</code></b></a></li><li><a href=\"https://github.com/ursula2_user\"><b><code>ursula2_user</code></b></a></li><li><a href=\"https://github.com/victor2_user\"><b><code>victor2_user</code></b></a></li><li><a href=\"https://github.com/walter2_user\"><b><code>walter2_user</code></b></a></li><li><a href=\"https://github.com/xavier2_user\"><b><code>xavier2_user</code></b></a></li><li><a href=\"https://github.com/yvonne2_user\"><b><code>yvonne2_user</code></b></a></li><li><a href=\"https://github.com/zoe2_user\"><b><code>zoe2_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice3_user\"><b><code>alice3_user</code></b></a></li></ul></details></li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​libraries/​scripting/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​plugins/​atomicfu/​</code></td><td><a href=\"https://github.com/trent4_user\"><b><code>trent4_user</code></b></a>, <a href=\"https://github.com/erin4_user\"><b><code>erin4_user</code></b></a><br><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr></table>\n\n<details><summary><b>PR commands for maintainers</b></summary><table><tr><th>Command</th><th>Description</th><th>Parameters</th></tr><tr><td><code>/safe-merge</code></td><td>Rebase-merges with automatic fixup commit squashing</td><td><code>--fixup</code> Autosquash fixup commits (on by default)</td></tr><tr><td><code>/safe-squash-merge</code></td><td>Squash-merges with optional commit title/body override</td><td><code>--title</code> Title of the squashed commit<br><code>--message</code> Body of the squashed commit</td></tr><tr><td><code>/dry-run</code></td><td>Runs the test pipeline with changes rebased on latest master</td><td><code>--retry</code> Retry the CI run on failure</td></tr><tr><td><code>/test-public</code></td><td>Triggers the public test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/test-private</code></td><td>Triggers the private test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/codeowners</code></td><td>Triggers code owners check and comment update</td><td>—</td></tr><tr><td><code>/fixup</code></td><td>Squashes fixup commits and force pushes the branch</td><td>—</td></tr><tr><td><code>/cancel-coordinator</code></td><td>Cancels the merge coordinator currently running for this branch</td><td>—</td></tr><tr><td><code>/cherry-pick</code></td><td>Cherry-picks this pull request onto a target release branch</td><td><code>--target</code> Release version to cherry-pick onto</td></tr><tr><td><code>/review</code></td><td>Runs the auto code review; see <a href=\"https://github.com/JetBrains/kotlin/blob/master/repo/auto-code-review/README.md#run-for-a-github-pr\">docs</a></td><td>—</td></tr></table></details><!-- KPR_COMMANDS:eyJjb21tYW5kcyI6W3sidmFsdWUiOiIvc2FmZS1tZXJnZSIsImRlc2NyaXB0aW9uIjoiUmViYXNlLW1lcmdlcyB3aXRoIGF1dG9tYXRpYyBmaXh1cCBjb21taXQgc3F1YXNoaW5nIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tZml4dXAiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJBdXRvc3F1YXNoIGZpeHVwIGNvbW1pdHMiLCJkZWZhdWx0Ijp0cnVlfV19LHsidmFsdWUiOiIvc2FmZS1zcXVhc2gtbWVyZ2UiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaC1tZXJnZXMgd2l0aCBvcHRpb25hbCBjb21taXQgdGl0bGUvYm9keSBvdmVycmlkZSIsInBhcmFtZXRlcnMiOlt7ImZsYWciOiItLXRpdGxlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJUaXRsZSBvZiB0aGUgc3F1YXNoZWQgY29tbWl0In0seyJmbGFnIjoiLS1tZXNzYWdlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJCb2R5IG9mIHRoZSBzcXVhc2hlZCBjb21taXQifV19LHsidmFsdWUiOiIvZHJ5LXJ1biIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgdGVzdCBwaXBlbGluZSB3aXRoIGNoYW5nZXMgcmViYXNlZCBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tcmV0cnkiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJSZXRyeSB0aGUgQ0kgcnVuIG9uIGZhaWx1cmUifV19LHsidmFsdWUiOiIvdGVzdC1wdWJsaWMiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwdWJsaWMgdGVzdCBzdWl0ZSB3aXRob3V0IHJlYmFzaW5nIG9uIGxhdGVzdCBtYXN0ZXIiLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii90ZXN0LXByaXZhdGUiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwcml2YXRlIHRlc3Qgc3VpdGUgd2l0aG91dCByZWJhc2luZyBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY29kZW93bmVycyIsImRlc2NyaXB0aW9uIjoiVHJpZ2dlcnMgY29kZSBvd25lcnMgY2hlY2sgYW5kIGNvbW1lbnQgdXBkYXRlIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvZml4dXAiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaGVzIGZpeHVwIGNvbW1pdHMgYW5kIGZvcmNlIHB1c2hlcyB0aGUgYnJhbmNoIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY2FuY2VsLWNvb3JkaW5hdG9yIiwiZGVzY3JpcHRpb24iOiJDYW5jZWxzIHRoZSBtZXJnZSBjb29yZGluYXRvciBjdXJyZW50bHkgcnVubmluZyBmb3IgdGhpcyBicmFuY2giLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii9jaGVycnktcGljayIsImRlc2NyaXB0aW9uIjoiQ2hlcnJ5LXBpY2tzIHRoaXMgcHVsbCByZXF1ZXN0IG9udG8gYSB0YXJnZXQgcmVsZWFzZSBicmFuY2giLCJwYXJhbWV0ZXJzIjpbeyJmbGFnIjoiLS10YXJnZXQiLCJraW5kIjoidmFsdWUiLCJkZXNjcmlwdGlvbiI6IlJlbGVhc2UgdmVyc2lvbiB0byBjaGVycnktcGljayBvbnRvIn1dfSx7InZhbHVlIjoiL3JldmlldyIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgYXV0byBjb2RlIHJldmlldyIsInBhcmFtZXRlcnMiOltdLCJkb2NzVXJsIjoiaHR0cHM6Ly9naXRodWIuY29tL0pldEJyYWlucy9rb3RsaW4vYmxvYi9tYXN0ZXIvcmVwby9hdXRvLWNvZGUtcmV2aWV3L1JFQURNRS5tZCNydW4tZm9yLWEtZ2l0aHViLXByIn1dfQ== -->\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+              "createdAt": "2026-09-30T21:13:29Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T15:18:55Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1610192883"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "judy3_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-09-30T21:13:33Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-30T21:13:33Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1124940438"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1076717920 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90008/safe-merge`\n> Commit: [f4a9b8e](https://github.com/JetBrains/kotlin/commit/f4a9b8e2ad0d5283cc6ea3f362f8529655b2c182)\n\n",
+              "createdAt": "2026-09-30T21:15:35Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-30T22:41:48Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1089513691"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "judy3_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/cancel-coordinator",
+              "createdAt": "2026-09-30T22:41:23Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-30T22:41:23Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1193637811"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "judy3_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-09-30T22:41:44Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-30T22:41:44Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1714879576"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1076773656 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90008/safe-merge`\n> Commit: [71eba21](https://github.com/JetBrains/kotlin/commit/71eba21f3f60cbded47fd555db45b98f53ae2daf)\n\n\n\n---\n\nQuality gate failed. See https://buildserver.labs.intellij.net/build/1076773656 to get full insight.",
+              "createdAt": "2026-09-30T22:43:21Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T10:33:34Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1958917366"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "judy3_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-10-01T10:33:30Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-10-01T10:33:30Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1047770615"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1077216029 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90008/safe-merge`\n> Commit: [6157fc2](https://github.com/JetBrains/kotlin/commit/6157fc2b3c8af1a0f4638cf6470237f298bddd64)\n\n\n\n---\n\nQuality gate failed. See https://buildserver.labs.intellij.net/build/1077216029 to get full insight.",
+              "createdAt": "2026-10-01T10:35:21Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T14:15:47Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1124547116"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "judy3_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-10-01T14:15:37Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-10-01T14:15:37Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1138256470"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1077525189 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90008/safe-merge`\n> Commit: [48661db](https://github.com/JetBrains/kotlin/commit/48661db82f15434bbf276fda52df75ebc10fe395)\n\n",
+              "createdAt": "2026-10-01T14:20:05Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T14:20:05Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1031842438"
+            }
+          ]
+        },
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "committedDate": "2026-10-01T14:13:45Z",
+                "statusCheckRollup": {
+                  "contexts": {
+                    "nodes": [
+                      {
+                        "__typename": "StatusContext",
+                        "context": "Aggregate (master) (Kotlin Dev)",
+                        "state": "PENDING",
+                        "targetUrl": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_Aggregate/1077525189"
+                      },
+                      {
+                        "__typename": "StatusContext",
+                        "context": "Safe-Merge Coordinator (Kotlin Dev)",
+                        "state": "PENDING",
+                        "targetUrl": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1077518282"
+                      },
+                      {
+                        "__typename": "CheckRun",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://kotlinlang.org/",
+                        "name": "Code Owners Approval",
+                        "status": "COMPLETED",
+                        "summary": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​.​space/​CODEOWNERS</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-build-infrastructure\">kotlin-build-infrastructure</a></summary><ul><li><a href=\"https://github.com/kevin3_user\"><b><code>kevin3_user</code></b></a></li><li><a href=\"https://github.com/laura3_user\"><b><code>laura3_user</code></b></a></li><li><a href=\"https://github.com/mallory3_user\"><b><code>mallory3_user</code></b></a></li><li><a href=\"https://github.com/judy3_user\"><b><code>judy3_user</code></b></a></li><li><a href=\"https://github.com/niaj3_user\"><b><code>niaj3_user</code></b></a></li><li><a href=\"https://github.com/olivia3_user\"><b><code>olivia3_user</code></b></a></li><li><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a></li><li><a href=\"https://github.com/quinn3_user\"><b><code>quinn3_user</code></b></a> ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a> 🔒</td></tr><tr><td><code>**.​gradle.​kts</code>, <code>/​repo/​</code></td><td><a href=\"https://github.com/rupert3_user\"><b><code>rupert3_user</code></b></a><br><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-build-infrastructure\">kotlin-build-infrastructure</a></summary><ul><li><a href=\"https://github.com/kevin3_user\"><b><code>kevin3_user</code></b></a></li><li><a href=\"https://github.com/laura3_user\"><b><code>laura3_user</code></b></a></li><li><a href=\"https://github.com/mallory3_user\"><b><code>mallory3_user</code></b></a></li><li><a href=\"https://github.com/judy3_user\"><b><code>judy3_user</code></b></a></li><li><a href=\"https://github.com/niaj3_user\"><b><code>niaj3_user</code></b></a></li><li><a href=\"https://github.com/olivia3_user\"><b><code>olivia3_user</code></b></a></li><li><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a></li><li><a href=\"https://github.com/quinn3_user\"><b><code>quinn3_user</code></b></a> ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/peggy3_user\"><b><code>peggy3_user</code></b></a> 🔒</td></tr><tr><td><code>*</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin\">kotlin</a></summary><ul><li><a href=\"https://github.com/sybil3_user\"><b><code>sybil3_user</code></b></a></li><li><a href=\"https://github.com/trent3_user\"><b><code>trent3_user</code></b></a></li><li><a href=\"https://github.com/ursula3_user\"><b><code>ursula3_user</code></b></a></li><li><a href=\"https://github.com/victor3_user\"><b><code>victor3_user</code></b></a></li><li><a href=\"https://github.com/walter3_user\"><b><code>walter3_user</code></b></a></li><li><a href=\"https://github.com/xavier3_user\"><b><code>xavier3_user</code></b></a> ⏳</li><li><a href=\"https://github.com/yvonne3_user\"><b><code>yvonne3_user</code></b></a> ⏳</li><li><a href=\"https://github.com/zoe3_user\"><b><code>zoe3_user</code></b></a></li><li><a href=\"https://github.com/alice4_user\"><b><code>alice4_user</code></b></a></li><li><a href=\"https://github.com/bob4_user\"><b><code>bob4_user</code></b></a></li><li><a href=\"https://github.com/carol4_user\"><b><code>carol4_user</code></b></a></li><li><a href=\"https://github.com/dave4_user\"><b><code>dave4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/erin4_user\"><b><code>erin4_user</code></b></a></li><li><a href=\"https://github.com/frank4_user\"><b><code>frank4_user</code></b></a></li><li><a href=\"https://github.com/grace4_user\"><b><code>grace4_user</code></b></a></li><li><a href=\"https://github.com/heidi4_user\"><b><code>heidi4_user</code></b></a></li><li><a href=\"https://github.com/ivan4_user\"><b><code>ivan4_user</code></b></a></li><li><a href=\"https://github.com/judy4_user\"><b><code>judy4_user</code></b></a></li><li><a href=\"https://github.com/kevin4_user\"><b><code>kevin4_user</code></b></a></li><li><a href=\"https://github.com/laura4_user\"><b><code>laura4_user</code></b></a></li><li><a href=\"https://github.com/mallory4_user\"><b><code>mallory4_user</code></b></a> (QA)</li><li><a href=\"https://github.com/niaj4_user\"><b><code>niaj4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/olivia4_user\"><b><code>olivia4_user</code></b></a></li><li><a href=\"https://github.com/peggy4_user\"><b><code>peggy4_user</code></b></a></li><li><a href=\"https://github.com/quinn4_user\"><b><code>quinn4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/rupert4_user\"><b><code>rupert4_user</code></b></a></li><li><a href=\"https://github.com/sybil4_user\"><b><code>sybil4_user</code></b></a></li><li><a href=\"https://github.com/trent4_user\"><b><code>trent4_user</code></b></a></li><li><a href=\"https://github.com/ursula4_user\"><b><code>ursula4_user</code></b></a> ⏳</li><li><a href=\"https://github.com/victor4_user\"><b><code>victor4_user</code></b></a></li><li><a href=\"https://github.com/walter4_user\"><b><code>walter4_user</code></b></a></li><li><a href=\"https://github.com/xavier4_user\"><b><code>xavier4_user</code></b></a></li><li><a href=\"https://github.com/yvonne4_user\"><b><code>yvonne4_user</code></b></a></li><li><a href=\"https://github.com/zoe4_user\"><b><code>zoe4_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice5_user\"><b><code>alice5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/rupert3_user\"><b><code>rupert3_user</code></b></a></li><li><a href=\"https://github.com/bob5_user\"><b><code>bob5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/carol5_user\"><b><code>carol5_user</code></b></a></li><li><a href=\"https://github.com/dave5_user\"><b><code>dave5_user</code></b></a></li><li><a href=\"https://github.com/erin5_user\"><b><code>erin5_user</code></b></a> (QA)</li><li><a href=\"https://github.com/frank5_user\"><b><code>frank5_user</code></b></a></li><li><a href=\"https://github.com/grace5_user\"><b><code>grace5_user</code></b></a></li><li><a href=\"https://github.com/heidi5_user\"><b><code>heidi5_user</code></b></a></li><li><a href=\"https://github.com/ivan5_user\"><b><code>ivan5_user</code></b></a></li><li><a href=\"https://github.com/judy5_user\"><b><code>judy5_user</code></b></a></li><li><a href=\"https://github.com/kevin5_user\"><b><code>kevin5_user</code></b></a> (QA)</li><li><a href=\"https://github.com/laura5_user\"><b><code>laura5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/mallory5_user\"><b><code>mallory5_user</code></b></a> ⏳</li><li><a href=\"https://github.com/niaj5_user\"><b><code>niaj5_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-compiler\">kotlin-compiler</a></summary><ul><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a> ⏳</li><li><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a></li><li><a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a></li><li><a href=\"https://github.com/peggy_user\"><b><code>peggy_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-wasm\">kotlin-wasm</a></summary><ul><li><a href=\"https://github.com/bob2_user\"><b><code>bob2_user</code></b></a></li><li><a href=\"https://github.com/carol2_user\"><b><code>carol2_user</code></b></a></li><li><a href=\"https://github.com/dave2_user\"><b><code>dave2_user</code></b></a></li><li><a href=\"https://github.com/erin2_user\"><b><code>erin2_user</code></b></a></li><li><a href=\"https://github.com/frank2_user\"><b><code>frank2_user</code></b></a></li><li><a href=\"https://github.com/grace2_user\"><b><code>grace2_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a> (QA)</li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-js\">kotlin-js</a></summary><ul><li><a href=\"https://github.com/heidi2_user\"><b><code>heidi2_user</code></b></a></li><li><a href=\"https://github.com/ivan2_user\"><b><code>ivan2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/judy2_user\"><b><code>judy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-common-backend\">kotlin-common-backend</a></summary><ul><li><a href=\"https://github.com/kevin2_user\"><b><code>kevin2_user</code></b></a></li><li><a href=\"https://github.com/laura2_user\"><b><code>laura2_user</code></b></a></li><li><a href=\"https://github.com/niaj2_user\"><b><code>niaj2_user</code></b></a></li><li><a href=\"https://github.com/olivia2_user\"><b><code>olivia2_user</code></b></a></li><li><a href=\"https://github.com/peggy2_user\"><b><code>peggy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-native\">kotlin-native</a></summary><ul><li><a href=\"https://github.com/quinn2_user\"><b><code>quinn2_user</code></b></a></li><li><a href=\"https://github.com/rupert2_user\"><b><code>rupert2_user</code></b></a></li><li><a href=\"https://github.com/sybil2_user\"><b><code>sybil2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/trent2_user\"><b><code>trent2_user</code></b></a></li><li><a href=\"https://github.com/ursula2_user\"><b><code>ursula2_user</code></b></a></li><li><a href=\"https://github.com/victor2_user\"><b><code>victor2_user</code></b></a></li><li><a href=\"https://github.com/walter2_user\"><b><code>walter2_user</code></b></a></li><li><a href=\"https://github.com/xavier2_user\"><b><code>xavier2_user</code></b></a></li><li><a href=\"https://github.com/yvonne2_user\"><b><code>yvonne2_user</code></b></a></li><li><a href=\"https://github.com/zoe2_user\"><b><code>zoe2_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice3_user\"><b><code>alice3_user</code></b></a></li></ul></details></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-language-evolution\">kotlin-language-evolution</a></summary><ul><li><a href=\"https://github.com/ivan3_user\"><b><code>ivan3_user</code></b></a></li><li><a href=\"https://github.com/olivia5_user\"><b><code>olivia5_user</code></b></a></li><li><a href=\"https://github.com/peggy5_user\"><b><code>peggy5_user</code></b></a></li><li><a href=\"https://github.com/quinn5_user\"><b><code>quinn5_user</code></b></a></li><li><a href=\"https://github.com/rupert5_user\"><b><code>rupert5_user</code></b></a></li><li><a href=\"https://github.com/sybil5_user\"><b><code>sybil5_user</code></b></a></li><li><a href=\"https://github.com/trent5_user\"><b><code>trent5_user</code></b></a></li></ul></details></li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​generators/​tests/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-compiler\">kotlin-compiler</a></summary><ul><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a> ⏳</li><li><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a></li><li><a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a></li><li><a href=\"https://github.com/peggy_user\"><b><code>peggy_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-wasm\">kotlin-wasm</a></summary><ul><li><a href=\"https://github.com/bob2_user\"><b><code>bob2_user</code></b></a></li><li><a href=\"https://github.com/carol2_user\"><b><code>carol2_user</code></b></a></li><li><a href=\"https://github.com/dave2_user\"><b><code>dave2_user</code></b></a></li><li><a href=\"https://github.com/erin2_user\"><b><code>erin2_user</code></b></a></li><li><a href=\"https://github.com/frank2_user\"><b><code>frank2_user</code></b></a></li><li><a href=\"https://github.com/grace2_user\"><b><code>grace2_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a> (QA)</li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-js\">kotlin-js</a></summary><ul><li><a href=\"https://github.com/heidi2_user\"><b><code>heidi2_user</code></b></a></li><li><a href=\"https://github.com/ivan2_user\"><b><code>ivan2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/judy2_user\"><b><code>judy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-common-backend\">kotlin-common-backend</a></summary><ul><li><a href=\"https://github.com/kevin2_user\"><b><code>kevin2_user</code></b></a></li><li><a href=\"https://github.com/laura2_user\"><b><code>laura2_user</code></b></a></li><li><a href=\"https://github.com/niaj2_user\"><b><code>niaj2_user</code></b></a></li><li><a href=\"https://github.com/olivia2_user\"><b><code>olivia2_user</code></b></a></li><li><a href=\"https://github.com/peggy2_user\"><b><code>peggy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-native\">kotlin-native</a></summary><ul><li><a href=\"https://github.com/quinn2_user\"><b><code>quinn2_user</code></b></a></li><li><a href=\"https://github.com/rupert2_user\"><b><code>rupert2_user</code></b></a></li><li><a href=\"https://github.com/sybil2_user\"><b><code>sybil2_user</code></b></a> ⏳</li><li><a href=\"https://github.com/trent2_user\"><b><code>trent2_user</code></b></a></li><li><a href=\"https://github.com/ursula2_user\"><b><code>ursula2_user</code></b></a></li><li><a href=\"https://github.com/victor2_user\"><b><code>victor2_user</code></b></a></li><li><a href=\"https://github.com/walter2_user\"><b><code>walter2_user</code></b></a></li><li><a href=\"https://github.com/xavier2_user\"><b><code>xavier2_user</code></b></a></li><li><a href=\"https://github.com/yvonne2_user\"><b><code>yvonne2_user</code></b></a></li><li><a href=\"https://github.com/zoe2_user\"><b><code>zoe2_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice3_user\"><b><code>alice3_user</code></b></a></li></ul></details></li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​libraries/​scripting/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​plugins/​atomicfu/​</code></td><td><a href=\"https://github.com/trent4_user\"><b><code>trent4_user</code></b></a>, <a href=\"https://github.com/erin4_user\"><b><code>erin4_user</code></b></a><br><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a> ⏳</li><li><a href=\"https://github.com/heidi3_user\"><b><code>heidi3_user</code></b></a> (QA)</li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a> (QA)</li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a> (QA) ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr></table>\n\n<details><summary><b>PR commands for maintainers</b></summary><table><tr><th>Command</th><th>Description</th><th>Parameters</th></tr><tr><td><code>/safe-merge</code></td><td>Rebase-merges with automatic fixup commit squashing</td><td><code>--fixup</code> Autosquash fixup commits (on by default)</td></tr><tr><td><code>/safe-squash-merge</code></td><td>Squash-merges with optional commit title/body override</td><td><code>--title</code> Title of the squashed commit<br><code>--message</code> Body of the squashed commit</td></tr><tr><td><code>/dry-run</code></td><td>Runs the test pipeline with changes rebased on latest master</td><td><code>--retry</code> Retry the CI run on failure</td></tr><tr><td><code>/test-public</code></td><td>Triggers the public test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/test-private</code></td><td>Triggers the private test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/codeowners</code></td><td>Triggers code owners check and comment update</td><td>—</td></tr><tr><td><code>/fixup</code></td><td>Squashes fixup commits and force pushes the branch</td><td>—</td></tr><tr><td><code>/cancel-coordinator</code></td><td>Cancels the merge coordinator currently running for this branch</td><td>—</td></tr><tr><td><code>/cherry-pick</code></td><td>Cherry-picks this pull request onto a target release branch</td><td><code>--target</code> Release version to cherry-pick onto</td></tr><tr><td><code>/review</code></td><td>Runs the auto code review; see <a href=\"https://github.com/JetBrains/kotlin/blob/master/repo/auto-code-review/README.md#run-for-a-github-pr\">docs</a></td><td>—</td></tr></table></details><!-- KPR_COMMANDS:eyJjb21tYW5kcyI6W3sidmFsdWUiOiIvc2FmZS1tZXJnZSIsImRlc2NyaXB0aW9uIjoiUmViYXNlLW1lcmdlcyB3aXRoIGF1dG9tYXRpYyBmaXh1cCBjb21taXQgc3F1YXNoaW5nIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tZml4dXAiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJBdXRvc3F1YXNoIGZpeHVwIGNvbW1pdHMiLCJkZWZhdWx0Ijp0cnVlfV19LHsidmFsdWUiOiIvc2FmZS1zcXVhc2gtbWVyZ2UiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaC1tZXJnZXMgd2l0aCBvcHRpb25hbCBjb21taXQgdGl0bGUvYm9keSBvdmVycmlkZSIsInBhcmFtZXRlcnMiOlt7ImZsYWciOiItLXRpdGxlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJUaXRsZSBvZiB0aGUgc3F1YXNoZWQgY29tbWl0In0seyJmbGFnIjoiLS1tZXNzYWdlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJCb2R5IG9mIHRoZSBzcXVhc2hlZCBjb21taXQifV19LHsidmFsdWUiOiIvZHJ5LXJ1biIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgdGVzdCBwaXBlbGluZSB3aXRoIGNoYW5nZXMgcmViYXNlZCBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tcmV0cnkiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJSZXRyeSB0aGUgQ0kgcnVuIG9uIGZhaWx1cmUifV19LHsidmFsdWUiOiIvdGVzdC1wdWJsaWMiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwdWJsaWMgdGVzdCBzdWl0ZSB3aXRob3V0IHJlYmFzaW5nIG9uIGxhdGVzdCBtYXN0ZXIiLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii90ZXN0LXByaXZhdGUiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwcml2YXRlIHRlc3Qgc3VpdGUgd2l0aG91dCByZWJhc2luZyBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY29kZW93bmVycyIsImRlc2NyaXB0aW9uIjoiVHJpZ2dlcnMgY29kZSBvd25lcnMgY2hlY2sgYW5kIGNvbW1lbnQgdXBkYXRlIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvZml4dXAiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaGVzIGZpeHVwIGNvbW1pdHMgYW5kIGZvcmNlIHB1c2hlcyB0aGUgYnJhbmNoIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY2FuY2VsLWNvb3JkaW5hdG9yIiwiZGVzY3JpcHRpb24iOiJDYW5jZWxzIHRoZSBtZXJnZSBjb29yZGluYXRvciBjdXJyZW50bHkgcnVubmluZyBmb3IgdGhpcyBicmFuY2giLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii9jaGVycnktcGljayIsImRlc2NyaXB0aW9uIjoiQ2hlcnJ5LXBpY2tzIHRoaXMgcHVsbCByZXF1ZXN0IG9udG8gYSB0YXJnZXQgcmVsZWFzZSBicmFuY2giLCJwYXJhbWV0ZXJzIjpbeyJmbGFnIjoiLS10YXJnZXQiLCJraW5kIjoidmFsdWUiLCJkZXNjcmlwdGlvbiI6IlJlbGVhc2UgdmVyc2lvbiB0byBjaGVycnktcGljayBvbnRvIn1dfSx7InZhbHVlIjoiL3JldmlldyIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgYXV0byBjb2RlIHJldmlldyIsInBhcmFtZXRlcnMiOltdLCJkb2NzVXJsIjoiaHR0cHM6Ly9naXRodWIuY29tL0pldEJyYWlucy9rb3RsaW4vYmxvYi9tYXN0ZXIvcmVwby9hdXRvLWNvZGUtcmV2aWV3L1JFQURNRS5tZCNydW4tZm9yLWEtZ2l0aHViLXByIn1dfQ== -->\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+                        "title": "All code owners have approved"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "createdAt": "2026-09-30T21:13:23Z",
+        "headRefName": "topic/example-90008",
+        "headRefOid": "48661db82f15434bbf276fda52df75ebc10fe395",
+        "history": {
+          "nodes": [
+            {
+              "commit": {
+                "message": "Commit message."
+              }
+            },
+            {
+              "commit": {
+                "message": "Commit message."
+              }
+            },
+            {
+              "commit": {
+                "message": "Commit message."
+              }
+            }
+          ]
+        },
+        "isDraft": false,
+        "latestOpinionatedReviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "peggy3_user"
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T15:18:51Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#pullrequestreview-1613299124"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T14:37:56Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#pullrequestreview-1410951978"
+            }
+          ]
+        },
+        "mergedAt": null,
+        "number": 90008,
+        "reviewRequests": {
+          "nodes": []
+        },
+        "reviewThreads": {
+          "nodes": []
+        },
+        "reviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T14:37:56Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#pullrequestreview-1410951978"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "peggy3_user"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T15:18:51Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90008#pullrequestreview-1613299124"
+            }
+          ]
+        },
+        "state": "OPEN",
+        "timelineItems": {
+          "nodes": [
+            {
+              "__typename": "HeadRefForcePushedEvent",
+              "createdAt": "2026-10-01T14:14:15Z"
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-10-01T14:19:00Z",
+              "requestedReviewer": {
+                "__typename": "Team",
+                "slug": "kotlin-build-infrastructure"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-10-01T14:19:01Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "peggy3_user"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-10-01T14:19:40Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "trent4_user"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-10-01T14:22:42Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "trent_user"
+              }
+            }
+          ]
+        },
+        "title": "Example change",
+        "updatedAt": "2026-10-01T15:18:55Z",
+        "url": "https://github.com/JetBrains/kotlin/pull/90008"
+      }
+    },
+    "viewer": {
+      "login": "dimonchik0036"
+    }
+  }
+}

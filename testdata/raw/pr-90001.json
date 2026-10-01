@@ -1,0 +1,641 @@
+{
+  "data": {
+    "rateLimit": {
+      "cost": 1,
+      "remaining": 4222,
+      "resetAt": "2026-10-01T15:36:05Z"
+    },
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "__typename": "User",
+          "login": "alice_user"
+        },
+        "comments": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "Bot",
+                "login": "kotlin-safemerge"
+              },
+              "authorAssociation": "NONE",
+              "body": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​analysis/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-analysis-api\">kotlin-analysis-api</a></summary><ul><li><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></li><li><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a></li><li><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li><li><a href=\"https://github.com/erin_user\"><b><code>erin_user</code></b></a></li></ul></details></td><td align=\"center\">❌<br><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></td></tr><tr><td><code>/​compiler/​ir/​backend.​jvm/​</code>, <code>/​compiler/​testData/​checkLocalVariablesTable/​</code>, <code>/​compiler/​testData/​codegen/​asmLike/​</code>, <code>/​plugins/​kapt/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a></li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></td><td align=\"center\">🔴<br><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></td></tr><tr><td><code>/​compiler/​testData/​codegen/​boxJvm/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-compiler\">kotlin-compiler</a></summary><ul><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a></li><li><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a></li><li><a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a></li><li><a href=\"https://github.com/peggy_user\"><b><code>peggy_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a></li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a></li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a></li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-wasm\">kotlin-wasm</a></summary><ul><li><a href=\"https://github.com/bob2_user\"><b><code>bob2_user</code></b></a></li><li><a href=\"https://github.com/carol2_user\"><b><code>carol2_user</code></b></a></li><li><a href=\"https://github.com/dave2_user\"><b><code>dave2_user</code></b></a></li><li><a href=\"https://github.com/erin2_user\"><b><code>erin2_user</code></b></a></li><li><a href=\"https://github.com/frank2_user\"><b><code>frank2_user</code></b></a></li><li><a href=\"https://github.com/grace2_user\"><b><code>grace2_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a></li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-js\">kotlin-js</a></summary><ul><li><a href=\"https://github.com/heidi2_user\"><b><code>heidi2_user</code></b></a></li><li><a href=\"https://github.com/ivan2_user\"><b><code>ivan2_user</code></b></a></li><li><a href=\"https://github.com/judy2_user\"><b><code>judy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-common-backend\">kotlin-common-backend</a></summary><ul><li><a href=\"https://github.com/kevin2_user\"><b><code>kevin2_user</code></b></a></li><li><a href=\"https://github.com/laura2_user\"><b><code>laura2_user</code></b></a></li><li><a href=\"https://github.com/mallory2_user\"><b><code>mallory2_user</code></b></a></li><li><a href=\"https://github.com/niaj2_user\"><b><code>niaj2_user</code></b></a></li><li><a href=\"https://github.com/olivia2_user\"><b><code>olivia2_user</code></b></a></li><li><a href=\"https://github.com/peggy2_user\"><b><code>peggy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-native\">kotlin-native</a></summary><ul><li><a href=\"https://github.com/quinn2_user\"><b><code>quinn2_user</code></b></a></li><li><a href=\"https://github.com/rupert2_user\"><b><code>rupert2_user</code></b></a></li><li><a href=\"https://github.com/sybil2_user\"><b><code>sybil2_user</code></b></a></li><li><a href=\"https://github.com/trent2_user\"><b><code>trent2_user</code></b></a></li><li><a href=\"https://github.com/ursula2_user\"><b><code>ursula2_user</code></b></a></li><li><a href=\"https://github.com/victor2_user\"><b><code>victor2_user</code></b></a></li><li><a href=\"https://github.com/walter2_user\"><b><code>walter2_user</code></b></a></li><li><a href=\"https://github.com/xavier2_user\"><b><code>xavier2_user</code></b></a></li><li><a href=\"https://github.com/yvonne2_user\"><b><code>yvonne2_user</code></b></a></li><li><a href=\"https://github.com/zoe2_user\"><b><code>zoe2_user</code></b></a></li><li><a href=\"https://github.com/alice3_user\"><b><code>alice3_user</code></b></a></li></ul></details></li></ul></details></td><td align=\"center\">🔴<br><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></td></tr><tr><td><code>/​core/​compiler.​common.​jvm/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a></li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a></li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a></li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a></li></ul></details><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a></li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></td><td align=\"center\">🔴<br><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></td></tr><tr><td><code>/​plugins/​parcelize/​</code></td><td><a href=\"https://github.com/bob3_user\"><b><code>bob3_user</code></b></a>, <a href=\"https://github.com/carol3_user\"><b><code>carol3_user</code></b></a>, <a href=\"https://github.com/dave3_user\"><b><code>dave3_user</code></b></a>, <a href=\"https://github.com/erin3_user\"><b><code>erin3_user</code></b></a>, <a href=\"https://github.com/frank3_user\"><b><code>frank3_user</code></b></a>, <a href=\"https://github.com/grace3_user\"><b><code>grace3_user</code></b></a></td><td align=\"center\">❌<br><b><code>UNASSIGNED</code></b></td></tr></table>\n\n<details><summary><b>PR commands for maintainers</b></summary><table><tr><th>Command</th><th>Description</th><th>Parameters</th></tr><tr><td><code>/safe-merge</code></td><td>Rebase-merges with automatic fixup commit squashing</td><td><code>--fixup</code> Autosquash fixup commits (on by default)</td></tr><tr><td><code>/safe-squash-merge</code></td><td>Squash-merges with optional commit title/body override</td><td><code>--title</code> Title of the squashed commit<br><code>--message</code> Body of the squashed commit</td></tr><tr><td><code>/dry-run</code></td><td>Runs the test pipeline with changes rebased on latest master</td><td><code>--retry</code> Retry the CI run on failure</td></tr><tr><td><code>/test-public</code></td><td>Triggers the public test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/test-private</code></td><td>Triggers the private test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/codeowners</code></td><td>Triggers code owners check and comment update</td><td>—</td></tr><tr><td><code>/fixup</code></td><td>Squashes fixup commits and force pushes the branch</td><td>—</td></tr><tr><td><code>/cancel-coordinator</code></td><td>Cancels the merge coordinator currently running for this branch</td><td>—</td></tr><tr><td><code>/cherry-pick</code></td><td>Cherry-picks this pull request onto a target release branch</td><td><code>--target</code> Release version to cherry-pick onto</td></tr></table></details><!-- KPR_COMMANDS:eyJjb21tYW5kcyI6W3sidmFsdWUiOiIvc2FmZS1tZXJnZSIsImRlc2NyaXB0aW9uIjoiUmViYXNlLW1lcmdlcyB3aXRoIGF1dG9tYXRpYyBmaXh1cCBjb21taXQgc3F1YXNoaW5nIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tZml4dXAiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJBdXRvc3F1YXNoIGZpeHVwIGNvbW1pdHMiLCJkZWZhdWx0Ijp0cnVlfV19LHsidmFsdWUiOiIvc2FmZS1zcXVhc2gtbWVyZ2UiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaC1tZXJnZXMgd2l0aCBvcHRpb25hbCBjb21taXQgdGl0bGUvYm9keSBvdmVycmlkZSIsInBhcmFtZXRlcnMiOlt7ImZsYWciOiItLXRpdGxlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJUaXRsZSBvZiB0aGUgc3F1YXNoZWQgY29tbWl0In0seyJmbGFnIjoiLS1tZXNzYWdlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJCb2R5IG9mIHRoZSBzcXVhc2hlZCBjb21taXQifV19LHsidmFsdWUiOiIvZHJ5LXJ1biIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgdGVzdCBwaXBlbGluZSB3aXRoIGNoYW5nZXMgcmViYXNlZCBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tcmV0cnkiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJSZXRyeSB0aGUgQ0kgcnVuIG9uIGZhaWx1cmUifV19LHsidmFsdWUiOiIvdGVzdC1wdWJsaWMiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwdWJsaWMgdGVzdCBzdWl0ZSB3aXRob3V0IHJlYmFzaW5nIG9uIGxhdGVzdCBtYXN0ZXIiLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii90ZXN0LXByaXZhdGUiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwcml2YXRlIHRlc3Qgc3VpdGUgd2l0aG91dCByZWJhc2luZyBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY29kZW93bmVycyIsImRlc2NyaXB0aW9uIjoiVHJpZ2dlcnMgY29kZSBvd25lcnMgY2hlY2sgYW5kIGNvbW1lbnQgdXBkYXRlIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvZml4dXAiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaGVzIGZpeHVwIGNvbW1pdHMgYW5kIGZvcmNlIHB1c2hlcyB0aGUgYnJhbmNoIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY2FuY2VsLWNvb3JkaW5hdG9yIiwiZGVzY3JpcHRpb24iOiJDYW5jZWxzIHRoZSBtZXJnZSBjb29yZGluYXRvciBjdXJyZW50bHkgcnVubmluZyBmb3IgdGhpcyBicmFuY2giLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii9jaGVycnktcGljayIsImRlc2NyaXB0aW9uIjoiQ2hlcnJ5LXBpY2tzIHRoaXMgcHVsbCByZXF1ZXN0IG9udG8gYSB0YXJnZXQgcmVsZWFzZSBicmFuY2giLCJwYXJhbWV0ZXJzIjpbeyJmbGFnIjoiLS10YXJnZXQiLCJraW5kIjoidmFsdWUiLCJkZXNjcmlwdGlvbiI6IlJlbGVhc2UgdmVyc2lvbiB0byBjaGVycnktcGljayBvbnRvIn1dfV19 -->\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+              "createdAt": "2026-09-24T22:17:44Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-28T05:53:00Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1420037250"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/test-public",
+              "createdAt": "2026-09-24T22:17:55Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-24T22:17:55Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1553544982"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/test-public",
+              "createdAt": "2026-09-24T23:35:08Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-24T23:35:08Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1545387978"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/test-public",
+              "createdAt": "2026-09-25T09:31:10Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-25T09:31:10Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1844710943"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/test-private",
+              "createdAt": "2026-09-25T09:31:29Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-25T09:31:29Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1660934733"
+            },
+            {
+              "author": {
+                "__typename": "Bot",
+                "login": "kotlin-safemerge"
+              },
+              "authorAssociation": "NONE",
+              "body": "Private aggregate run triggered at https://buildserver.labs.intellij.net/build/1071303441 — use this link to monitor results.",
+              "createdAt": "2026-09-25T09:31:35Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-25T09:31:35Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1612223218"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1072415381 — use this link to get full insight.\n\nThe quality gate was triggered by Safe-Merge of the [corresponding Merge-Request](https://jetbrains.team/p/ij/reviews/899136/timeline) in ultimate. If the quality gate finishes successfully, this Merge-Request will be merged automatically.\n\nQuality gate was triggered with the following revisions:\n> **ultimate**\n> Branch: `refs/merge/IJ-MR-899136/safe-merge`\n> Commit: [c0bed2e](https://jetbrains.team/p/ij/repositories/ultimate/revision/c0bed2efba87518cfd27a185da805ad3d8d5e9f1)\n\n> **kotlin**\n> Branch: `refs/coordinator/safe-merge/refs/merge/IJ-MR-899136/safe-merge`\n> Commit: [73bbc4b](https://github.com/JetBrains/kotlin/commit/73bbc4be8686ade90ac0093aad9e9537e7a8e6a0)\n\n",
+              "createdAt": "2026-09-26T09:52:43Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-26T16:52:13Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1242314145"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-09-26T16:52:08Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-26T16:52:08Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1620118306"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1072552565 — use this link to get full insight.\n\n[Corresponding Merge-Request](https://jetbrains.team/p/ij/reviews/899136/timeline) in ultimate is found.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90001/safe-merge`\n> Commit: [5d489f3](https://github.com/JetBrains/kotlin/commit/5d489f3c876ccf96e3bb91ad40bccde1cd48ff09)\n\n> **ultimate**\n> Branch: `refs/coordinator/safe-merge/refs/merge/GITHUB-90001/safe-merge`\n> Commit: [be1aca7](https://jetbrains.team/p/ij/repositories/ultimate/revision/be1aca713df9ceeaea5c601f34869692da9293bc)\n\n\n\n---\n\nQuality gate failed. See https://buildserver.labs.intellij.net/build/1072552565 to get full insight.",
+              "createdAt": "2026-09-26T17:23:41Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-26T18:46:33Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1769099492"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1072552939 — use this link to get full insight.\n\nThe quality gate was triggered by Safe-Merge of the [corresponding Merge-Request](https://jetbrains.team/p/ij/reviews/899136/timeline) in ultimate. If the quality gate finishes successfully, this Merge-Request will be merged automatically.\n\nQuality gate was triggered with the following revisions:\n> **ultimate**\n> Branch: `refs/merge/IJ-MR-899136/safe-merge`\n> Commit: [e8b8bb4](https://jetbrains.team/p/ij/repositories/ultimate/revision/e8b8bb4e8dcc879fb8defd1a0f3860fda846570b)\n\n> **kotlin**\n> Branch: `refs/coordinator/safe-merge/refs/merge/IJ-MR-899136/safe-merge`\n> Commit: [0c5a921](https://github.com/JetBrains/kotlin/commit/0c5a9210c24eea6fc44fe4cb4ed3c8de62f0b73d)\n\n",
+              "createdAt": "2026-09-26T17:29:22Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-26T18:46:34Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1559372244"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-09-26T18:46:29Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-26T18:46:29Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1201989432"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1072585435 — use this link to get full insight.\n\n[Corresponding Merge-Request](https://jetbrains.team/p/ij/reviews/899136/timeline) in ultimate is found.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90001/safe-merge`\n> Commit: [db67852](https://github.com/JetBrains/kotlin/commit/db67852494be48129d3cbe2ecf1a7eddf4b9fd31)\n\n> **ultimate**\n> Branch: `refs/coordinator/safe-merge/refs/merge/GITHUB-90001/safe-merge`\n> Commit: [7ba6dd8](https://jetbrains.team/p/ij/repositories/ultimate/revision/7ba6dd8335c232257963f74d35e131e1a8df2a40)\n\n\n\n---\n\nQuality gate finished successfully.",
+              "createdAt": "2026-09-26T19:08:05Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-26T20:09:40Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1363663666"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "alice_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "Comment text.",
+              "createdAt": "2026-09-27T11:14:44Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-27T11:14:44Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1469542988"
+            }
+          ]
+        },
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "committedDate": "2026-09-26T18:40:21Z",
+                "statusCheckRollup": {
+                  "contexts": {
+                    "nodes": [
+                      {
+                        "__typename": "CheckRun",
+                        "conclusion": "FAILURE",
+                        "detailsUrl": "https://kotlinlang.org/",
+                        "name": "Code Owners Approval",
+                        "status": "COMPLETED",
+                        "summary": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​analysis/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-analysis-api\">kotlin-analysis-api</a></summary><ul><li><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></li><li><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a></li><li><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li><li><a href=\"https://github.com/erin_user\"><b><code>erin_user</code></b></a></li></ul></details></td><td align=\"center\">❌<br><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></td></tr><tr><td><code>/​compiler/​ir/​backend.​jvm/​</code>, <code>/​compiler/​testData/​checkLocalVariablesTable/​</code>, <code>/​compiler/​testData/​codegen/​asmLike/​</code>, <code>/​plugins/​kapt/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a></li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></td><td align=\"center\">🔴<br><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></td></tr><tr><td><code>/​compiler/​testData/​codegen/​boxJvm/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-compiler\">kotlin-compiler</a></summary><ul><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a></li><li><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a></li><li><a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a></li><li><a href=\"https://github.com/peggy_user\"><b><code>peggy_user</code></b></a></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a></li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a></li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a></li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-wasm\">kotlin-wasm</a></summary><ul><li><a href=\"https://github.com/bob2_user\"><b><code>bob2_user</code></b></a></li><li><a href=\"https://github.com/carol2_user\"><b><code>carol2_user</code></b></a></li><li><a href=\"https://github.com/dave2_user\"><b><code>dave2_user</code></b></a></li><li><a href=\"https://github.com/erin2_user\"><b><code>erin2_user</code></b></a></li><li><a href=\"https://github.com/frank2_user\"><b><code>frank2_user</code></b></a></li><li><a href=\"https://github.com/grace2_user\"><b><code>grace2_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a></li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-js\">kotlin-js</a></summary><ul><li><a href=\"https://github.com/heidi2_user\"><b><code>heidi2_user</code></b></a></li><li><a href=\"https://github.com/ivan2_user\"><b><code>ivan2_user</code></b></a></li><li><a href=\"https://github.com/judy2_user\"><b><code>judy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-common-backend\">kotlin-common-backend</a></summary><ul><li><a href=\"https://github.com/kevin2_user\"><b><code>kevin2_user</code></b></a></li><li><a href=\"https://github.com/laura2_user\"><b><code>laura2_user</code></b></a></li><li><a href=\"https://github.com/mallory2_user\"><b><code>mallory2_user</code></b></a></li><li><a href=\"https://github.com/niaj2_user\"><b><code>niaj2_user</code></b></a></li><li><a href=\"https://github.com/olivia2_user\"><b><code>olivia2_user</code></b></a></li><li><a href=\"https://github.com/peggy2_user\"><b><code>peggy2_user</code></b></a></li></ul></details></li><li><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-native\">kotlin-native</a></summary><ul><li><a href=\"https://github.com/quinn2_user\"><b><code>quinn2_user</code></b></a></li><li><a href=\"https://github.com/rupert2_user\"><b><code>rupert2_user</code></b></a></li><li><a href=\"https://github.com/sybil2_user\"><b><code>sybil2_user</code></b></a></li><li><a href=\"https://github.com/trent2_user\"><b><code>trent2_user</code></b></a></li><li><a href=\"https://github.com/ursula2_user\"><b><code>ursula2_user</code></b></a></li><li><a href=\"https://github.com/victor2_user\"><b><code>victor2_user</code></b></a></li><li><a href=\"https://github.com/walter2_user\"><b><code>walter2_user</code></b></a></li><li><a href=\"https://github.com/xavier2_user\"><b><code>xavier2_user</code></b></a></li><li><a href=\"https://github.com/yvonne2_user\"><b><code>yvonne2_user</code></b></a></li><li><a href=\"https://github.com/zoe2_user\"><b><code>zoe2_user</code></b></a></li><li><a href=\"https://github.com/alice3_user\"><b><code>alice3_user</code></b></a></li></ul></details></li></ul></details></td><td align=\"center\">🔴<br><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></td></tr><tr><td><code>/​core/​compiler.​common.​jvm/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a></li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a></li><li><a href=\"https://github.com/walter_user\"><b><code>walter_user</code></b></a></li><li><a href=\"https://github.com/xavier_user\"><b><code>xavier_user</code></b></a></li><li><a href=\"https://github.com/yvonne_user\"><b><code>yvonne_user</code></b></a></li><li><a href=\"https://github.com/zoe_user\"><b><code>zoe_user</code></b></a></li><li><a href=\"https://github.com/alice2_user\"><b><code>alice2_user</code></b></a></li></ul></details><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/frank_user\"><b><code>frank_user</code></b></a></li><li><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></li><li><a href=\"https://github.com/heidi_user\"><b><code>heidi_user</code></b></a></li><li><a href=\"https://github.com/ivan_user\"><b><code>ivan_user</code></b></a></li><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/alice_user\"><b><code>alice_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a></li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li></ul></details></td><td align=\"center\">🔴<br><a href=\"https://github.com/grace_user\"><b><code>grace_user</code></b></a></td></tr><tr><td><code>/​plugins/​parcelize/​</code></td><td><a href=\"https://github.com/bob3_user\"><b><code>bob3_user</code></b></a>, <a href=\"https://github.com/carol3_user\"><b><code>carol3_user</code></b></a>, <a href=\"https://github.com/dave3_user\"><b><code>dave3_user</code></b></a>, <a href=\"https://github.com/erin3_user\"><b><code>erin3_user</code></b></a>, <a href=\"https://github.com/frank3_user\"><b><code>frank3_user</code></b></a>, <a href=\"https://github.com/grace3_user\"><b><code>grace3_user</code></b></a></td><td align=\"center\">❌<br><b><code>UNASSIGNED</code></b></td></tr></table>\n\n<details><summary><b>PR commands for maintainers</b></summary><table><tr><th>Command</th><th>Description</th><th>Parameters</th></tr><tr><td><code>/safe-merge</code></td><td>Rebase-merges with automatic fixup commit squashing</td><td><code>--fixup</code> Autosquash fixup commits (on by default)</td></tr><tr><td><code>/safe-squash-merge</code></td><td>Squash-merges with optional commit title/body override</td><td><code>--title</code> Title of the squashed commit<br><code>--message</code> Body of the squashed commit</td></tr><tr><td><code>/dry-run</code></td><td>Runs the test pipeline with changes rebased on latest master</td><td><code>--retry</code> Retry the CI run on failure</td></tr><tr><td><code>/test-public</code></td><td>Triggers the public test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/test-private</code></td><td>Triggers the private test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/codeowners</code></td><td>Triggers code owners check and comment update</td><td>—</td></tr><tr><td><code>/fixup</code></td><td>Squashes fixup commits and force pushes the branch</td><td>—</td></tr><tr><td><code>/cancel-coordinator</code></td><td>Cancels the merge coordinator currently running for this branch</td><td>—</td></tr><tr><td><code>/cherry-pick</code></td><td>Cherry-picks this pull request onto a target release branch</td><td><code>--target</code> Release version to cherry-pick onto</td></tr></table></details><!-- KPR_COMMANDS:eyJjb21tYW5kcyI6W3sidmFsdWUiOiIvc2FmZS1tZXJnZSIsImRlc2NyaXB0aW9uIjoiUmViYXNlLW1lcmdlcyB3aXRoIGF1dG9tYXRpYyBmaXh1cCBjb21taXQgc3F1YXNoaW5nIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tZml4dXAiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJBdXRvc3F1YXNoIGZpeHVwIGNvbW1pdHMiLCJkZWZhdWx0Ijp0cnVlfV19LHsidmFsdWUiOiIvc2FmZS1zcXVhc2gtbWVyZ2UiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaC1tZXJnZXMgd2l0aCBvcHRpb25hbCBjb21taXQgdGl0bGUvYm9keSBvdmVycmlkZSIsInBhcmFtZXRlcnMiOlt7ImZsYWciOiItLXRpdGxlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJUaXRsZSBvZiB0aGUgc3F1YXNoZWQgY29tbWl0In0seyJmbGFnIjoiLS1tZXNzYWdlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJCb2R5IG9mIHRoZSBzcXVhc2hlZCBjb21taXQifV19LHsidmFsdWUiOiIvZHJ5LXJ1biIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgdGVzdCBwaXBlbGluZSB3aXRoIGNoYW5nZXMgcmViYXNlZCBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tcmV0cnkiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJSZXRyeSB0aGUgQ0kgcnVuIG9uIGZhaWx1cmUifV19LHsidmFsdWUiOiIvdGVzdC1wdWJsaWMiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwdWJsaWMgdGVzdCBzdWl0ZSB3aXRob3V0IHJlYmFzaW5nIG9uIGxhdGVzdCBtYXN0ZXIiLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii90ZXN0LXByaXZhdGUiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwcml2YXRlIHRlc3Qgc3VpdGUgd2l0aG91dCByZWJhc2luZyBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY29kZW93bmVycyIsImRlc2NyaXB0aW9uIjoiVHJpZ2dlcnMgY29kZSBvd25lcnMgY2hlY2sgYW5kIGNvbW1lbnQgdXBkYXRlIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvZml4dXAiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaGVzIGZpeHVwIGNvbW1pdHMgYW5kIGZvcmNlIHB1c2hlcyB0aGUgYnJhbmNoIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY2FuY2VsLWNvb3JkaW5hdG9yIiwiZGVzY3JpcHRpb24iOiJDYW5jZWxzIHRoZSBtZXJnZSBjb29yZGluYXRvciBjdXJyZW50bHkgcnVubmluZyBmb3IgdGhpcyBicmFuY2giLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii9jaGVycnktcGljayIsImRlc2NyaXB0aW9uIjoiQ2hlcnJ5LXBpY2tzIHRoaXMgcHVsbCByZXF1ZXN0IG9udG8gYSB0YXJnZXQgcmVsZWFzZSBicmFuY2giLCJwYXJhbWV0ZXJzIjpbeyJmbGFnIjoiLS10YXJnZXQiLCJraW5kIjoidmFsdWUiLCJkZXNjcmlwdGlvbiI6IlJlbGVhc2UgdmVyc2lvbiB0byBjaGVycnktcGljayBvbnRvIn1dfV19 -->\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+                        "title": "Waiting for code owner approvals"
+                      },
+                      {
+                        "__typename": "StatusContext",
+                        "context": "Safe-Merge Coordinator (Kotlin Dev)",
+                        "state": "SUCCESS",
+                        "targetUrl": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1072519661"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "createdAt": "2026-09-24T22:17:39Z",
+        "headRefName": "topic/kt-990002-example",
+        "headRefOid": "295055474423747a4bc68f93e5b27266fd788941",
+        "history": {
+          "nodes": [
+            {
+              "commit": {
+                "message": "Commit message.\n\n^KT-990002"
+              }
+            }
+          ]
+        },
+        "isDraft": true,
+        "latestOpinionatedReviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "grace_user"
+              },
+              "state": "CHANGES_REQUESTED",
+              "submittedAt": "2026-09-27T10:39:02Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#pullrequestreview-1290588840"
+            }
+          ]
+        },
+        "mergedAt": null,
+        "number": 90001,
+        "reviewRequests": {
+          "nodes": [
+            {
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              }
+            }
+          ]
+        },
+        "reviewThreads": {
+          "nodes": [
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:06:05Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1853677419"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:06:05Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1853677419"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/fc76a277a.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:13:45Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1662744976"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:13:45Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1662744976"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/fc76a277a.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:16:29Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1888453018"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:16:29Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1888453018"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/fc76a277a.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:20:48Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1569677953"
+                  },
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:21:40Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1290463949"
+                  }
+                ],
+                "totalCount": 2
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:20:48Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1569677953"
+                  }
+                ]
+              },
+              "isOutdated": true,
+              "isResolved": false,
+              "path": "src/f8aa5e9fa.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:24:45Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1788219394"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:24:45Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1788219394"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/f944e962f.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:27:11Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1612536494"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:27:11Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1612536494"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/f944e962f.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:30:31Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1300290068"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:30:31Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1300290068"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/fc76a277a.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "createdAt": "2026-09-27T10:33:25Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1160664716"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "grace_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-27T10:33:25Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1160664716"
+                  }
+                ]
+              },
+              "isOutdated": false,
+              "isResolved": false,
+              "path": "src/fc76a277a.kt"
+            }
+          ]
+        },
+        "reviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "grace_user"
+              },
+              "comments": {
+                "totalCount": 9
+              },
+              "state": "CHANGES_REQUESTED",
+              "submittedAt": "2026-09-27T10:39:02Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90001#pullrequestreview-1290588840"
+            }
+          ]
+        },
+        "state": "OPEN",
+        "timelineItems": {
+          "nodes": [
+            {
+              "__typename": "PullRequestCommit",
+              "commit": {
+                "committedDate": "2026-09-26T18:40:21Z"
+              }
+            },
+            {
+              "__typename": "HeadRefForcePushedEvent",
+              "createdAt": "2026-09-26T18:40:41Z"
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-27T10:00:26Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "bob_user"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-27T10:00:43Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "grace_user"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-28T05:52:50Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              }
+            }
+          ]
+        },
+        "title": "Example change",
+        "updatedAt": "2026-09-28T05:53:00Z",
+        "url": "https://github.com/JetBrains/kotlin/pull/90001"
+      }
+    },
+    "viewer": {
+      "login": "dimonchik0036"
+    }
+  }
+}

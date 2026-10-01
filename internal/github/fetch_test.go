@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -49,5 +50,38 @@ func TestFetchPRsNothing(t *testing.T) {
 	prs, _, err := FetchPRs(context.Background(), client, "JetBrains", "kotlin", nil)
 	if err != nil || len(prs) != 0 || len(client.queries) != 0 {
 		t.Errorf("no numbers should mean no request: %v, %d, %d", err, len(prs), len(client.queries))
+	}
+}
+
+// The fixture script must build the same query as PRQuery, or fixtures drift from production.
+func TestFetchFixturesScriptMatchesPRQuery(t *testing.T) {
+	script, err := os.ReadFile("../../scripts/fetch-fixtures.sh")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wrapper, _, _ := strings.Cut(PRQuery(), "fragment PR")
+	escaped := strings.ReplaceAll(strings.TrimSpace(wrapper), "$", `\$`)
+	if !strings.Contains(string(script), escaped) {
+		t.Errorf("scripts/fetch-fixtures.sh doesn't contain the PRQuery wrapper:\n%s", escaped)
+	}
+}
+
+func TestFixturesDecode(t *testing.T) {
+	data, err := os.ReadFile("../../testdata/raw/pr-90005.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var envelope struct {
+		Data PRResponse `json:"data"`
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	pr := envelope.Data.Repository.PullRequest
+	if pr == nil || pr.Number != 90005 || pr.Author.Login != "dimonchik0036" || len(pr.Comments.Nodes) == 0 || len(pr.Commits.Nodes) != 1 {
+		t.Fatalf("decoded %+v", pr)
+	}
+	if pr.Commits.Nodes[0].Commit.StatusCheckRollup == nil {
+		t.Error("no status check rollup")
 	}
 }

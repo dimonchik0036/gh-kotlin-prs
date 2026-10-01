@@ -1,0 +1,462 @@
+{
+  "data": {
+    "rateLimit": {
+      "cost": 1,
+      "remaining": 4221,
+      "resetAt": "2026-10-01T15:36:05Z"
+    },
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "__typename": "User",
+          "login": "erin_user"
+        },
+        "comments": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "Bot",
+                "login": "kotlin-safemerge"
+              },
+              "authorAssociation": "NONE",
+              "body": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​analysis/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-analysis-api\">kotlin-analysis-api</a></summary><ul><li><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></li><li><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a></li><li><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li><li><a href=\"https://github.com/erin_user\"><b><code>erin_user</code></b></a></li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a> 🔒</td></tr></table>\n\n<details><summary><b>PR commands for maintainers</b></summary><table><tr><th>Command</th><th>Description</th><th>Parameters</th></tr><tr><td><code>/safe-merge</code></td><td>Rebase-merges with automatic fixup commit squashing</td><td><code>--fixup</code> Autosquash fixup commits (on by default)</td></tr><tr><td><code>/safe-squash-merge</code></td><td>Squash-merges with optional commit title/body override</td><td><code>--title</code> Title of the squashed commit<br><code>--message</code> Body of the squashed commit</td></tr><tr><td><code>/dry-run</code></td><td>Runs the test pipeline with changes rebased on latest master</td><td><code>--retry</code> Retry the CI run on failure</td></tr><tr><td><code>/test-public</code></td><td>Triggers the public test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/test-private</code></td><td>Triggers the private test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/codeowners</code></td><td>Triggers code owners check and comment update</td><td>—</td></tr><tr><td><code>/fixup</code></td><td>Squashes fixup commits and force pushes the branch</td><td>—</td></tr><tr><td><code>/cancel-coordinator</code></td><td>Cancels the merge coordinator currently running for this branch</td><td>—</td></tr><tr><td><code>/cherry-pick</code></td><td>Cherry-picks this pull request onto a target release branch</td><td><code>--target</code> Release version to cherry-pick onto</td></tr><tr><td><code>/review</code></td><td>Runs the auto code review; see <a href=\"https://github.com/JetBrains/kotlin/blob/master/repo/auto-code-review/README.md#run-for-a-github-pr\">docs</a></td><td>—</td></tr></table></details><!-- KPR_COMMANDS:eyJjb21tYW5kcyI6W3sidmFsdWUiOiIvc2FmZS1tZXJnZSIsImRlc2NyaXB0aW9uIjoiUmViYXNlLW1lcmdlcyB3aXRoIGF1dG9tYXRpYyBmaXh1cCBjb21taXQgc3F1YXNoaW5nIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tZml4dXAiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJBdXRvc3F1YXNoIGZpeHVwIGNvbW1pdHMiLCJkZWZhdWx0Ijp0cnVlfV19LHsidmFsdWUiOiIvc2FmZS1zcXVhc2gtbWVyZ2UiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaC1tZXJnZXMgd2l0aCBvcHRpb25hbCBjb21taXQgdGl0bGUvYm9keSBvdmVycmlkZSIsInBhcmFtZXRlcnMiOlt7ImZsYWciOiItLXRpdGxlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJUaXRsZSBvZiB0aGUgc3F1YXNoZWQgY29tbWl0In0seyJmbGFnIjoiLS1tZXNzYWdlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJCb2R5IG9mIHRoZSBzcXVhc2hlZCBjb21taXQifV19LHsidmFsdWUiOiIvZHJ5LXJ1biIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgdGVzdCBwaXBlbGluZSB3aXRoIGNoYW5nZXMgcmViYXNlZCBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tcmV0cnkiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJSZXRyeSB0aGUgQ0kgcnVuIG9uIGZhaWx1cmUifV19LHsidmFsdWUiOiIvdGVzdC1wdWJsaWMiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwdWJsaWMgdGVzdCBzdWl0ZSB3aXRob3V0IHJlYmFzaW5nIG9uIGxhdGVzdCBtYXN0ZXIiLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii90ZXN0LXByaXZhdGUiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwcml2YXRlIHRlc3Qgc3VpdGUgd2l0aG91dCByZWJhc2luZyBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY29kZW93bmVycyIsImRlc2NyaXB0aW9uIjoiVHJpZ2dlcnMgY29kZSBvd25lcnMgY2hlY2sgYW5kIGNvbW1lbnQgdXBkYXRlIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvZml4dXAiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaGVzIGZpeHVwIGNvbW1pdHMgYW5kIGZvcmNlIHB1c2hlcyB0aGUgYnJhbmNoIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY2FuY2VsLWNvb3JkaW5hdG9yIiwiZGVzY3JpcHRpb24iOiJDYW5jZWxzIHRoZSBtZXJnZSBjb29yZGluYXRvciBjdXJyZW50bHkgcnVubmluZyBmb3IgdGhpcyBicmFuY2giLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii9jaGVycnktcGljayIsImRlc2NyaXB0aW9uIjoiQ2hlcnJ5LXBpY2tzIHRoaXMgcHVsbCByZXF1ZXN0IG9udG8gYSB0YXJnZXQgcmVsZWFzZSBicmFuY2giLCJwYXJhbWV0ZXJzIjpbeyJmbGFnIjoiLS10YXJnZXQiLCJraW5kIjoidmFsdWUiLCJkZXNjcmlwdGlvbiI6IlJlbGVhc2UgdmVyc2lvbiB0byBjaGVycnktcGljayBvbnRvIn1dfSx7InZhbHVlIjoiL3JldmlldyIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgYXV0byBjb2RlIHJldmlldyIsInBhcmFtZXRlcnMiOltdLCJkb2NzVXJsIjoiaHR0cHM6Ly9naXRodWIuY29tL0pldEJyYWlucy9rb3RsaW4vYmxvYi9tYXN0ZXIvcmVwby9hdXRvLWNvZGUtcmV2aWV3L1JFQURNRS5tZCNydW4tZm9yLWEtZ2l0aHViLXByIn1dfQ== -->\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+              "createdAt": "2026-09-29T12:04:09Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T12:24:01Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1480236951"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-09-29T12:04:17Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-29T12:04:17Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1221805224"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/dry-run",
+              "createdAt": "2026-09-29T12:14:04Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-29T12:14:04Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1289482289"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/1074640104 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90002/safe-merge`\n> Commit: [8a44b48](https://github.com/JetBrains/kotlin/commit/8a44b4840d0aa908ba006c7cd7f3c2dc4baa3342)\n\n\n\n---\n\nQuality gate failed. See https://buildserver.labs.intellij.net/build/1074640104 to get full insight.",
+              "createdAt": "2026-09-29T12:15:54Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-30T12:33:00Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1628554460"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/safe-merge",
+              "createdAt": "2026-09-30T12:32:54Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-09-30T12:32:54Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1585590813"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "Quality gate is triggered at https://buildserver.labs.intellij.net/build/1076030638 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90002/safe-merge`\n> Commit: [a9b981d](https://github.com/JetBrains/kotlin/commit/a9b981d565ee0fdff5d18dea21c11e86185349d2)\n\n\n\n---\n\nTriggered a [retry attempt](https://buildserver.labs.intellij.net/build/1076219317) №1 out of 1.\n\n---\n\nQuality gate failed. See https://buildserver.labs.intellij.net/build/1076030638 to get full insight.",
+              "createdAt": "2026-09-30T12:35:23Z",
+              "isMinimized": true,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T12:27:19Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1710442571"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "Comment text.",
+              "createdAt": "2026-09-30T17:24:14Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-09-30T17:24:14Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1015075805"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "Comment text.",
+              "createdAt": "2026-10-01T12:18:32Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T12:18:32Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1568675627"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "/safe-merge",
+              "createdAt": "2026-10-01T12:27:14Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": [
+                  {
+                    "user": {
+                      "login": "kotlin-safemerge[bot]"
+                    }
+                  }
+                ]
+              },
+              "updatedAt": "2026-10-01T12:27:14Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1605354289"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "KotlinBuild"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "Quality gate is triggered at https://buildserver.labs.intellij.net/build/1077354565 — use this link to get full insight.\n\nQuality gate was triggered with the following revisions:\n> **kotlin**\n> Branch: `refs/merge/GITHUB-90002/safe-merge`\n> Commit: [ec7e505](https://github.com/JetBrains/kotlin/commit/ec7e505ecdaf22325980772f0766614a280362d6)\n\n\n\n---\n\nQuality gate finished successfully.",
+              "createdAt": "2026-10-01T12:30:24Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T13:39:30Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1769256429"
+            }
+          ]
+        },
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "committedDate": "2026-10-01T12:04:35Z",
+                "statusCheckRollup": {
+                  "contexts": {
+                    "nodes": [
+                      {
+                        "__typename": "CheckRun",
+                        "conclusion": "SUCCESS",
+                        "detailsUrl": "https://kotlinlang.org/",
+                        "name": "Code Owners Approval",
+                        "status": "COMPLETED",
+                        "summary": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​analysis/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-analysis-api\">kotlin-analysis-api</a></summary><ul><li><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></li><li><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a></li><li><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li><li><a href=\"https://github.com/erin_user\"><b><code>erin_user</code></b></a></li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a> 🔒</td></tr></table>\n\n<details><summary><b>PR commands for maintainers</b></summary><table><tr><th>Command</th><th>Description</th><th>Parameters</th></tr><tr><td><code>/safe-merge</code></td><td>Rebase-merges with automatic fixup commit squashing</td><td><code>--fixup</code> Autosquash fixup commits (on by default)</td></tr><tr><td><code>/safe-squash-merge</code></td><td>Squash-merges with optional commit title/body override</td><td><code>--title</code> Title of the squashed commit<br><code>--message</code> Body of the squashed commit</td></tr><tr><td><code>/dry-run</code></td><td>Runs the test pipeline with changes rebased on latest master</td><td><code>--retry</code> Retry the CI run on failure</td></tr><tr><td><code>/test-public</code></td><td>Triggers the public test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/test-private</code></td><td>Triggers the private test suite without rebasing on latest master</td><td>—</td></tr><tr><td><code>/codeowners</code></td><td>Triggers code owners check and comment update</td><td>—</td></tr><tr><td><code>/fixup</code></td><td>Squashes fixup commits and force pushes the branch</td><td>—</td></tr><tr><td><code>/cancel-coordinator</code></td><td>Cancels the merge coordinator currently running for this branch</td><td>—</td></tr><tr><td><code>/cherry-pick</code></td><td>Cherry-picks this pull request onto a target release branch</td><td><code>--target</code> Release version to cherry-pick onto</td></tr><tr><td><code>/review</code></td><td>Runs the auto code review; see <a href=\"https://github.com/JetBrains/kotlin/blob/master/repo/auto-code-review/README.md#run-for-a-github-pr\">docs</a></td><td>—</td></tr></table></details><!-- KPR_COMMANDS:eyJjb21tYW5kcyI6W3sidmFsdWUiOiIvc2FmZS1tZXJnZSIsImRlc2NyaXB0aW9uIjoiUmViYXNlLW1lcmdlcyB3aXRoIGF1dG9tYXRpYyBmaXh1cCBjb21taXQgc3F1YXNoaW5nIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tZml4dXAiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJBdXRvc3F1YXNoIGZpeHVwIGNvbW1pdHMiLCJkZWZhdWx0Ijp0cnVlfV19LHsidmFsdWUiOiIvc2FmZS1zcXVhc2gtbWVyZ2UiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaC1tZXJnZXMgd2l0aCBvcHRpb25hbCBjb21taXQgdGl0bGUvYm9keSBvdmVycmlkZSIsInBhcmFtZXRlcnMiOlt7ImZsYWciOiItLXRpdGxlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJUaXRsZSBvZiB0aGUgc3F1YXNoZWQgY29tbWl0In0seyJmbGFnIjoiLS1tZXNzYWdlIiwia2luZCI6InZhbHVlIiwiZGVzY3JpcHRpb24iOiJCb2R5IG9mIHRoZSBzcXVhc2hlZCBjb21taXQifV19LHsidmFsdWUiOiIvZHJ5LXJ1biIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgdGVzdCBwaXBlbGluZSB3aXRoIGNoYW5nZXMgcmViYXNlZCBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W3siZmxhZyI6Ii0tcmV0cnkiLCJraW5kIjoidG9nZ2xlIiwiZGVzY3JpcHRpb24iOiJSZXRyeSB0aGUgQ0kgcnVuIG9uIGZhaWx1cmUifV19LHsidmFsdWUiOiIvdGVzdC1wdWJsaWMiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwdWJsaWMgdGVzdCBzdWl0ZSB3aXRob3V0IHJlYmFzaW5nIG9uIGxhdGVzdCBtYXN0ZXIiLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii90ZXN0LXByaXZhdGUiLCJkZXNjcmlwdGlvbiI6IlRyaWdnZXJzIHRoZSBwcml2YXRlIHRlc3Qgc3VpdGUgd2l0aG91dCByZWJhc2luZyBvbiBsYXRlc3QgbWFzdGVyIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY29kZW93bmVycyIsImRlc2NyaXB0aW9uIjoiVHJpZ2dlcnMgY29kZSBvd25lcnMgY2hlY2sgYW5kIGNvbW1lbnQgdXBkYXRlIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvZml4dXAiLCJkZXNjcmlwdGlvbiI6IlNxdWFzaGVzIGZpeHVwIGNvbW1pdHMgYW5kIGZvcmNlIHB1c2hlcyB0aGUgYnJhbmNoIiwicGFyYW1ldGVycyI6W119LHsidmFsdWUiOiIvY2FuY2VsLWNvb3JkaW5hdG9yIiwiZGVzY3JpcHRpb24iOiJDYW5jZWxzIHRoZSBtZXJnZSBjb29yZGluYXRvciBjdXJyZW50bHkgcnVubmluZyBmb3IgdGhpcyBicmFuY2giLCJwYXJhbWV0ZXJzIjpbXX0seyJ2YWx1ZSI6Ii9jaGVycnktcGljayIsImRlc2NyaXB0aW9uIjoiQ2hlcnJ5LXBpY2tzIHRoaXMgcHVsbCByZXF1ZXN0IG9udG8gYSB0YXJnZXQgcmVsZWFzZSBicmFuY2giLCJwYXJhbWV0ZXJzIjpbeyJmbGFnIjoiLS10YXJnZXQiLCJraW5kIjoidmFsdWUiLCJkZXNjcmlwdGlvbiI6IlJlbGVhc2UgdmVyc2lvbiB0byBjaGVycnktcGljayBvbnRvIn1dfSx7InZhbHVlIjoiL3JldmlldyIsImRlc2NyaXB0aW9uIjoiUnVucyB0aGUgYXV0byBjb2RlIHJldmlldyIsInBhcmFtZXRlcnMiOltdLCJkb2NzVXJsIjoiaHR0cHM6Ly9naXRodWIuY29tL0pldEJyYWlucy9rb3RsaW4vYmxvYi9tYXN0ZXIvcmVwby9hdXRvLWNvZGUtcmV2aWV3L1JFQURNRS5tZCNydW4tZm9yLWEtZ2l0aHViLXByIn1dfQ== -->\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+                        "title": "All code owners have approved"
+                      },
+                      {
+                        "__typename": "StatusContext",
+                        "context": "Safe-Merge Coordinator (Kotlin Dev)",
+                        "state": "SUCCESS",
+                        "targetUrl": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1077347337"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "createdAt": "2026-09-29T12:04:05Z",
+        "headRefName": "topic/example-90002",
+        "headRefOid": "6e930c6750fc10aa996387d49289d21bb7a98fc4",
+        "history": {
+          "nodes": [
+            {
+              "commit": {
+                "message": "Commit message.\n\n^KT-990006\n^KTIJ-990001\n^KTIJ-990002\n^KTIJ-990003\n^KTIJ-990004\n^KTIJ-990005"
+              }
+            },
+            {
+              "commit": {
+                "message": "Commit message.\n\n^KT-990006"
+              }
+            }
+          ]
+        },
+        "isDraft": false,
+        "latestOpinionatedReviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T12:23:57Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1604399316"
+            }
+          ]
+        },
+        "mergedAt": "2026-10-01T13:39:34Z",
+        "number": 90002,
+        "reviewRequests": {
+          "nodes": []
+        },
+        "reviewThreads": {
+          "nodes": [
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "dimonchik0036"
+                    },
+                    "createdAt": "2026-09-29T14:02:46Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90002#discussion_r1188895534"
+                  }
+                ],
+                "totalCount": 1
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "dimonchik0036"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-29T14:02:46Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90002#discussion_r1188895534"
+                  }
+                ]
+              },
+              "isOutdated": true,
+              "isResolved": true,
+              "path": "src/f5cb0ae3e.kt"
+            },
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "dimonchik0036"
+                    },
+                    "createdAt": "2026-09-29T14:07:30Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90002#discussion_r1204018855"
+                  },
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "erin_user"
+                    },
+                    "createdAt": "2026-09-29T15:16:16Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90002#discussion_r1747357050"
+                  },
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "dimonchik0036"
+                    },
+                    "createdAt": "2026-09-29T18:00:29Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90002#discussion_r1018440137"
+                  }
+                ],
+                "totalCount": 3
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "dimonchik0036"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-29T14:07:30Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90002#discussion_r1204018855"
+                  }
+                ]
+              },
+              "isOutdated": true,
+              "isResolved": true,
+              "path": "src/f5cb0ae3e.kt"
+            }
+          ]
+        },
+        "reviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "comments": {
+                "totalCount": 2
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-09-29T14:07:37Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1427600362"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "erin_user"
+              },
+              "comments": {
+                "totalCount": 1
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-09-29T15:16:17Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1562082869"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "comments": {
+                "totalCount": 1
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-09-29T18:00:29Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1533946962"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-09-29T18:00:42Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1342867888"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "CHANGES_REQUESTED",
+              "submittedAt": "2026-10-01T10:31:34Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1873211029"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T12:23:57Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90002#pullrequestreview-1604399316"
+            }
+          ]
+        },
+        "state": "MERGED",
+        "timelineItems": {
+          "nodes": [
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-30T17:26:11Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              }
+            },
+            {
+              "__typename": "PullRequestCommit",
+              "commit": {
+                "committedDate": "2026-10-01T12:04:34Z"
+              }
+            },
+            {
+              "__typename": "PullRequestCommit",
+              "commit": {
+                "committedDate": "2026-10-01T12:04:35Z"
+              }
+            },
+            {
+              "__typename": "HeadRefForcePushedEvent",
+              "createdAt": "2026-10-01T12:18:03Z"
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-10-01T12:18:09Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              }
+            }
+          ]
+        },
+        "title": "Example change",
+        "updatedAt": "2026-10-01T13:39:36Z",
+        "url": "https://github.com/JetBrains/kotlin/pull/90002"
+      }
+    },
+    "viewer": {
+      "login": "dimonchik0036"
+    }
+  }
+}
