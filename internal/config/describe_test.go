@@ -81,8 +81,8 @@ func TestLoadSources(t *testing.T) {
 
 func TestDuration(t *testing.T) {
 	for d, want := range map[time.Duration]string{3 * time.Minute: "3m", time.Hour: "1h", 90 * time.Second: "1m30s", 2*time.Hour + 30*time.Minute: "2h30m"} {
-		if got := duration(Duration(d)); got != want {
-			t.Errorf("duration(%v) = %q, want %q", d, got, want)
+		if got := (*Duration)(&d).String(); got != want {
+			t.Errorf("Duration(%v).String() = %q, want %q", d, got, want)
 		}
 	}
 }

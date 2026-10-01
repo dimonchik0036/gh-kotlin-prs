@@ -23,7 +23,7 @@ version, add `--pin vX.Y.Z` to the install.
 ## Usage
 
 ```sh
-gh kotlin-prs                 # same as `list` for now
+gh kotlin-prs                 # the interactive view on a terminal (? for its keys), `list` otherwise
 gh kotlin-prs list            # Mine, Review, Team requests, Recently merged (24h)
 gh kotlin-prs list --mine     # only your PRs (and the recently merged ones)
 gh kotlin-prs list --review --waiting-on-me
@@ -33,7 +33,26 @@ gh kotlin-prs list --format json   # the model with "version": 1
 gh kotlin-prs show <number>   # reviewers, code owners, runs, threads and all reasons
 ```
 
-`--debug` prints the GraphQL cost of each request to stderr, or the cache entry that answered it.
+### Interactive view
+
+On a terminal, `gh kotlin-prs` (with the same section flags as `list`) shows the same rows with a selection, refreshes
+them in the background every 3 minutes (config `refresh`), and keeps the ages moving in between. It starts from the
+cache when the last fetch is at most 30 minutes old (config `startupMaxAge`), else it waits for GitHub.
+
+```
+j/k, up/down  select            enter  details (esc: back)     o  open the PR       r  refresh now
+tab           next section      /      filter                  b  open its build    ?  help and symbols
+a             toggle --all      g/G    first / last            y  copy its URL      q  quit
+```
+
+`keys` in the config rebinds them by action (`keys: {copy: c, refresh: [r, R]}`; `?` and `config` list the actions);
+a key bound twice is an error. `r` does nothing while a refresh runs or for 5 seconds after one, except to retry a
+failed one. The status bar says when the data was fetched and when the next refresh is due, keeps the last data on screen when a
+refresh fails, and warns when less than a tenth of the hourly API budget is left. In a pipe, or with
+`--format json`, the bare command prints `list` as before.
+
+`--debug` prints the GraphQL cost of each request to stderr, or the cache entry that answered it (not in the
+interactive view).
 
 Every fetch is kept in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`), and `--max-age` lets `list` and `show` use it
 instead of asking GitHub while it's young enough. The ages ("failed 2h ago") are still computed from the current time.
@@ -111,6 +130,7 @@ icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]   # issue IDs recognized in commit trailers, branch names and titles
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
+keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, R]}; `?` lists the defaults
 ```
 
 ## Development

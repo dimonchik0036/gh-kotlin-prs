@@ -14,7 +14,8 @@ Workflow actions are pinned to full commit SHAs with the version as a comment (`
 GoLand's inspections keep flagging the same things: don't shadow builtins (`real`, `len`, `new`, …), don't name
 variables after imported packages (`width`, `ansi`, …), start doc comments with the identifier ("RunRequested is …"),
 don't escape what needs no escape in regexps (`]` outside a class), write intentionally non-nil empty slices as
-`make([]T, 0)`, and use a value only after checking the error that comes with it.
+`make([]T, 0)`, use a value only after checking the error that comes with it, and give all of a type's methods
+pointer receivers or all value receivers.
 
 Tests never touch gh's auth, the user's config, the user's cache or the network: inject the client, config path,
 cache dir and clock (`internal/cli` env, `classify.Classifier.Now`, `cache.Client`). `GH_KOTLIN_PRS_DEMO=<dir>` runs the CLI on the fixtures in `<dir>`

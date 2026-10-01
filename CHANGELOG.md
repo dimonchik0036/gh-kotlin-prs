@@ -6,6 +6,12 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `gh kotlin-prs` on a terminal opens an interactive view: the rows of `list` with a selection, the `show` detail on
+  `enter`, a filter (`/`), `--all` on `a`, open the PR (`o`) or its build (`b`), copy its URL (`y`), and a refresh
+  every `refresh` (3m) or on `r` (one at a time, and not again within 5s unless the last one failed), with a status
+  bar. It starts from the cache when that's at most `startupMaxAge` old.
+  In a pipe or with `--format json`, it prints `list` as before.
+- Config: `keys` rebinds the interactive view's keys by action, e.g. `keys: {copy: c, refresh: [r, R]}`.
 - Every fetch is cached in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`); `list --max-age 5m` and `show --max-age 5m`
   answer from it while it's younger than that. Ages are still computed from the current time. By default they
   always fetch, as before.

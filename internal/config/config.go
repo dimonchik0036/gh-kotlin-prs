@@ -36,6 +36,8 @@ type Config struct {
 	IssueURL string `yaml:"issueURL"`
 	// Hyperlinks is "auto" (when stdout is a terminal), "always" or "never".
 	Hyperlinks string `yaml:"hyperlinks"`
+	// Keys are the TUI's key bindings by action (Actions).
+	Keys Keys `yaml:"keys"`
 }
 
 // Duration is a time.Duration written as "3m" in YAML.
@@ -63,6 +65,7 @@ func Default() Config {
 		IssueProjects:    []string{"KT", "KTIJ", "KTI"},
 		IssueURL:         "https://youtrack.jetbrains.com/issue/{id}",
 		Hyperlinks:       "auto",
+		Keys:             DefaultKeys(),
 	}
 }
 
@@ -124,6 +127,9 @@ func Parse(data []byte) (Config, error) {
 	}
 	if !strings.Contains(cfg.IssueURL, "{id}") {
 		return cfg, fmt.Errorf("config: issueURL must contain {id}, got %q", cfg.IssueURL)
+	}
+	if err := cfg.Keys.validate(); err != nil {
+		return cfg, err
 	}
 	return cfg, nil
 }

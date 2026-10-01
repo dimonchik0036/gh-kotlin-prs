@@ -75,10 +75,12 @@ func Fetch(ctx context.Context, client github.Client, cfg config.Config, now tim
 
 // Cached is the newest snapshot in the cache with every part at most maxAge old, its
 // FetchedAt the oldest part's; false when there's none. After midnight UTC the merged
-// search has a new key, so it falls back to the previous day's.
+// search has a new key, so it falls back to the previous day's. When the PRs of the
+// search changed since their details were fetched, it takes the newest details there
+// are: rows of PRs missing from them are left out until the refresh.
 func Cached(ctx context.Context, c *cache.Client, cfg config.Config, now time.Time, sections []model.Section, maxAge time.Duration) (*Data, bool) {
 	for _, at := range []time.Time{now, now.Add(-24 * time.Hour)} {
-		offline := &cache.Offline{Cache: c, MaxAge: maxAge}
+		offline := &cache.Offline{Cache: c, MaxAge: maxAge, Fallback: []string{"PullRequests"}}
 		if d, err := Fetch(ctx, offline, cfg, at, sections); err == nil {
 			d.FetchedAt = offline.Oldest
 			return d, true

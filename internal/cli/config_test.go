@@ -22,6 +22,7 @@ func TestConfigCommand(t *testing.T) {
 	for _, want := range []string{
 		"repo: JetBrains/kotlin", "# default",
 		"icons: ascii", "teams: [kotlin-analysis-api]", "hyperlinks: never", "refresh: 3m",
+		"keys: {up: [up, k], down: [down, j], ", "help: ['?'], quit: [q]}",
 	} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("output lacks %q:\n%s", want, out.String())

@@ -1,4 +1,5 @@
-// Package cli wires the commands: `list` (also the bare command until the TUI lands) and `show`.
+// Package cli wires the commands: the TUI (the bare command on a terminal), `list`
+// (the bare command otherwise), `show` and `config`.
 package cli
 
 import (
@@ -21,6 +22,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/tui"
 )
 
 // Exit codes (SPEC §6).
@@ -46,6 +48,11 @@ type env struct {
 	now      func() time.Time
 	// isTerminal reports whether stdout is a terminal, for --hyperlinks auto.
 	isTerminal func() bool
+	// interactive reports whether stdin and stdout are terminals: the bare command
+	// opens the TUI then.
+	interactive func() bool
+	// runTUI shows the TUI (tui.Run on the process's terminal).
+	runTUI func(ctx context.Context, opts tui.Options) error
 }
 
 // configEnv overrides the default config path.
@@ -70,6 +77,10 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 		cacheDir:   cache.DefaultDir(),
 		now:        time.Now,
 		isTerminal: func() bool { return term.IsTerminal(int(os.Stdout.Fd())) },
+		interactive: func() bool {
+			return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
+		},
+		runTUI: func(ctx context.Context, opts tui.Options) error { return tui.Run(ctx, opts, os.Stdin, stdout) },
 	}
 	if dir := os.Getenv(demoEnv); dir != "" {
 		fixtures, err := demo.Load(dir)
@@ -177,12 +188,16 @@ func newRoot(e env) *cobra.Command {
 		Use:   "kotlin-prs",
 		Short: "Your open PRs (in JetBrains/kotlin by default): quality gate, reviews, and whose move it is",
 		Long: "Shows the open PRs you're involved in, their dry-run / safe-merge status, where the review " +
-			"stands and who has the next move. Without a subcommand it runs `list`.\n\n" + legend,
+			"stands and who has the next move. Without a subcommand it opens the interactive view on a " +
+			"terminal (press ? there for its keys) and runs `list` otherwise.\n\n" + legend,
 		Args:          noArgs,
 		Version:       e.version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if e.interactive() && opts.format == "table" {
+				return runTUI(cmd.Context(), e, global, opts)
+			}
 			return runList(cmd.Context(), e, global, opts)
 		},
 	}

@@ -133,8 +133,13 @@ func TestCached(t *testing.T) {
 	if !ok || !d.FetchedAt.Equal(fetchedAt) || len(d.Classify(cfg, fixtures.Now())) == 0 {
 		t.Fatalf("after midnight: %v, %+v", ok, d)
 	}
-	if _, ok := Cached(ctx, c, cfg, clock, []model.Section{model.SectionMine}, 30*time.Minute); ok {
-		t.Error("a snapshot for other sections: their details were never fetched")
+	// Mine alone makes another details query: the details of every section stand in.
+	mine, ok := Cached(ctx, c, cfg, clock, []model.Section{model.SectionMine}, 30*time.Minute)
+	if !ok {
+		t.Fatal("no snapshot for Mine")
+	}
+	if got := bySection(mine.Classify(cfg, fixtures.Now())); len(got) != 1 || len(got[model.SectionMine]) == 0 {
+		t.Errorf("Mine from the details of every section: %v", got)
 	}
 	clock = fetchedAt.Add(31 * time.Minute)
 	if _, ok := Cached(ctx, c, cfg, clock, allSections, 30*time.Minute); ok {

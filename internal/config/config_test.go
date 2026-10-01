@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 )
@@ -96,5 +97,39 @@ func TestIssues(t *testing.T) {
 	none, err := Parse([]byte("issueProjects: []\n"))
 	if err != nil || none.IssuePattern().MatchString("KT-1 x") || none.TrailerPattern().MatchString("^KT-1 Fixed\n") || none.IssuePattern().MatchString("") {
 		t.Errorf("empty issueProjects: %v, matches", err)
+	}
+}
+
+func TestKeys(t *testing.T) {
+	cfg, err := Parse([]byte("keys: {copy: c, refresh: [r, R], build: B}\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for action, want := range map[string][]string{"copy": {"c"}, "refresh": {"r", "R"}, "build": {"B"}, "quit": {"q"}, "help": {"?"}} {
+		if got := cfg.Keys[action]; !slices.Equal(got, want) {
+			t.Errorf("%s: %q, want %q", action, got, want)
+		}
+	}
+	if !strings.HasPrefix(cfg.Keys.String(), "{up: [up, k], down: [down, j], ") || !strings.Contains(cfg.Keys.String(), "copy: [c], refresh: [r, R], help: ['?']") {
+		t.Errorf("String() = %s", cfg.Keys)
+	}
+	defaults := Default()
+	if err := defaults.Keys.validate(); err != nil {
+		t.Errorf("the defaults: %v", err)
+	}
+	for data, want := range map[string]string{
+		"keys: {paste: p}\n":         `unknown action "paste"`,
+		"keys: {copy: b}\n":          `"b" is bound to both build and copy`,
+		"keys: {refresh: [r, r]}\n":  `refresh lists "r" twice`,
+		"keys: {refresh: []}\n":      "refresh has no key",
+		"keys: {quit: ctrl+c}\n":     "ctrl+c always quits",
+		"keys: {copy: {a: b}}\n":     "copy must be a key or a list of keys",
+		"keys: [copy]\n":             "keys must map actions to keys",
+		"keys: {copy: \"\"}\n":       `"" is not a key name`,
+		"keys: {copy: c, open: c}\n": `"c" is bound to both open and copy`,
+	} {
+		if _, err := Parse([]byte(data)); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%q: %v, want %q", data, err, want)
+		}
 	}
 }

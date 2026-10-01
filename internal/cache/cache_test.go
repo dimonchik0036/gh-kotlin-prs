@@ -337,3 +337,49 @@ func TestOffline(t *testing.T) {
 		t.Errorf("without a cache: %v", err)
 	}
 }
+
+// With Fallback, a miss is answered by the newest entry of the same operation and
+// variables, by its fetch time, within MaxAge: the details of another set of PRs.
+func TestOfflineFallback(t *testing.T) {
+	f := newFixture(t, 0)
+	ask := func(q string) {
+		var resp response
+		if err := f.client.DoWithContext(context.Background(), q, vars, &resp); err != nil {
+			t.Fatal(err)
+		}
+	}
+	const (
+		older = "query Sections { older }"
+		newer = "query Sections { newer }"
+		asked = "query Sections { asked }"
+	)
+	f.github.login = "bob_user"
+	f.now = start.Add(10 * time.Minute)
+	ask(newer)
+	// Written last, fetched first: the stored fetch time decides, not the file's.
+	f.now = start.Add(5 * time.Minute)
+	f.github.login = "carol_user"
+	ask(older)
+	f.now = start.Add(20 * time.Minute)
+
+	offline := &Offline{Cache: f.client, MaxAge: 30 * time.Minute, Fallback: []string{"Sections"}}
+	var resp response
+	if err := offline.DoWithContext(context.Background(), asked, vars, &resp); err != nil || resp.Viewer.Login != "bob_user" || !offline.Oldest.Equal(start.Add(10*time.Minute)) {
+		t.Errorf("fallback: %v, %q, oldest %v", err, resp.Viewer.Login, offline.Oldest)
+	}
+	for name, o := range map[string]*Offline{
+		"too old":         {Cache: f.client, MaxAge: 5 * time.Minute, Fallback: []string{"Sections"}},
+		"other operation": {Cache: f.client, MaxAge: 30 * time.Minute, Fallback: []string{"PullRequests"}},
+	} {
+		if err := o.DoWithContext(context.Background(), asked, vars, &resp); !errors.Is(err, ErrMiss) {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	if err := offline.DoWithContext(context.Background(), asked, map[string]any{"q": "other"}, &resp); !errors.Is(err, ErrMiss) {
+		t.Errorf("other variables: %v", err)
+	}
+	f.client.Account = "github.com\x00token-b"
+	if err := offline.DoWithContext(context.Background(), asked, vars, &resp); !errors.Is(err, ErrMiss) {
+		t.Errorf("another account: %v", err)
+	}
+}

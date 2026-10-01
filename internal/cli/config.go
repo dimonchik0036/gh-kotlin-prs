@@ -71,13 +71,17 @@ func printConfig(e env, global globalOptions) error {
 	}
 	writef(e.stdout, "# %s (%s, %s)\n", path, from, state)
 	values := cfg.Values(sources)
+	// The sources line up after the values, except after the few too long for that (keys).
+	const aligned = 60
 	width := 0
 	for _, v := range values {
-		width = max(width, len(v.Key)+len(v.Value)+2)
+		if w := len(v.Key) + len(v.Value) + 2; w <= aligned {
+			width = max(width, w)
+		}
 	}
 	for _, v := range values {
 		line := v.Key + ": " + v.Value
-		writef(e.stdout, "%s%s  # %s\n", line, strings.Repeat(" ", width-len(line)), v.Source)
+		writef(e.stdout, "%s%s  # %s\n", line, strings.Repeat(" ", max(0, width-len(line))), v.Source)
 	}
 	return nil
 }

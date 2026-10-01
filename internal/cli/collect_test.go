@@ -16,6 +16,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/tui"
 )
 
 var now = time.Date(2026, 10, 1, 13, 0, 0, 0, time.UTC)
@@ -244,9 +245,14 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 			}
 			return client, "test-account", nil
 		},
-		cacheDir:   t.TempDir(),
-		now:        func() time.Time { return now },
-		isTerminal: func() bool { return false },
+		cacheDir:    t.TempDir(),
+		now:         func() time.Time { return now },
+		isTerminal:  func() bool { return false },
+		interactive: func() bool { return false },
+		runTUI: func(context.Context, tui.Options) error {
+			t.Error("the TUI was started")
+			return nil
+		},
 	}, &out, &errOut
 }
 
@@ -269,6 +275,8 @@ func TestExitCodes(t *testing.T) {
 		{args: []string{"frobnicate"}, want: exitUsage},
 		{args: []string{"list"}, config: "icons: emoji\n", want: exitError},
 		{args: []string{"list"}, config: "refresh: soon\n", want: exitError},
+		{args: []string{"list"}, config: "keys: {copy: b}\n", want: exitError},
+		{args: []string{"list"}, config: "keys: {paste: p}\n", want: exitError},
 		{args: []string{"list", "--max-age", "-1m"}, want: exitUsage},
 		{args: []string{"show", "90005", "--max-age", "soon"}, want: exitUsage},
 		{args: []string{"--help"}, want: exitOK},
@@ -431,5 +439,76 @@ func TestDemoMode(t *testing.T) {
 	t.Setenv(demoEnv, t.TempDir())
 	if got := Execute(context.Background(), []string{"list"}, &out, &errOut, "test"); got != exitError {
 		t.Errorf("an empty demo directory: exit %d", got)
+	}
+}
+
+// On a terminal the bare command opens the TUI, starting from the cache while it's at
+// most startupMaxAge old; pipes, subcommands and --format json get `list`.
+func TestBareCommandOpensTUI(t *testing.T) {
+	client := &fakeClient{t: t}
+	e, out, errOut := testEnv(t, client, "")
+	clock := now
+	e.now = func() time.Time { return clock }
+	e.interactive = func() bool { return true }
+	var started []tui.Options
+	e.runTUI = func(_ context.Context, opts tui.Options) error {
+		started = append(started, opts)
+		return nil
+	}
+	bare := func(args ...string) tui.Options {
+		t.Helper()
+		if got := run(context.Background(), args, e); got != exitOK {
+			t.Fatalf("exit %d, stderr %q", got, errOut.String())
+		}
+		if len(started) == 0 {
+			t.Fatal("no TUI")
+		}
+		return started[len(started)-1]
+	}
+	opts := bare()
+	if opts.Initial != nil || len(client.queries) != 0 {
+		t.Errorf("an empty cache: initial %v, %d requests before the TUI", opts.Initial, len(client.queries))
+	}
+	data, err := opts.Fetch(context.Background())
+	if err != nil || data.Viewer != "dimonchik0036" || len(client.queries) != 2 {
+		t.Fatalf("Fetch: %v, %d requests", err, len(client.queries))
+	}
+
+	clock = now.Add(20 * time.Minute)
+	opts = bare("--mine", "--all")
+	if opts.Initial == nil {
+		t.Error("no snapshot of Mine from the details of every section")
+	}
+	if !opts.All || !slices.Equal(opts.Render.Sections, []model.Section{model.SectionMine, model.SectionMerged}) {
+		t.Errorf("--mine --all: all %v, sections %v", opts.All, opts.Render.Sections)
+	}
+	opts = bare()
+	if opts.Initial == nil || !opts.Initial.FetchedAt.Equal(now) {
+		t.Fatalf("a 20m old cache: initial %+v", opts.Initial)
+	}
+	clock = now.Add(31 * time.Minute)
+	if opts := bare(); opts.Initial != nil {
+		t.Error("a 31m old cache was used")
+	}
+	e2, _, _ := testEnv(t, client, "startupMaxAge: 0s\n")
+	e2.cacheDir, e2.interactive, e2.runTUI = e.cacheDir, e.interactive, e.runTUI
+	clock = now
+	if opts := bare(); opts.Initial == nil {
+		t.Fatal("no snapshot")
+	}
+	if got := run(context.Background(), nil, e2); got != exitOK || started[len(started)-1].Initial != nil {
+		t.Errorf("startupMaxAge 0 used the cache")
+	}
+
+	n := len(started)
+	for _, args := range [][]string{{"list"}, {"--format", "json"}} {
+		out.Reset()
+		if got := run(context.Background(), args, e); got != exitOK || len(started) != n || out.Len() == 0 {
+			t.Errorf("%q: exit %d, TUI %v, output %d bytes", args, got, len(started) != n, out.Len())
+		}
+	}
+	e.interactive = func() bool { return false }
+	if got := run(context.Background(), nil, e); got != exitOK || len(started) != n {
+		t.Errorf("without a terminal: exit %d, TUI %v", got, len(started) != n)
 	}
 }

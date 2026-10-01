@@ -268,17 +268,27 @@ gh kotlin-prs open <number>        # browser
 
 ## 7. TUI (bubbletea + bubbles + lipgloss + huh)
 
-- **List screen:** the two sections with the same columns as the table, plus a status bar showing the last refresh, errors and the rate limit.
-- **Detail pane** (`enter`):
+- **List screen:** the sections with the same rows as the table (the section flags of the bare command apply), the
+  selected row in reverse video, plus a status bar showing the last refresh, errors and the rate limit (§12). On a
+  narrow terminal the reason column narrows first, then the title, down to 20 and 16 columns; past that lines are cut.
+- **Detail pane** (`enter`, `esc` back): the `show` view at the terminal's width, scrollable (`j`/`k`, `pgup`/`pgdown`).
+  A merged row comes from the search, so its detail fetches the PR in full. It shows:
   - all reviewers with state and time;
   - code-owner rules with what's missing;
   - run history with TeamCity links;
   - unresolved threads (author, path, first line);
   - all reasons.
-- **Keys:** `↑↓/jk` select, `enter` details, `d` dry-run, `D` dry-run --retry, `m` safe-merge, `x` cancel coordinator,
-  `f` fixup, `c` codeowners, `o` open, `b` open TeamCity build,
-  `y` copy URL, `r` refresh, `/` filter, `tab` switch section, `a` toggle `--all`, `?` help, `q` quit.
-- **Refresh:** in the background every 3 min by default (configurable) and on `r`. The UI never blocks while a fetch runs.
+- **Keys:** `↑↓/jk` select (`g`/`G` first/last), `enter` details, `o` open the PR, `b` open its newest build (or the
+  bot comment before a build exists), `y` copy its URL (system clipboard, else OSC 52), `r` refresh, `/` filter (over
+  the cells' text; `enter` keeps it, `esc` clears it), `tab`/`shift+tab` next/previous section, `a` toggle `--all`,
+  `?` help with the symbol legend, `q` quit; `ctrl+c` always quits. Config `keys` rebinds them by action
+  (`config.Actions`: up, down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all,
+  open, build, copy, refresh, help, quit): a key or a list replaces that action's keys. An unknown action, an action
+  without keys, or a key bound twice is a config error. Inside the filter, enter and esc are fixed. From v0.3.0 (§8): `d` dry-run, `D` dry-run --retry, `m` safe-merge,
+  `x` cancel coordinator, `f` fixup, `c` codeowners.
+- **Refresh:** in the background every `refresh` (3m) and on `r`. The UI never blocks while a fetch runs; a spinner
+  shows it. One fetch at a time: `r` during a refresh only notes "already refreshing", and the timer waits for it. `r`
+  within 5s of a successful refresh notes "refreshed 2s ago" instead; after a failed one it retries at once. Rows are classified again every 30s between refreshes, so their ages keep moving.
 - **Actions:** see §8. After one is posted, the row shows `requested` straight away and the next refreshes reconcile it.
 
 ## 8. Actions and safety
@@ -311,6 +321,7 @@ icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
+keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, R]}; `?` lists the defaults
 ```
 
 ## 10. Layout, tests, release
@@ -350,8 +361,21 @@ scripts/fetch-fixtures.sh
 
 ## 12. CLI and TUI
 
-- From v0.2.0, a bare `gh kotlin-prs` opens the TUI on a TTY and prints `list` otherwise. `list` and `show` stay plain
-  output for scripts, pipes, JSON and SwiftBar. Changing what the bare command does is user-visible: CHANGELOG.
+- From v0.2.0, a bare `gh kotlin-prs` opens the TUI when stdin and stdout are terminals and prints `list` otherwise, or
+  with `--format json`. `list` and `show` stay plain output for scripts, pipes, JSON and SwiftBar. Changing what the bare
+  command does is user-visible: CHANGELOG. The TUI ignores `--max-age` (every refresh fetches) and `--debug` (stderr is
+  the screen).
+- **Startup:** with a snapshot in the cache whose every part is at most `startupMaxAge` (30m) old, the TUI shows it at
+  once and refreshes behind it; otherwise it shows "Loading PRs from GitHub⋯" until the first response. After midnight
+  UTC the merged search has a new key, so it falls back to the previous day's (`listing.Cached`). When the search's PRs
+  changed since their details were fetched (or another `list` flag fetched another set), it takes the newest details
+  entry of the account and repo instead, still within `startupMaxAge`; PRs missing from it appear with the refresh.
+  `startupMaxAge: 0` always waits for GitHub.
+- **Status bar** (the last line): `updated 2m ago ∙ next refresh in 1m`; while refreshing `⠋ refreshing⋯ (cached 12m
+  ago)`; after a failure the data stays on screen with `✗ refresh failed: <error> (updated 14m ago) ∙ r to retry`.
+  The rate limit shows only when less than a tenth of it is left (`! API budget 312/5000, resets 18:00`), or as the
+  error when a request was refused for it, and only from live responses, never the cache. Notes such as `copied <url>`
+  stay for 4s; key hints are on the right. Single-width symbols only, as in the CLI: `⟳ ✗ !` rather than emoji.
 - One rendering source: the TUI list rows and the `list` table come from the same row and cell code (same columns,
   symbols and reasons), and the TUI detail pane reuses the `show` renderer. The TUI only adds selection, the detail
   pane, the filter, the status bar and refresh. In `internal/render`: `Blocks` are the sections (title, sorted rows,
@@ -364,9 +388,9 @@ scripts/fetch-fixtures.sh
 - **Cache:** the raw GraphQL responses with their fetch time in `$XDG_CACHE_HOME/gh-kotlin-prs/` (default
   `~/.cache/gh-kotlin-prs/`). Classification always re-runs with the current clock, so cached data still ages correctly
   ("failed 2h ago" keeps moving).
-  - One file per query, `<operation>-<hash>.json` (`Sections`, `PullRequests`, `PullRequest`), the hash over the
-    account (gh's host and token, never stored), the query and its variables (the repo, the PR numbers, the merged
-    cut-off day). A file is `{"format": 1, "fetchedAt": …, "data": <the response's data as GitHub sent it>}`, mode 0600.
+  - One file per query, `<operation>-<scope>-<hash>.json` (`Sections`, `PullRequests`, `PullRequest`): the scope hashes
+    the account (gh's host and token, never stored), the operation and its variables (the repo, the merged cut-off
+    day), the hash also the query text (the PR numbers of a details query). A file is `{"format": 1, "fetchedAt": …, "data": <the response's data as GitHub sent it>}`, mode 0600.
     The details of ~40 PRs are about 1 MB.
   - Every successful fetch writes its file atomically (a temp file renamed over it) and drops files not written for
     3 days. A failed fetch writes nothing.
@@ -374,7 +398,8 @@ scripts/fetch-fixtures.sh
     next fetch overwrites it. The cache never fails a command, and neither does a failed write.
   - Demo mode (`GH_KOTLIN_PRS_DEMO`) neither reads nor writes it.
   - `cache.Offline` answers queries from the cache only (any age, or up to a bound) and reports the oldest entry it
-    used: the TUI starts from it (§12).
+    used: the TUI starts from it (§12). For the operations in its `Fallback`, a miss takes the newest entry of the same
+    scope by its stored `fetchedAt`, still within the bound.
 - The CLI fetches every time by default; `--max-age DURATION` (`list` and `show`) lets it use a cache entry younger
   than that, per query: `list`'s search and its details are separate entries. `--max-age 0` always fetches. The TUI
   shows the cache at start and refreshes in the background.

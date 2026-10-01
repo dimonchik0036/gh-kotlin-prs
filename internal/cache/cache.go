@@ -5,6 +5,7 @@
 package cache
 
 import (
+	"bufio"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -16,6 +17,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -125,7 +127,11 @@ var ErrMiss = errors.New("not in the cache")
 type Offline struct {
 	Cache  *Client
 	MaxAge time.Duration
-	Oldest time.Time
+	// Fallback lists operations whose miss is answered by their newest entry with the
+	// same variables but another query, if that's young enough: the details of another
+	// set of PRs.
+	Fallback []string
+	Oldest   time.Time
 }
 
 // DoWithContext answers the query from its cache entry (see Offline).
@@ -139,6 +145,13 @@ func (o *Offline) DoWithContext(_ context.Context, query string, variables map[s
 	var stale staleError
 	switch {
 	case err == nil:
+	case slices.Contains(o.Fallback, op) && (errors.Is(err, os.ErrNotExist) || errors.As(err, &stale)):
+		if fetchedAt, err = o.newest(op, variables, response); err != nil {
+			return err
+		}
+		o.Cache.debugf("%s: from the cache for another query, fetched %s ago\n", op, o.Cache.Now().Sub(fetchedAt).Round(time.Second))
+		o.Oldest = oldest(o.Oldest, fetchedAt)
+		return nil
 	case errors.Is(err, os.ErrNotExist):
 		return fmt.Errorf("%s: %w", op, ErrMiss)
 	case errors.As(err, &stale):
@@ -148,10 +161,73 @@ func (o *Offline) DoWithContext(_ context.Context, query string, variables map[s
 		return fmt.Errorf("%s: %w", op, ErrMiss)
 	}
 	o.Cache.debugf("%s: from the cache, fetched %s ago\n", op, o.Cache.Now().Sub(fetchedAt).Round(time.Second))
-	if o.Oldest.IsZero() || fetchedAt.Before(o.Oldest) {
-		o.Oldest = fetchedAt
-	}
+	o.Oldest = oldest(o.Oldest, fetchedAt)
 	return nil
+}
+
+func oldest(a, b time.Time) time.Time {
+	if a.IsZero() || b.Before(a) {
+		return b
+	}
+	return a
+}
+
+// newest decodes the newest usable entry of the operation and variables, by the fetch
+// time it stores, into response.
+func (o *Offline) newest(op string, variables map[string]any, response any) (time.Time, error) {
+	paths, _ := filepath.Glob(filepath.Join(o.Cache.Dir, op+"-"+o.Cache.scope(op, variables)+"-*.json"))
+	type candidate struct {
+		path      string
+		fetchedAt time.Time
+	}
+	var candidates []candidate
+	for _, path := range paths {
+		if at, err := fetchedAt(path); err == nil {
+			candidates = append(candidates, candidate{path, at})
+		}
+	}
+	slices.SortFunc(candidates, func(a, b candidate) int { return b.fetchedAt.Compare(a.fetchedAt) })
+	for _, c := range candidates {
+		if at, err := o.Cache.load(c.path, response, o.MaxAge); err == nil {
+			return at, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("%s: %w", op, ErrMiss)
+}
+
+// fetchedAt reads an entry's fetch time without its data: the fields come first.
+func fetchedAt(path string) (time.Time, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return time.Time{}, err
+	}
+	defer func() { _ = f.Close() }()
+	dec := json.NewDecoder(bufio.NewReader(f))
+	if t, err := dec.Token(); err != nil || t != json.Delim('{') {
+		return time.Time{}, fmt.Errorf("%s: not an entry", path)
+	}
+	var e entry
+	for dec.More() {
+		key, err := dec.Token()
+		if err != nil {
+			return time.Time{}, err
+		}
+		switch key {
+		case "format":
+			err = dec.Decode(&e.Format)
+		case "fetchedAt":
+			err = dec.Decode(&e.FetchedAt)
+		default: // the data
+			if e.Format != Format || e.FetchedAt.IsZero() {
+				return time.Time{}, fmt.Errorf("%s: format %d", path, e.Format)
+			}
+			return e.FetchedAt, nil
+		}
+		if err != nil {
+			return time.Time{}, err
+		}
+	}
+	return time.Time{}, fmt.Errorf("%s: no data", path)
 }
 
 // staleError is an entry older than the age asked for.
@@ -188,9 +264,20 @@ func operation(query string) string {
 	return "query"
 }
 
-// path is the entry file of a query: its operation name and a hash of the account, the
-// query and its variables. "" when the cache is off.
+// path is the entry file of a query: its operation, its scope and a hash of the
+// account, the query and the scope (so the variables). "" when the cache is off.
 func (c *Client) path(op, query string, variables map[string]any) string {
+	scope := c.scope(op, variables)
+	if scope == "" {
+		return ""
+	}
+	return filepath.Join(c.Dir, op+"-"+scope+"-"+hash(c.Account, query, scope)[:32]+".json")
+}
+
+// scope is the part of an entry's name shared by every query of one operation with the
+// same variables for the account, whatever the query text: the details queries of
+// different sets of PRs, for one. "" when the cache is off.
+func (c *Client) scope(op string, variables map[string]any) string {
 	if c.Dir == "" {
 		return ""
 	}
@@ -198,12 +285,16 @@ func (c *Client) path(op, query string, variables map[string]any) string {
 	if err != nil {
 		return ""
 	}
+	return hash(c.Account, op, string(vars))[:16]
+}
+
+func hash(parts ...string) string {
 	h := sha256.New()
-	for _, part := range [][]byte{[]byte(c.Account), []byte(query), vars} {
-		h.Write(part)
+	for _, part := range parts {
+		h.Write([]byte(part))
 		h.Write([]byte{0})
 	}
-	return filepath.Join(c.Dir, op+"-"+hex.EncodeToString(h.Sum(nil))[:32]+".json")
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // read returns the entry at path: an error wrapping os.ErrNotExist when there's none,

@@ -36,13 +36,14 @@ var fields = []field{
 	{"gateBot", "Posts the quality-gate comments.", func(c Config) string { return scalar(c.GateBot) }},
 	{"ownersBot", "Posts the code-owners table and answers commands.", func(c Config) string { return scalar(c.OwnersBot) }},
 	{"teams", "Only show team requests to these team slugs; empty means all.", func(c Config) string { return list(c.Teams) }},
-	{"refresh", "Refresh interval of the TUI.", func(c Config) string { return duration(c.Refresh) }},
-	{"startupMaxAge", "The TUI starts from cached data at most this old (0: never), then refreshes.", func(c Config) string { return duration(c.StartupMaxAge) }},
-	{"requestedTimeout", "A command with no reaction or reply after this long is \"no response\".", func(c Config) string { return duration(c.RequestedTimeout) }},
+	{"refresh", "Refresh interval of the TUI.", func(c Config) string { return c.Refresh.String() }},
+	{"startupMaxAge", "The TUI starts from cached data at most this old (0: never), then refreshes.", func(c Config) string { return c.StartupMaxAge.String() }},
+	{"requestedTimeout", "A command with no reaction or reply after this long is \"no response\".", func(c Config) string { return c.RequestedTimeout.String() }},
 	{"icons", "Symbols: unicode or ascii.", func(c Config) string { return scalar(c.Icons) }},
 	{"issueProjects", "Issue IDs recognized in commit trailers, branch names and titles.", func(c Config) string { return list(c.IssueProjects) }},
 	{"issueURL", "Issue link; {id} is the issue ID.", func(c Config) string { return scalar(c.IssueURL) }},
 	{"hyperlinks", "Terminal links: auto (on a terminal), always or never.", func(c Config) string { return scalar(c.Hyperlinks) }},
+	{"keys", "TUI keys by action; a key or a list replaces that action's keys, e.g. {copy: c, refresh: [r, R]}.", func(c Config) string { return c.Keys.String() }},
 }
 
 // LoadSources is Load plus the keys the file sets. A missing file sets none.
@@ -110,9 +111,9 @@ func list(items []string) string {
 	return "[" + strings.Join(quoted, ", ") + "]"
 }
 
-// duration writes 3m rather than 3m0s.
-func duration(d Duration) string {
-	s := time.Duration(d).String()
+// String is 3m rather than 3m0s.
+func (d *Duration) String() string {
+	s := time.Duration(*d).String()
 	if strings.HasSuffix(s, "m0s") {
 		s = strings.TrimSuffix(s, "0s")
 	}
