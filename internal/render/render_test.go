@@ -385,6 +385,19 @@ func TestRunSymbol(t *testing.T) {
 	}
 }
 
+// The README carries the same legend as --help.
+func TestREADMELegend(t *testing.T) {
+	readme, err := os.ReadFile("../../README.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, icons := range IconSets {
+		if !strings.Contains(string(readme), icons.Legend()) {
+			t.Errorf("README.md lacks the %s legend:\n%s", icons.Name, icons.Legend())
+		}
+	}
+}
+
 func TestParseIcons(t *testing.T) {
 	for _, name := range []string{"unicode", "ascii"} {
 		icons, err := ParseIcons(name)
