@@ -36,7 +36,10 @@ type harness struct {
 	rate     github.RateLimit
 	opened   []string
 	copied   []string
-	quit     bool
+	// posted are the comments posted, "#number text"; postErr fails the posts.
+	posted  []string
+	postErr error
+	quit    bool
 	// raw is what the TUI wrote to the terminal past the screen: notifications.
 	raw []string
 }
@@ -69,6 +72,13 @@ func newHarness(t *testing.T, configure func(h *harness, opts *Options)) *harnes
 		Now:  func() time.Time { return h.clock },
 		Open: func(url string) error { h.opened = append(h.opened, url); return nil },
 		Copy: func(text string) error { h.copied = append(h.copied, text); return nil },
+		Post: func(_ context.Context, number int, text string) (string, error) {
+			if h.postErr != nil {
+				return "", h.postErr
+			}
+			h.posted = append(h.posted, fmt.Sprintf("#%d %s", number, text))
+			return fmt.Sprintf("https://github.com/JetBrains/kotlin/pull/%d#issuecomment-%d", number, len(h.posted)), nil
+		},
 	}
 	if configure != nil {
 		configure(h, &opts)
@@ -109,7 +119,7 @@ func (h *harness) run(cmd tea.Cmd) {
 		h.quit = true
 	case tea.RawMsg:
 		h.raw = append(h.raw, msg.Msg.(string))
-	case fetchedMsg, detailMsg, noteMsg, copyMsg:
+	case fetchedMsg, detailMsg, noteMsg, copyMsg, postedMsg:
 		h.send(msg)
 	}
 }
@@ -408,7 +418,9 @@ func TestHelpAndQuit(t *testing.T) {
 	h := newHarness(t, nil)
 	h.start()
 	h.keys("?")
-	h.contains("Keys", "tab              the first row of the next section", "Symbols", "next move:")
+	h.contains("Keys", "tab              the first row of the next section", "D                post /dry-run on it, after asking")
+	h.keys("G") // the help scrolls
+	h.contains("Symbols", "next move:")
 	h.keys("esc")
 	h.contains("Mine (3)")
 	h.keys("q")
@@ -486,7 +498,7 @@ func TestRefreshCooldown(t *testing.T) {
 // The config's keys replace the defaults, in the keys, the hints and the help.
 func TestCustomKeys(t *testing.T) {
 	h := newHarness(t, func(_ *harness, opts *Options) {
-		keys, err := config.Parse([]byte("keys: {copy: c, refresh: [R, F5], down: [down, n]}\n"))
+		keys, err := config.Parse([]byte("keys: {copy: c, refresh: [e, F5], down: [down, n]}\n"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -503,13 +515,13 @@ func TestCustomKeys(t *testing.T) {
 	if h.fetches != 1 {
 		t.Errorf("the default refresh key still works")
 	}
-	h.keys("R")
+	h.keys("e")
 	h.m.note = ""
-	if h.fetches != 2 || !strings.Contains(h.statusBar(), "R refresh") {
+	if h.fetches != 2 || !strings.Contains(h.statusBar(), "e refresh") {
 		t.Errorf("%d fetches, status bar %q", h.fetches, h.statusBar())
 	}
 	h.keys("?")
-	h.contains("R / F5", "c                copy its URL", "down / n")
+	h.contains("e / F5", "c                copy its URL", "down / n")
 }
 
 // Update scrolls the list to keep the selection, and its section's title on its first

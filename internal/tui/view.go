@@ -45,9 +45,7 @@ func (m *Model) content() string {
 	}
 	var body []string
 	switch {
-	case m.screen == screenHelp:
-		body = m.helpLines()
-	case m.screen == screenDetail:
+	case m.screen == screenHelp, m.screen == screenDetail:
 		body = strings.Split(m.viewport.View(), "\n")
 	case m.data == nil:
 		body = m.loadingLines()
@@ -60,6 +58,10 @@ func (m *Model) content() string {
 	}
 	for len(body) < h {
 		body = append(body, "")
+	}
+	if m.menu != nil {
+		menu := m.menuLines()
+		body = append(body[:max(0, len(body)-len(menu))], menu...)
 	}
 	lines := body
 	if m.showFilter() {
@@ -161,6 +163,25 @@ func (m *Model) loadingLines() []string {
 	return strings.Split(lipgloss.Place(m.width, m.bodyHeight(), lipgloss.Center, lipgloss.Center, msg), "\n")
 }
 
+// menuLines are the actions menu: a title, then a line per command, its key first.
+func (m *Model) menuLines() []string {
+	mn := m.menu
+	lines := []string{"", styleTitle.Render(fmt.Sprintf("Post on #%d", mn.pr.Number)) +
+		styleFaint.Render(fmt.Sprintf(" (its key, or %s/%s and enter; anything else closes)", m.key("up"), m.key("down")))}
+	width := 0
+	for _, c := range mn.items {
+		width = max(width, ansi.StringWidth(c.Text))
+	}
+	for i, c := range mn.items {
+		line := fmt.Sprintf("  %-3s %-*s  %s", m.key(c.Action), width, c.Text, c.Doc)
+		if i == mn.cursor {
+			line = styleSelected.Render(line + strings.Repeat(" ", max(0, m.width-ansi.StringWidth(line))))
+		}
+		lines = append(lines, line)
+	}
+	return lines
+}
+
 // key is the first key bound to action, for hints.
 func (m *Model) key(action string) string {
 	if keys := m.opts.Config.Keys[action]; len(keys) > 0 {
@@ -195,6 +216,16 @@ func (m *Model) helpLines() []string {
 	return append(lines, "", styleFaint.Render("  refreshes every "+m.opts.Config.Refresh.String()+" (config `refresh`); "+m.key("help")+" or "+m.key("back")+" to go back"))
 }
 
+// updateHelp renders the help into the viewport at the current size.
+func (m *Model) updateHelp() {
+	if m.screen != screenHelp || m.width <= 0 {
+		return
+	}
+	m.viewport.SetWidth(m.width)
+	m.viewport.SetHeight(m.bodyHeight())
+	m.viewport.SetContent(strings.Join(m.helpLines(), "\n"))
+}
+
 // updateDetail renders the detail view's PR at the current width and clock.
 func (m *Model) updateDetail() {
 	if m.screen != screenDetail || m.width <= 0 {
@@ -216,6 +247,13 @@ func (m *Model) updateDetail() {
 
 // statusBar is the state of the data on the left, key hints on the right.
 func (m *Model) statusBar() string {
+	if c := m.confirm; c != nil {
+		prompt := func(title string) string {
+			return fmt.Sprintf("Post %s to #%d (%s)? [y/N]", c.cmd.Text, c.pr.Number, title)
+		}
+		room := m.width - ansi.StringWidth(prompt(""))
+		return styleFocused.Render(prompt(ansi.Truncate(c.pr.Title, max(room, 10), m.opts.Render.Icons.Ellipsis)))
+	}
 	icons := m.opts.Render.Icons
 	sep := " " + icons.Separator + " "
 	var left []string
@@ -238,9 +276,9 @@ func (m *Model) statusBar() string {
 	if m.note != "" {
 		left = append(left, m.note)
 	}
-	hint := func(actions ...string) string {
-		parts := make([]string, len(actions))
-		for i, a := range actions {
+	hint := func(names ...string) string {
+		parts := make([]string, len(names))
+		for i, a := range names {
 			parts[i] = m.key(a) + " " + a
 		}
 		return strings.Join(parts, sep)
@@ -248,9 +286,9 @@ func (m *Model) statusBar() string {
 	hints := hint("help", "quit")
 	switch {
 	case m.screen == screenDetail:
-		hints = hint("back", "open", "build", "help", "quit")
+		hints = hint("back", "actions", "open", "build", "help", "quit")
 	case m.screen == screenList && m.data != nil:
-		hints = hint("details", "filter", "refresh", "help", "quit")
+		hints = hint("details", "actions", "filter", "refresh", "help", "quit")
 	}
 	l := strings.Join(left, sep)
 	gap := m.width - ansi.StringWidth(l) - ansi.StringWidth(hints)

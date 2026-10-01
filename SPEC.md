@@ -263,7 +263,7 @@ gh kotlin-prs open <number>        # browser
   `#N` being its link. With links off, both URLs stay in full: plain output is the only way to get them there.
 - Exit codes: 0 ok, 1 error, 2 bad usage.
 
-## 7. TUI (bubbletea + bubbles + lipgloss + huh)
+## 7. TUI (bubbletea + bubbles + lipgloss)
 
 - **List screen:** the sections with the same rows as the table (the section flags of the bare command apply), the
   selected row in reverse video, plus a status bar showing the last refresh, errors and the rate limit (§12). On a
@@ -278,15 +278,20 @@ gh kotlin-prs open <number>        # browser
 - **Keys:** `↑↓/jk` select (`g`/`G` first/last), `enter` details, `o` open the PR, `b` open its newest build (or the
   bot comment before a build exists), `y` copy its URL (system clipboard, else OSC 52), `r` refresh, `/` filter (over
   the cells' text; `enter` keeps it, `esc` clears it), `tab`/`shift+tab` next/previous section, `a` toggle `--all`,
-  `?` help with the symbol legend, `q` quit; `ctrl+c` always quits. Config `keys` rebinds them by action
-  (`config.Actions`: up, down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all,
-  open, build, copy, refresh, help, quit): a key or a list replaces that action's keys. An unknown action, an action
-  without keys, or a key bound twice is a config error. Inside the filter, enter and esc are fixed. From v0.3.0 (§8): `d` dry-run, `D` dry-run --retry, `m` safe-merge,
-  `x` cancel coordinator, `f` fixup, `c` codeowners.
+  `?` help with the symbol legend (scrollable), `q` quit; `ctrl+c` always quits. The commands of §8, in the list and
+  in the details: `D` dry-run, `R` dry-run --retry, `M` safe-merge, `C` cancel-coordinator, `F` fixup, `O` codeowners,
+  and `x` for a menu of the ones that can be posted now. Config `keys` rebinds them by action (`config.Actions`: up,
+  down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all, open, build, copy,
+  actions, dryRun, dryRunRetry, safeMerge, cancelCoordinator, fixup, codeowners, refresh, help, quit): a key or a list
+  replaces that action's keys. An unknown action, an action without keys, or a key bound twice is a config error.
+  Inside the filter, enter and esc are fixed.
 - **Refresh:** in the background every `refresh` (3m) and on `r`. The UI never blocks while a fetch runs; a spinner
   shows it. One fetch at a time: `r` during a refresh only notes "already refreshing", and the timer waits for it. `r`
   within 5s of a successful refresh notes "refreshed 2s ago" instead; after a failed one it retries at once. Rows are classified again every 30s between refreshes, so their ages keep moving.
-- **Actions:** see §8. After one is posted, the row shows `requested` straight away and the next refreshes reconcile it.
+- **Actions:** see §8. A command's key asks `Post /safe-merge to #90006 (title⋯)? [y/N]` in the status bar: only `y`
+  posts, any other key (enter and esc too) cancels with "not posted". A command that can't be posted now says why
+  instead of asking. `x` lists the commands that can be posted on the PR now, each with its key; its key, or the
+  movement keys and enter, picks one, which then asks the same way; any other key closes it.
 
 ## 8. Actions and safety
 
@@ -321,6 +326,9 @@ gh kotlin-prs open <number>        # browser
   comment, and asks `Post this comment? [y/N]`: only `y` or `yes` posts. `--yes` skips the question; without a terminal
   and without `--yes` it refuses (exit 2) before fetching anything. It prints the new comment's URL. A refusal or a
   failed post exits 1.
+- TUI: the keys and the menu of §7. A posted dry-run or safe-merge shows as requested straight away, until a refresh
+  that started after the post shows what GitHub has; until then the same command isn't posted again on that PR. A
+  failed post shows in the status bar. A PR becoming my move right after my own post isn't notified (§14).
 - Demo mode never posts.
 
 ## 9. Config
@@ -345,7 +353,7 @@ icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
-keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, R]}; `?` lists the defaults
+keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, F5]}; `?` lists the defaults
 notify:                   # TUI notifications; unset keys keep these defaults
   events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]
   terminal: auto          # osc9, osc777, osc99, none
@@ -412,6 +420,9 @@ scripts/fetch-fixtures.sh
   the "nothing here" and `--all` notes), a `Row` is a PR as `Cell`s (column, plain text, link target, an optional
   max width cut with the ellipsis, rendered with or without links), `Lines` aligns rows into columns, and
   `DetailView` is the `show` text cut to a given width.
+- Commands (§8): `run` and the TUI share the checks (`actions.Check`) and the post (`github.PostComment`). The TUI's
+  status bar holds the confirmation (`Post … ? [y/N]`) and a failed post; `x` shows its menu over the bottom of the
+  list or the details.
 
 ## 13. Cache and state
 

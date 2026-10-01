@@ -46,7 +46,8 @@ gh kotlin-prs run 90006 safe-merge --yes
 It refuses what the bot would refuse or what makes no sense now: someone else's PR, a closed one, a second
 dry-run or safe-merge while one is requested or running, a safe-merge on a draft or before approval,
 `cancel-coordinator` with nothing running, `codeowners` while its check is green. Without a terminal it needs
-`--yes`. This is the only thing the tool ever writes to GitHub.
+`--yes`. The interactive view posts the same commands (below). Posting them is the only thing the tool ever writes to
+GitHub.
 
 ### Interactive view
 
@@ -58,9 +59,13 @@ cache when the last fetch is at most 30 minutes old (config `startupMaxAge`), el
 j/k, up/down  select            enter  details (esc: back)     o  open the PR       r  refresh now
 tab           next section      /      filter                  b  open its build    ?  help and symbols
 a             toggle --all      g/G    first / last            y  copy its URL      q  quit
+x             commands for it: D dry-run, R dry-run --retry, M safe-merge, C cancel-coordinator, F fixup, O codeowners
 ```
 
-`keys` in the config rebinds them by action (`keys: {copy: c, refresh: [r, R]}`; `?` and `config` list the actions);
+A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested
+until the next refresh shows what the bot made of it.
+
+`keys` in the config rebinds them by action (`keys: {copy: c, refresh: [r, F5]}`; `?` and `config` list the actions);
 a key bound twice is an error. `r` does nothing while a refresh runs or for 5 seconds after one, except to retry a
 failed one. The status bar says when the data was fetched and when the next refresh is due, keeps the last data on screen when a
 refresh fails, and warns when less than a tenth of the hourly API budget is left. In a pipe, or with
@@ -161,7 +166,7 @@ icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]   # issue IDs recognized in commit trailers, branch names and titles
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
-keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, R]}; `?` lists the defaults
+keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, F5]}; `?` lists the defaults
 notify:                   # TUI notifications; unset keys keep these defaults
   events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]
   terminal: auto          # osc9, osc777, osc99, none

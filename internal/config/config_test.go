@@ -101,11 +101,11 @@ func TestIssues(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	cfg, err := Parse([]byte("keys: {copy: c, refresh: [r, R], build: B}\n"))
+	cfg, err := Parse([]byte("keys: {copy: c, refresh: [r, F5], build: B}\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for action, want := range map[string][]string{"copy": {"c"}, "refresh": {"r", "R"}, "build": {"B"}, "quit": {"q"}, "help": {"?"}} {
+	for action, want := range map[string][]string{"copy": {"c"}, "refresh": {"r", "F5"}, "build": {"B"}, "quit": {"q"}, "help": {"?"}} {
 		if got := cfg.Keys[action]; !slices.Equal(got, want) {
 			t.Errorf("%s: %q, want %q", action, got, want)
 		}

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/actions"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/classify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
@@ -44,6 +46,9 @@ type Options struct {
 	Now     func() time.Time
 	// Open opens a URL in the browser.
 	Open func(url string) error
+	// Post posts a command's text as a comment on the PR and returns the comment's URL;
+	// nil never posts (demo mode).
+	Post func(ctx context.Context, number int, text string) (url string, err error)
 	// Copy puts text on the system clipboard. When it fails, or is nil, the text goes
 	// through the terminal (OSC 52) instead.
 	Copy func(text string) error
@@ -79,8 +84,8 @@ const refreshCooldown = 5 * time.Second
 type Model struct {
 	opts Options
 	ctx  context.Context
-	// actions maps each bound key to its action (config.Actions).
-	actions map[string]string
+	// bindings maps each bound key to its action (config.Actions).
+	bindings map[string]string
 	// schedule is tea.Tick; tests stop the clock ticks and the spinner with it.
 	schedule func(time.Duration, func(time.Time) tea.Msg) tea.Cmd
 	// diff is notify.Diff; tests substitute events.
@@ -95,14 +100,23 @@ type Model struct {
 	classifiedAt time.Time
 	// live is the last live refresh classified at its time, the baseline of the next
 	// one's notifications; nil until the first (the cache snapshot never counts).
-	live []model.PR
+	// liveAt is when that refresh started.
+	live   []model.PR
+	liveAt time.Time
 
-	refreshing  bool
-	refreshedAt time.Time // when the last refresh succeeded
-	nextRefresh time.Time
-	err         error // of the last refresh; nil after a success
-	rate        github.RateLimit
-	rateLimited bool
+	// posts are the commands posted since the refresh that started last, per PR.
+	posts map[int][]post
+	// menu lists the commands for a PR (the actions key); confirm waits for y.
+	menu    *menu
+	confirm *confirmation
+
+	refreshing   bool
+	fetchStarted time.Time // when the running or last refresh started
+	refreshedAt  time.Time // when the last refresh succeeded
+	nextRefresh  time.Time
+	err          error // of the last refresh; nil after a success
+	rate         github.RateLimit
+	rateLimited  bool
 
 	all, waitingOnMe bool
 	filter           textinput.Model
@@ -136,15 +150,16 @@ func New(ctx context.Context, opts Options) *Model {
 	if opts.Render.Icons.Name == render.ASCII.Name {
 		sp.Spinner = spinner.Line
 	}
-	actions := map[string]string{}
+	bindings := map[string]string{}
 	for action, keys := range opts.Config.Keys {
 		for _, k := range keys {
-			actions[k] = action
+			bindings[k] = action
 		}
 	}
 	m := &Model{
 		opts:        opts,
-		actions:     actions,
+		bindings:    bindings,
+		posts:       map[int][]post{},
 		ctx:         ctx,
 		schedule:    tea.Tick,
 		diff:        notify.Diff,
@@ -196,7 +211,7 @@ func (m *Model) refresh() tea.Cmd {
 		return nil
 	}
 	spin := m.spin()
-	m.refreshing = true
+	m.refreshing, m.fetchStarted = true, m.opts.Now()
 	fetch, ctx := m.opts.Fetch, m.ctx
 	return tea.Batch(spin, func() tea.Msg {
 		data, err := fetch(ctx)
@@ -226,6 +241,7 @@ func (m *Model) update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 		m.rebuild()
+		m.updateHelp()
 		return nil
 	case tickMsg:
 		return m.onTick()
@@ -249,6 +265,9 @@ func (m *Model) update(msg tea.Msg) tea.Cmd {
 		return nil
 	case noteMsg:
 		m.setNote(string(msg))
+		return nil
+	case postedMsg:
+		m.onPosted(msg)
 		return nil
 	case copyMsg:
 		m.setNote("copied " + msg.text)
@@ -294,13 +313,17 @@ func (m *Model) onFetched(msg fetchedMsg) tea.Cmd {
 	m.err, m.rateLimited = nil, false
 	msg.data.FetchedAt, m.refreshedAt = m.now, m.now
 	m.data, m.fromCache, m.rate = msg.data, false, msg.data.RateLimit
+	own := m.postedSince(m.liveAt)
+	m.forgetPosts(m.fetchStarted)
 	m.reclassify()
 	prev := m.live
-	m.live = m.prs
+	m.live, m.liveAt = m.prs, m.fetchStarted
 	if prev == nil || m.opts.Notifier == nil {
 		return nil
 	}
-	return m.deliver(m.opts.Notifier.Enabled(m.diff(prev, m.prs)))
+	// A PR becoming my move right after I posted on it is my own doing, not news.
+	events := slices.DeleteFunc(m.diff(prev, m.prs), func(e notify.Event) bool { return e.Kind == notify.MyMove && own[e.Number] })
+	return m.deliver(m.opts.Notifier.Enabled(events))
 }
 
 // deliver writes the terminal notifications, runs the command per event in the
@@ -333,9 +356,15 @@ func (m *Model) deliver(events []notify.Event) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// reclassify classifies the data with the current clock and rebuilds the screen.
+// reclassify classifies the data with the current clock and rebuilds the screen. The
+// runs posted since the data was fetched show as requested.
 func (m *Model) reclassify() {
 	m.prs = m.data.Classify(m.opts.Config, m.now)
+	for i, pr := range m.prs {
+		for _, p := range m.posts[pr.Number] {
+			m.prs[i] = actions.Requested(p.cmd, m.prs[i], p.url, p.at)
+		}
+	}
 	m.classifiedAt = m.now
 	m.rebuild()
 }
@@ -439,15 +468,30 @@ func (m *Model) onKey(msg tea.KeyPressMsg) tea.Cmd {
 	if m.filtering {
 		return m.onFilterKey(msg)
 	}
-	action := m.actions[key]
+	switch {
+	case m.confirm != nil:
+		return m.onConfirmKey(key)
+	case m.menu != nil:
+		return m.onMenuKey(key)
+	}
+	action := m.bindings[key]
+	if c, ok := commandOf(action); ok && m.screen != screenHelp {
+		m.ask(c)
+		return nil
+	}
 	switch action {
+	case "actions":
+		if m.screen != screenHelp {
+			m.openMenu()
+		}
+		return nil
 	case "quit":
 		return tea.Quit
 	case "help":
 		if m.screen == screenHelp {
 			m.screen = screenList
 		} else {
-			m.screen = screenHelp
+			m.openHelp()
 		}
 		return nil
 	case "refresh":
@@ -457,6 +501,8 @@ func (m *Model) onKey(msg tea.KeyPressMsg) tea.Cmd {
 	case screenHelp:
 		if action == "back" {
 			m.screen = screenList
+		} else {
+			m.scrollView(action)
 		}
 		return nil
 	case screenDetail:
@@ -593,9 +639,20 @@ func (m *Model) openDetail(number int) tea.Cmd {
 
 // onDetailKey scrolls the details with the list's movement keys.
 func (m *Model) onDetailKey(action string) tea.Cmd {
-	switch action {
-	case "back":
+	switch {
+	case action == "back":
 		m.screen = screenList
+	case m.scrollView(action):
+	default:
+		return m.onPRKey(action)
+	}
+	return nil
+}
+
+// scrollView moves the viewport of the details or the help by a movement action, and
+// reports whether action was one.
+func (m *Model) scrollView(action string) bool {
+	switch action {
 	case "up":
 		m.viewport.ScrollUp(1)
 	case "down":
@@ -609,9 +666,16 @@ func (m *Model) onDetailKey(action string) tea.Cmd {
 	case "last":
 		m.viewport.GotoBottom()
 	default:
-		return m.onPRKey(action)
+		return false
 	}
-	return nil
+	return true
+}
+
+// openHelp shows the help, scrolled to its top.
+func (m *Model) openHelp() {
+	m.screen = screenHelp
+	m.updateHelp()
+	m.viewport.GotoTop()
 }
 
 // onPRKey handles the actions on the current PR: open it, open its build, copy its URL.

@@ -47,6 +47,8 @@ type env struct {
 	// newREST is the client that posts PR commands, the tool's only write; it's called
 	// only once a command passed its checks.
 	newREST func() (github.RESTClient, error)
+	// demo serves fixtures (GH_KOTLIN_PRS_DEMO): nothing is ever posted.
+	demo bool
 	// cacheDir holds the cache (internal/cache); "" turns it off.
 	cacheDir string
 	now      func() time.Time
@@ -104,6 +106,7 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 func withDemo(e env, fixtures *demo.Client) env {
 	e.newClient = func() (github.Client, string, error) { return fixtures, "", nil }
 	e.newREST = func() (github.RESTClient, error) { return nil, errDemoPosts }
+	e.demo = true
 	e.cacheDir = ""
 	e.now = fixtures.Now
 	return e

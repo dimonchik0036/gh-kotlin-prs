@@ -43,6 +43,16 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions) 
 	if e.cacheDir != "" && cfg.StartupMaxAge > 0 {
 		initial, _ = listing.Cached(ctx, client, cfg, e.now(), sections, time.Duration(cfg.StartupMaxAge))
 	}
+	post := func(ctx context.Context, number int, text string) (string, error) {
+		rest, err := e.newREST()
+		if err != nil {
+			return "", err
+		}
+		return github.PostComment(ctx, rest, cfg.Repo, number, text)
+	}
+	if e.demo {
+		post = nil
+	}
 	return e.runTUI(ctx, tui.Options{
 		Config:      cfg,
 		Render:      ropts,
@@ -57,6 +67,7 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions) 
 		},
 		Now:      e.now,
 		Open:     browser.New("", io.Discard, io.Discard).Browse,
+		Post:     post,
 		Copy:     clipboard.WriteAll,
 		Notifier: notify.New(cfg.Notify, os.Environ(), nil),
 	})

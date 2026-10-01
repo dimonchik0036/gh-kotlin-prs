@@ -9,6 +9,11 @@ breaking JSON changes and noted here.
 - `gh kotlin-prs run <number> <command>` posts a bot command on a PR of yours: `dry-run`, `dry-run-retry`,
   `safe-merge`, `cancel-coordinator`, `fixup` or `codeowners`. It shows the PR and the exact comment and asks first
   (`--yes` skips that), and refuses what the bot would refuse or what makes no sense now, saying why.
+- The interactive view posts the same commands: `D` dry-run, `R` dry-run --retry, `M` safe-merge, `C`
+  cancel-coordinator, `F` fixup, `O` codeowners, or `x` for a menu of the ones that make sense for the PR now. Each
+  asks first, and the PR shows the run as requested right away.
+- The help in the interactive view scrolls.
+- Config `keys`: `R` is now taken by dry-run --retry; a config that binds `R` to another action needs another key.
 
 ## v0.2.0 — 2026-10-01
 

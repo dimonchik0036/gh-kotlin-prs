@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/tui"
 )
 
 // fakeREST records the posts instead of making them.
@@ -116,5 +117,23 @@ func TestRunInDemoMode(t *testing.T) {
 	if got := Execute(context.Background(), []string{"run", "90006", "dry-run", "--yes"}, &out, &errOut, "test"); got != exitError ||
 		!strings.Contains(errOut.String(), "not posted: demo mode never posts") {
 		t.Errorf("exit %d, stderr %q", got, errOut.String())
+	}
+}
+
+// The TUI posts through the same REST client as `run`; in demo mode it gets no way to post.
+func TestTUIPosts(t *testing.T) {
+	e, rest, _, errOut := runEnv(t, true, "")
+	var opts tui.Options
+	e.runTUI = func(_ context.Context, o tui.Options) error { opts = o; return nil }
+	if got := run(context.Background(), nil, e); got != exitOK || opts.Post == nil {
+		t.Fatalf("exit %d, stderr %q, post %v", got, errOut.String(), opts.Post != nil)
+	}
+	url, err := opts.Post(context.Background(), 90006, "/fixup")
+	if err != nil || url == "" || len(rest.posts) != 1 || rest.posts[0] != `POST repos/JetBrains/kotlin/issues/90006/comments {"body":"/fixup"}` {
+		t.Errorf("post: %q, %v, %q", url, err, rest.posts)
+	}
+	e.demo = true
+	if got := run(context.Background(), nil, e); got != exitOK || opts.Post != nil {
+		t.Errorf("demo mode: exit %d, post %v", got, opts.Post != nil)
 	}
 }
