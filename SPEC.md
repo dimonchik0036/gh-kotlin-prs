@@ -322,6 +322,12 @@ issueProjects: [KT, KTIJ, KTI]
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
 keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, R]}; `?` lists the defaults
+notify:                   # TUI notifications; unset keys keep these defaults
+  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]
+  terminal: auto          # osc9, osc777, osc99, none
+  bell: false
+  command: []             # e.g. [terminal-notifier, -title, "{title}", -message, "{body}", -open, "{url}"]
+  timeout: 10s
 ```
 
 ## 10. Layout, tests, release
@@ -408,17 +414,34 @@ scripts/fetch-fixtures.sh
 
 ## 14. Notifications
 
-- In the TUI from v0.2.0, later in the daemon. They come from diffing consecutive refreshes (against the last notified
-  state of §13, so a restart doesn't repeat them).
-- Events, each configurable on or off: a run finished, failed or was rejected; a PR became my move; changes were
-  requested; a review was requested from me; a PR of mine was merged.
+- In the TUI from v0.2.0, later in the daemon. They come from diffing two consecutive live refreshes (`notify.Diff` over
+  the classified rows, hidden ones included): never the first load, never the cache snapshot the TUI starts from, and
+  a failed refresh keeps the last good one as the baseline. A restart starts a new baseline, so it repeats nothing
+  but misses what changed while it was closed; keeping the last notified state (§13) is for later, with the daemon.
+- Events (config `notify.events`, all on by default):
+  - `runPassed`, `runFailed`, `runRejected`: the latest dry-run or safe-merge of my PR reached that state, a new run or
+    the one seen before; not when it's outdated. The link is the build, or the bot's reply for a rejection, whose
+    reason is the body;
+  - `myMove`: a PR of mine became my move, unless a run failing or being rejected, or new changes requested, already
+    say so;
+  - `changesRequested`: a reviewer's latest review on my PR is newly CHANGES_REQUESTED;
+  - `reviewRequested`: a PR in Review became my move (a new or repeated request);
+  - `merged`: a PR of mine moved to Recently merged.
+  A PR that's new in the snapshot only counts for `reviewRequested` and `merged`: a PR I just opened isn't news.
 - Delivery, configurable, several at once:
-  - terminal escape notifications: OSC 9, OSC 777 (`notify;title;body`) or kitty's OSC 99; `auto` picks one by
-    `$TERM_PROGRAM` / `$TERM` and sends nothing where none is known to work;
-  - the terminal bell;
-  - `notify.command`: a user command that gets the event as JSON on stdin, with `{title}`, `{body}` and `{url}`
-    placeholders for its arguments, so terminal-notifier, osascript, ntfy or anything else works.
-- One notifier: the daemon reuses the TUI's.
+  - `notify.terminal`: OSC 9 (`osc9`), OSC 777 `notify;title;body` (`osc777`), kitty's OSC 99 (`osc99`), or `none`.
+    `auto` (the default) picks by the terminal: iTerm2, WezTerm, Ghostty → OSC 9; kitty → OSC 99; foot,
+    rxvt-unicode → OSC 777; nothing in Terminal.app, VS Code, tmux and screen (which need passthrough), or anything
+    unknown. Written through bubbletea (`tea.Raw`): the escapes don't move the cursor, so the screen stays whole.
+    Control characters in the text become spaces, `;` becomes `,` for OSC 777;
+  - `notify.bell` (off by default): a BEL per event;
+  - `notify.command`: argv run per event, `{title}`, `{body}` and `{url}` replaced in its arguments and the event as
+    JSON on stdin (`{"kind", "number", "prTitle", "title", "body", "url"}`), in the background with a timeout
+    (`notify.timeout`, 10s). A failure shows in the status bar for a few seconds; nothing ever waits for it.
+    terminal-notifier, osascript, notify-send, ntfy or anything else works.
+- The status bar names the first event of a refresh ("#90006 dry-run failed (+1 more)").
+- One notifier: `internal/notify` knows nothing of the TUI (it returns the escapes as a string and runs the command
+  where the caller says), so the daemon can reuse it.
 
 ## 15. Open questions
 

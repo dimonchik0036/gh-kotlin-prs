@@ -7,6 +7,7 @@ package tui
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/listing"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
 )
 
@@ -45,6 +47,8 @@ type Options struct {
 	// Copy puts text on the system clipboard. When it fails, or is nil, the text goes
 	// through the terminal (OSC 52) instead.
 	Copy func(text string) error
+	// Notifier delivers what changed between two live refreshes; nil for none.
+	Notifier *notify.Notifier
 }
 
 // Run shows the TUI until the user quits or ctx is done.
@@ -79,6 +83,8 @@ type Model struct {
 	actions map[string]string
 	// schedule is tea.Tick; tests stop the clock ticks and the spinner with it.
 	schedule func(time.Duration, func(time.Time) tea.Msg) tea.Cmd
+	// diff is notify.Diff; tests substitute events.
+	diff func(prev, next []model.PR) []notify.Event
 
 	width, height int
 	now           time.Time
@@ -87,6 +93,9 @@ type Model struct {
 	fromCache    bool
 	prs          []model.PR // data classified at classifiedAt
 	classifiedAt time.Time
+	// live is the last live refresh classified at its time, the baseline of the next
+	// one's notifications; nil until the first (the cache snapshot never counts).
+	live []model.PR
 
 	refreshing  bool
 	refreshedAt time.Time // when the last refresh succeeded
@@ -138,6 +147,7 @@ func New(ctx context.Context, opts Options) *Model {
 		actions:     actions,
 		ctx:         ctx,
 		schedule:    tea.Tick,
+		diff:        notify.Diff,
 		now:         opts.Now(),
 		all:         opts.All,
 		waitingOnMe: opts.WaitingOnMe,
@@ -227,8 +237,7 @@ func (m *Model) update(msg tea.Msg) tea.Cmd {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return cmd
 	case fetchedMsg:
-		m.onFetched(msg)
-		return nil
+		return m.onFetched(msg)
 	case detailMsg:
 		delete(m.loading, msg.number)
 		if msg.err != nil {
@@ -273,19 +282,55 @@ func (m *Model) onTick() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Model) onFetched(msg fetchedMsg) {
+func (m *Model) onFetched(msg fetchedMsg) tea.Cmd {
 	m.now = m.opts.Now()
 	m.refreshing = false
 	m.nextRefresh = m.now.Add(time.Duration(m.opts.Config.Refresh))
 	if msg.err != nil {
 		m.err = msg.err
 		m.rateLimited = isRateLimit(msg.err)
-		return
+		return nil
 	}
 	m.err, m.rateLimited = nil, false
 	msg.data.FetchedAt, m.refreshedAt = m.now, m.now
 	m.data, m.fromCache, m.rate = msg.data, false, msg.data.RateLimit
 	m.reclassify()
+	prev := m.live
+	m.live = m.prs
+	if prev == nil || m.opts.Notifier == nil {
+		return nil
+	}
+	return m.deliver(m.opts.Notifier.Enabled(m.diff(prev, m.prs)))
+}
+
+// deliver writes the terminal notifications, runs the command per event in the
+// background, and names the first event in the status bar.
+func (m *Model) deliver(events []notify.Event) tea.Cmd {
+	if len(events) == 0 {
+		return nil
+	}
+	n := m.opts.Notifier
+	note := events[0].Title
+	if len(events) > 1 {
+		note += fmt.Sprintf(" (+%d more)", len(events)-1)
+	}
+	m.setNote(note)
+	var cmds []tea.Cmd
+	if s := n.Escapes(events); s != "" {
+		cmds = append(cmds, tea.Raw(s))
+	}
+	if n.HasCommand() {
+		for _, e := range events {
+			ctx := m.ctx
+			cmds = append(cmds, func() tea.Msg {
+				if err := n.Run(ctx, e); err != nil {
+					return noteMsg("notify command failed: " + shortError(err))
+				}
+				return nil
+			})
+		}
+	}
+	return tea.Batch(cmds...)
 }
 
 // reclassify classifies the data with the current clock and rebuilds the screen.

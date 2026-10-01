@@ -3,6 +3,7 @@ package tui
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/listing"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
 )
 
@@ -35,6 +37,8 @@ type harness struct {
 	opened   []string
 	copied   []string
 	quit     bool
+	// raw is what the TUI wrote to the terminal past the screen: notifications.
+	raw []string
 }
 
 func newHarness(t *testing.T, configure func(h *harness, opts *Options)) *harness {
@@ -103,6 +107,8 @@ func (h *harness) run(cmd tea.Cmd) {
 		}
 	case tea.QuitMsg:
 		h.quit = true
+	case tea.RawMsg:
+		h.raw = append(h.raw, msg.Msg.(string))
 	case fetchedMsg, detailMsg, noteMsg, copyMsg:
 		h.send(msg)
 	}
@@ -522,4 +528,69 @@ func TestScroll(t *testing.T) {
 	h.keys("g")
 	h.contains("Mine (3)", "#90006")
 	h.lacks("#90004")
+}
+
+// Notifications come from two live refreshes in a row, never from the first load or the
+// cache: the terminal gets them, the command runs per event, the status bar names them.
+func TestNotifications(t *testing.T) {
+	var ran [][]string
+	fail := false
+	run := func(_ context.Context, argv []string, _ []byte) error {
+		ran = append(ran, argv)
+		if fail {
+			return errors.New("exit status 1: boom")
+		}
+		return nil
+	}
+	events := []notify.Event{
+		{Kind: notify.RunFailed, Number: 7, Title: "#7 dry-run failed", Body: "Example change", URL: "https://ci.example.org/build/1"},
+		{Kind: notify.Merged, Number: 8, Title: "#8 merged", Body: "Other change", URL: "https://example.org/pull/8"},
+		{Kind: notify.MyMove, Number: 9, Title: "#9: your move", Body: "new comment"},
+	}
+	h := newHarness(t, func(h *harness, opts *Options) {
+		opts.Initial = h.cached(time.Minute)
+		cfg, err := config.Parse([]byte("notify: {terminal: osc9, events: [runFailed, merged], command: [hook, '{title}']}\n"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		opts.Notifier = notify.New(cfg.Notify, nil, run)
+	})
+	diffs := 0
+	h.m.diff = func(prev, next []model.PR) []notify.Event {
+		diffs++
+		if len(prev) == 0 || len(next) == 0 {
+			t.Error("an empty snapshot")
+		}
+		return events
+	}
+	h.start()
+	if diffs != 0 || len(h.raw) != 0 || len(ran) != 0 {
+		t.Fatalf("the first live refresh after the cache notified: %d diffs, %q, %q", diffs, h.raw, ran)
+	}
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if diffs != 1 {
+		t.Fatalf("%d diffs", diffs)
+	}
+	if want := []string{"\x1b]9;#7 dry-run failed: Example change\a\x1b]9;#8 merged: Other change\a"}; !slices.Equal(h.raw, want) {
+		t.Errorf("terminal %q, want %q", h.raw, want)
+	}
+	if want := [][]string{{"hook", "#7 dry-run failed"}, {"hook", "#8 merged"}}; fmt.Sprint(ran) != fmt.Sprint(want) {
+		t.Errorf("commands %q, want %q", ran, want)
+	}
+	if got := h.statusBar(); !strings.Contains(got, "#7 dry-run failed (+1 more)") {
+		t.Errorf("status bar %q", got)
+	}
+	fail = true
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if got := h.statusBar(); !strings.Contains(got, "notify command failed: exit status 1: boom") {
+		t.Errorf("status bar %q", got)
+	}
+	h.fetchErr = errors.New("HTTP 502")
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if diffs != 2 {
+		t.Errorf("a failed refresh was diffed: %d diffs", diffs)
+	}
 }

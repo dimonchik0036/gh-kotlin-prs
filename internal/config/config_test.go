@@ -133,3 +133,33 @@ func TestKeys(t *testing.T) {
 		}
 	}
 }
+
+func TestNotify(t *testing.T) {
+	cfg, err := Parse([]byte("notify: {bell: true, events: [runFailed, merged], command: [notify-send, '{title}', '{body}']}\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := cfg.Notify
+	if !n.Bell || !slices.Equal(n.Events, []string{"runFailed", "merged"}) || n.Terminal != "auto" || n.Timeout != Duration(10*time.Second) ||
+		!slices.Equal(n.Command, []string{"notify-send", "{title}", "{body}"}) {
+		t.Errorf("notify = %+v", n)
+	}
+	if got := n.String(); got != "{events: [runFailed, merged], terminal: auto, bell: true, command: [notify-send, '{title}', '{body}'], timeout: 10s}" {
+		t.Errorf("String() = %s", got)
+	}
+	defaults := Default()
+	if len(defaults.Notify.Events) != len(NotifyEvents) || defaults.Notify.validate() != nil {
+		t.Errorf("defaults %+v", defaults.Notify)
+	}
+	for data, want := range map[string]string{
+		"notify: {events: [ping]}\n":           `unknown event "ping"`,
+		"notify: {events: [merged, merged]}\n": `"merged" listed twice`,
+		"notify: {terminal: osc8}\n":           "terminal must be one of auto, osc9, osc777, osc99, none",
+		"notify: {timeout: 0s}\n":              "timeout must be positive",
+		"notify: {command: ['', x]}\n":         "command must start with a program",
+	} {
+		if _, err := Parse([]byte(data)); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%q: %v, want %q", data, err, want)
+		}
+	}
+}

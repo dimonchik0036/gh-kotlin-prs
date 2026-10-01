@@ -12,6 +12,9 @@ breaking JSON changes and noted here.
   bar. It starts from the cache when that's at most `startupMaxAge` old.
   In a pipe or with `--format json`, it prints `list` as before.
 - Config: `keys` rebinds the interactive view's keys by action, e.g. `keys: {copy: c, refresh: [r, R]}`.
+- Notifications from the interactive view when something changes between two refreshes (a run passed, failed or was
+  rejected, a PR became your move, changes requested, review requested, merged): as terminal notifications where
+  supported, the bell, or a command of yours. Config `notify`.
 - Every fetch is cached in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`); `list --max-age 5m` and `show --max-age 5m`
   answer from it while it's younger than that. Ages are still computed from the current time. By default they
   always fetch, as before.

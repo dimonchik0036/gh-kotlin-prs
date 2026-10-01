@@ -44,6 +44,7 @@ var fields = []field{
 	{"issueURL", "Issue link; {id} is the issue ID.", func(c Config) string { return scalar(c.IssueURL) }},
 	{"hyperlinks", "Terminal links: auto (on a terminal), always or never.", func(c Config) string { return scalar(c.Hyperlinks) }},
 	{"keys", "TUI keys by action; a key or a list replaces that action's keys, e.g. {copy: c, refresh: [r, R]}.", func(c Config) string { return c.Keys.String() }},
+	{"notify", "TUI notifications: events (runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged), terminal (auto, osc9, osc777, osc99 or none), bell, and a command run per event with {title} {body} {url}; unset keys keep their defaults.", func(c Config) string { return c.Notify.String() }},
 }
 
 // LoadSources is Load plus the keys the file sets. A missing file sets none.

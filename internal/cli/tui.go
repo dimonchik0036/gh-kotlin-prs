@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -12,6 +13,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/cache"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/listing"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/tui"
 )
 
@@ -53,8 +55,9 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions) 
 		FetchPR: func(ctx context.Context, number int) (*github.PRResponse, error) {
 			return github.FetchPR(ctx, client, cfg.Owner(), cfg.Name(), number)
 		},
-		Now:  e.now,
-		Open: browser.New("", io.Discard, io.Discard).Browse,
-		Copy: clipboard.WriteAll,
+		Now:      e.now,
+		Open:     browser.New("", io.Discard, io.Discard).Browse,
+		Copy:     clipboard.WriteAll,
+		Notifier: notify.New(cfg.Notify, os.Environ(), nil),
 	})
 }

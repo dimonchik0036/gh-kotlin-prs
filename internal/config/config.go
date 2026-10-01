@@ -38,6 +38,8 @@ type Config struct {
 	Hyperlinks string `yaml:"hyperlinks"`
 	// Keys are the TUI's key bindings by action (Actions).
 	Keys Keys `yaml:"keys"`
+	// Notify configures the TUI's notifications; unset keys keep their defaults.
+	Notify Notify `yaml:"notify"`
 }
 
 // Duration is a time.Duration written as "3m" in YAML.
@@ -66,6 +68,7 @@ func Default() Config {
 		IssueURL:         "https://youtrack.jetbrains.com/issue/{id}",
 		Hyperlinks:       "auto",
 		Keys:             DefaultKeys(),
+		Notify:           DefaultNotify(),
 	}
 }
 
@@ -129,6 +132,9 @@ func Parse(data []byte) (Config, error) {
 		return cfg, fmt.Errorf("config: issueURL must contain {id}, got %q", cfg.IssueURL)
 	}
 	if err := cfg.Keys.validate(); err != nil {
+		return cfg, err
+	}
+	if err := cfg.Notify.validate(); err != nil {
 		return cfg, err
 	}
 	return cfg, nil

@@ -51,6 +51,22 @@ failed one. The status bar says when the data was fetched and when the next refr
 refresh fails, and warns when less than a tenth of the hourly API budget is left. In a pipe, or with
 `--format json`, the bare command prints `list` as before.
 
+### Notifications
+
+While it runs, the interactive view notifies you of what changed between two refreshes: a dry-run or safe-merge of
+yours passed, failed or was rejected, a PR became your move, changes were requested, your review was requested, a PR
+of yours was merged (config `notify.events`). Nothing is sent for what was already there when it started.
+
+They go through the terminal where it's known to support that (iTerm2, WezTerm, Ghostty, kitty, foot, rxvt-unicode;
+`notify.terminal`), optionally the bell (`notify.bell: true`), and any command you like: its arguments get `{title}`,
+`{body}` and `{url}`, its stdin the event as JSON.
+
+```yaml
+notify:
+  command: [terminal-notifier, -title, "{title}", -message, "{body}", -open, "{url}"]   # macOS
+  # command: [notify-send, "{title}", "{body}"]                                         # Linux
+```
+
 `--debug` prints the GraphQL cost of each request to stderr, or the cache entry that answered it (not in the
 interactive view).
 
@@ -131,6 +147,12 @@ issueProjects: [KT, KTIJ, KTI]   # issue IDs recognized in commit trailers, bran
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
 keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, R]}; `?` lists the defaults
+notify:                   # TUI notifications; unset keys keep these defaults
+  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]
+  terminal: auto          # osc9, osc777, osc99, none
+  bell: false
+  command: []             # e.g. [terminal-notifier, -title, "{title}", -message, "{body}", -open, "{url}"]
+  timeout: 10s
 ```
 
 ## Development
