@@ -305,8 +305,11 @@ gh kotlin-prs open <number>        # browser
 ## 9. Config
 
 `~/.config/gh-kotlin-prs/config.yml` (`$XDG_CONFIG_HOME`), or `--config PATH`, or `$GH_KOTLIN_PRS_CONFIG`. Every key is
-optional, and the defaults are for Kotlin. `config` prints each value with its source (default, file, flag); `config init`
-writes every key commented out, so later default changes still apply.
+optional, and the defaults are for Kotlin. `config` prints each value with its source (default, file, flag) as YAML
+that reads back as the same config: the maps (`keys`, `notify`) as blocks, a line and a source per sub-key, the source
+comments aligned per block unless a line is longer than 60 columns. Values are quoted only where plain YAML wouldn't
+read back the same. `config init` writes the same layout with every key commented out, so later default changes still
+apply.
 
 ```yaml
 repo: JetBrains/kotlin

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func TestConfigCommand(t *testing.T) {
-	e, out, errOut := testEnv(t, nil, "icons: ascii\nteams: [kotlin-analysis-api]\n")
+	e, out, errOut := testEnv(t, nil, "icons: ascii\nteams: [kotlin-analysis-api]\nnotify: {command: [sh, -c, 'cat >> /tmp/kp-events.jsonl']}\n")
 	if got := run(context.Background(), []string{"config", "--hyperlinks", "never"}, e); got != exitOK {
 		t.Fatalf("exit %d, stderr %q", got, errOut.String())
 	}
@@ -22,25 +23,46 @@ func TestConfigCommand(t *testing.T) {
 	for _, want := range []string{
 		"repo: JetBrains/kotlin", "# default",
 		"icons: ascii", "teams: [kotlin-analysis-api]", "hyperlinks: never", "refresh: 3m",
-		"keys: {up: [up, k], down: [down, j], ", "help: ['?'], quit: [q]}",
+		"\nkeys:\n  up: [up, k] ", "\n  help: ['?'] ", "\nnotify:\n  events: [",
+		"\n  command: [sh, -c, 'cat >> /tmp/kp-events.jsonl']  # file\n",
 	} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("output lacks %q:\n%s", want, out.String())
 		}
 	}
 	source := map[string]string{}
+	parent := ""
 	for _, l := range lines[1:] {
 		key, _, _ := strings.Cut(l, ":")
+		if sub, ok := strings.CutPrefix(key, "  "); ok {
+			key = parent + "." + sub
+		} else {
+			parent = key
+		}
 		_, src, _ := strings.Cut(l, "# ")
 		source[key] = src
 	}
-	for key, want := range map[string]string{"icons": "file", "teams": "file", "hyperlinks": "flag", "repo": "default", "issueURL": "default"} {
+	for key, want := range map[string]string{
+		"icons": "file", "teams": "file", "hyperlinks": "flag", "repo": "default", "issueURL": "default",
+		"keys": "", "keys.copy": "default", "notify": "", "notify.command": "file", "notify.events": "default",
+	} {
 		if source[key] != want {
 			t.Errorf("%s from %q, want %q", key, source[key], want)
 		}
 	}
-	if len(lines) != 1+len(config.Default().Values(nil)) {
+	keys := 0
+	for _, v := range config.Default().Values(nil) {
+		keys += 1 + len(v.Sub)
+	}
+	if len(lines) != 1+keys {
 		t.Errorf("%d lines, want a header and every key", len(lines))
+	}
+	// The output is the effective config: it reads back as the file plus the flags.
+	back, err := config.Parse([]byte(out.String()))
+	want, _ := config.Load(e.configPath)
+	want.Hyperlinks = "never"
+	if err != nil || !reflect.DeepEqual(back, want) {
+		t.Errorf("the output reads back as %+v, %v, want %+v", back, err, want)
 	}
 }
 

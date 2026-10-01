@@ -63,9 +63,3 @@ func (n *Notify) validate() error {
 	}
 	return nil
 }
-
-// String is the settings as a YAML flow map: {events: […], terminal: auto, …}.
-func (n *Notify) String() string {
-	return fmt.Sprintf("{events: %s, terminal: %s, bell: %t, command: %s, timeout: %s}",
-		list(n.Events), scalar(n.Terminal), n.Bell, list(n.Command), n.Timeout.String())
-}

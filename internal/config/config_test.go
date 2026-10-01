@@ -110,9 +110,6 @@ func TestKeys(t *testing.T) {
 			t.Errorf("%s: %q, want %q", action, got, want)
 		}
 	}
-	if !strings.HasPrefix(cfg.Keys.String(), "{up: [up, k], down: [down, j], ") || !strings.Contains(cfg.Keys.String(), "copy: [c], refresh: [r, R], help: ['?']") {
-		t.Errorf("String() = %s", cfg.Keys)
-	}
 	defaults := Default()
 	if err := defaults.Keys.validate(); err != nil {
 		t.Errorf("the defaults: %v", err)
@@ -143,9 +140,6 @@ func TestNotify(t *testing.T) {
 	if !n.Bell || !slices.Equal(n.Events, []string{"runFailed", "merged"}) || n.Terminal != "auto" || n.Timeout != Duration(10*time.Second) ||
 		!slices.Equal(n.Command, []string{"notify-send", "{title}", "{body}"}) {
 		t.Errorf("notify = %+v", n)
-	}
-	if got := n.String(); got != "{events: [runFailed, merged], terminal: auto, bell: true, command: [notify-send, '{title}', '{body}'], timeout: 10s}" {
-		t.Errorf("String() = %s", got)
 	}
 	defaults := Default()
 	if len(defaults.Notify.Events) != len(NotifyEvents) || defaults.Notify.validate() != nil {

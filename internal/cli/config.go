@@ -3,10 +3,10 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -46,7 +46,8 @@ func newConfigCommand(e env, global *globalOptions) *cobra.Command {
 	return cmd
 }
 
-// printConfig lists every key as YAML with its source: default, file or flag.
+// printConfig lists every key as YAML with its source: default, file or flag, per
+// sub-key for the maps.
 func printConfig(e env, global globalOptions) error {
 	path, from := global.configFile(e)
 	cfg, sources, err := config.LoadSources(path)
@@ -70,19 +71,7 @@ func printConfig(e env, global globalOptions) error {
 		state = "not found, all defaults"
 	}
 	writef(e.stdout, "# %s (%s, %s)\n", path, from, state)
-	values := cfg.Values(sources)
-	// The sources line up after the values, except after the few too long for that (keys).
-	const aligned = 60
-	width := 0
-	for _, v := range values {
-		if w := len(v.Key) + len(v.Value) + 2; w <= aligned {
-			width = max(width, w)
-		}
-	}
-	for _, v := range values {
-		line := v.Key + ": " + v.Value
-		writef(e.stdout, "%s%s  # %s\n", line, strings.Repeat(" ", max(0, width-len(line))), v.Source)
-	}
+	_, _ = io.WriteString(e.stdout, config.Describe(cfg.Values(sources)))
 	return nil
 }
 

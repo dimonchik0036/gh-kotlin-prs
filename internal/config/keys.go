@@ -106,12 +106,3 @@ func (k *Keys) validate() error {
 	}
 	return nil
 }
-
-// String is the keys as a YAML flow map in the order of Actions: {up: [up, k], …}.
-func (k *Keys) String() string {
-	parts := make([]string, len(Actions))
-	for i, a := range Actions {
-		parts[i] = a.Name + ": " + list((*k)[a.Name])
-	}
-	return "{" + strings.Join(parts, ", ") + "}"
-}

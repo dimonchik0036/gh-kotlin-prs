@@ -12,6 +12,7 @@ breaking JSON changes and noted here.
   bar. It starts from the cache when that's at most `startupMaxAge` old.
   In a pipe or with `--format json`, it prints `list` as before.
 - Config: `keys` rebinds the interactive view's keys by action, e.g. `keys: {copy: c, refresh: [r, R]}`.
+  `config` and `config init` show `keys` and `notify` as blocks, a line and a source per sub-key.
 - Notifications from the interactive view when something changes between two refreshes (a run passed, failed or was
   rejected, a PR became your move, changes requested, review requested, merged): as terminal notifications where
   supported, the bell, or a command of yours. Config `notify`.
