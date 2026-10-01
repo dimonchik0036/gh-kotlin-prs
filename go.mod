@@ -5,6 +5,7 @@ go 1.27.1
 require (
 	github.com/cli/go-gh/v2 v2.16.1
 	go.yaml.in/yaml/v3 v3.0.5
+	golang.org/x/net v0.59.0
 )
 
 require (

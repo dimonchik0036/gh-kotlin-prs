@@ -1,0 +1,346 @@
+{
+  "number": 90003,
+  "title": "Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90003",
+  "author": "victor_user",
+  "branch": "topic/example-90003",
+  "section": "review",
+  "issues": [],
+  "updated": "2026-09-30T19:28:54Z",
+  "lastPush": "2026-09-30T12:11:43Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "none"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "none"
+  },
+  "reviewers": [
+    {
+      "login": "dimonchik0036",
+      "state": "approved",
+      "final": true,
+      "at": "2026-09-30T09:55:07Z",
+      "codeOwner": true
+    },
+    {
+      "login": "sybil_user",
+      "state": "commented",
+      "reRequest": true,
+      "at": "2026-09-30T19:28:49Z",
+      "codeOwner": true
+    }
+  ],
+  "approvals": 1,
+  "codeOwners": {
+    "state": "missing",
+    "check": "FAILURE",
+    "rules": [
+      {
+        "paths": [
+          "/analysis/analysis-api-fir-diagnostics/gen/",
+          "/analysis/analysis-api-fir/gen/"
+        ],
+        "teams": [
+          "kotlin-analysis-api",
+          "kotlin-frontend"
+        ],
+        "owners": [
+          {
+            "login": "bob_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "carol_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dave_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dimonchik0036",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "erin_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "dimonchik0036",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/compiler/fir/",
+          "/compiler/testData/diagnostics/"
+        ],
+        "teams": [
+          "kotlin-frontend"
+        ],
+        "owners": [
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          }
+        ],
+        "mark": "re_request",
+        "assignees": [
+          {
+            "login": "sybil_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/compiler/fir/checkers/src/org/jetbrains/kotlin/fir/analysis/diagnostics/FirErrorsDefaultMessages.kt"
+        ],
+        "owners": [
+          {
+            "login": "sybil_user"
+          },
+          {
+            "login": "victor_user"
+          },
+          {
+            "login": "quinn_user"
+          },
+          {
+            "login": "ivan3_user"
+          }
+        ],
+        "mark": "re_request",
+        "assignees": [
+          {
+            "login": "sybil_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/compiler/psi/"
+        ],
+        "teams": [
+          "kotlin-analysis-api"
+        ],
+        "owners": [
+          {
+            "login": "bob_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "carol_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dave_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dimonchik0036",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "erin_user",
+            "team": "kotlin-analysis-api"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "dimonchik0036",
+            "final": true
+          }
+        ]
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "Code Owners Approval",
+      "state": "FAILURE",
+      "url": "https://kotlinlang.org/"
+    }
+  ],
+  "unresolvedThreads": 7,
+  "threads": [
+    {
+      "path": "src/f4aa74d04.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1895893182",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T16:52:48Z",
+      "comments": 1
+    },
+    {
+      "path": "src/f26d3ea81.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1277241667",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T17:01:57Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fbb661d58.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1601718470",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T17:04:44Z",
+      "comments": 1
+    },
+    {
+      "path": "src/f913543ce.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1745232729",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T17:05:38Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fa18a47a3.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1512647337",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T17:28:47Z",
+      "comments": 1
+    },
+    {
+      "path": "src/f03b08e32.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1037647550",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T19:17:14Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fefad149f.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90003#discussion_r1907978215",
+      "author": "sybil_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "sybil_user",
+      "lastAt": "2026-09-30T19:22:07Z",
+      "comments": 1
+    }
+  ],
+  "next": "done",
+  "reasons": [
+    {
+      "text": "approved 30h ago; author pushed since"
+    }
+  ],
+  "hidden": true
+}

@@ -1,0 +1,228 @@
+{
+  "number": 90005,
+  "title": "KT-990003: Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90005",
+  "author": "dimonchik0036",
+  "branch": "topic/KT-990003-example",
+  "section": "mine",
+  "issues": [
+    {
+      "id": "KT-990003",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990003",
+      "source": "trailer",
+      "resolution": "fixed"
+    },
+    {
+      "id": "KT-990009",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990009",
+      "source": "trailer",
+      "resolution": "fixed"
+    }
+  ],
+  "updated": "2026-10-01T14:55:26Z",
+  "lastPush": "2026-10-01T13:25:02Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "passed",
+    "buildUrl": "https://buildserver.labs.intellij.net/build/1077449831",
+    "started": "2026-10-01T13:29:19Z",
+    "updated": "2026-10-01T14:55:26Z",
+    "commentUrl": "https://github.com/JetBrains/kotlin/pull/90005#issuecomment-1013435132"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "none"
+  },
+  "runs": [
+    {
+      "kind": "dry-run",
+      "state": "passed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1077449831",
+      "started": "2026-10-01T13:29:19Z",
+      "updated": "2026-10-01T14:55:26Z",
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90005#issuecomment-1013435132"
+    },
+    {
+      "kind": "dry-run",
+      "state": "passed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1076451184",
+      "started": "2026-09-30T17:08:30Z",
+      "updated": "2026-10-01T13:25:32Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90005#issuecomment-1149854480"
+    },
+    {
+      "kind": "dry-run",
+      "state": "passed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1075403446",
+      "started": "2026-09-29T23:56:15Z",
+      "updated": "2026-09-30T17:06:26Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90005#issuecomment-1323030521"
+    }
+  ],
+  "reviewers": [
+    {
+      "login": "bob_user",
+      "state": "pending",
+      "requested": true,
+      "codeOwner": true
+    },
+    {
+      "login": "trent_user",
+      "state": "approved",
+      "final": true,
+      "at": "2026-10-01T13:43:51Z",
+      "codeOwner": true
+    }
+  ],
+  "approvals": 1,
+  "codeOwners": {
+    "state": "missing",
+    "check": "FAILURE",
+    "rules": [
+      {
+        "paths": [
+          "/analysis/"
+        ],
+        "teams": [
+          "kotlin-analysis-api"
+        ],
+        "owners": [
+          {
+            "login": "bob_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "carol_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dave_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dimonchik0036",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "erin_user",
+            "team": "kotlin-analysis-api"
+          }
+        ],
+        "mark": "no_review",
+        "assignees": [
+          {
+            "login": "bob_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "*Generated.java"
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "trent_user",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/compiler/fir/",
+          "/compiler/testData/diagnostics/",
+          "/compiler/tests-common-new/"
+        ],
+        "teams": [
+          "kotlin-frontend"
+        ],
+        "owners": [
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "trent_user",
+            "final": true
+          }
+        ]
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "Code Owners Approval",
+      "state": "FAILURE",
+      "url": "https://kotlinlang.org/"
+    },
+    {
+      "name": "Safe-Merge Coordinator (Kotlin Dev)",
+      "state": "SUCCESS",
+      "url": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1077443542"
+    }
+  ],
+  "unresolvedThreads": 0,
+  "next": "reviewers",
+  "reasons": [
+    {
+      "text": "waiting: bob_user"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "number": 90002,
+  "title": "Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90002",
+  "author": "erin_user",
+  "branch": "topic/example-90002",
+  "section": "merged",
+  "issues": [
+    {
+      "id": "KT-990006",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990006",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990001",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990001",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990002",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990002",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990003",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990003",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990004",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990004",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990005",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990005",
+      "source": "trailer"
+    }
+  ],
+  "updated": "2026-10-01T13:39:36Z",
+  "mergedAt": "2026-10-01T13:39:34Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "none"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "none"
+  },
+  "approvals": 0,
+  "codeOwners": {
+    "state": "unknown"
+  },
+  "unresolvedThreads": 0,
+  "next": "done",
+  "reasons": [
+    {
+      "text": "merged 2h ago"
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "number": 90007,
+  "title": "KT-990001: Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90007",
+  "author": "dimonchik0036",
+  "branch": "topic/KT-990001-example",
+  "section": "mine",
+  "issues": [
+    {
+      "id": "KT-990001",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990001",
+      "source": "trailer",
+      "resolution": "fixed"
+    },
+    {
+      "id": "KT-990011",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990011",
+      "source": "trailer"
+    }
+  ],
+  "updated": "2026-09-30T16:43:57Z",
+  "lastPush": "2026-09-30T14:30:25Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "rejected",
+    "reason": "A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`",
+    "started": "2026-09-30T14:30:28Z",
+    "updated": "2026-09-30T14:30:38Z",
+    "commentUrl": "https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "none"
+  },
+  "runs": [
+    {
+      "kind": "dry-run",
+      "state": "rejected",
+      "reason": "A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`",
+      "started": "2026-09-30T14:30:28Z",
+      "updated": "2026-09-30T14:30:38Z",
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693"
+    },
+    {
+      "kind": "dry-run",
+      "state": "passed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1076149525",
+      "started": "2026-09-30T13:51:36Z",
+      "updated": "2026-09-30T15:59:15Z",
+      "outdated": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1865805912"
+    }
+  ],
+  "reviewers": [
+    {
+      "login": "bob_user",
+      "state": "pending",
+      "requested": true,
+      "codeOwner": true
+    }
+  ],
+  "approvals": 0,
+  "codeOwners": {
+    "state": "missing",
+    "check": "FAILURE",
+    "rules": [
+      {
+        "paths": [
+          "/analysis/"
+        ],
+        "teams": [
+          "kotlin-analysis-api"
+        ],
+        "owners": [
+          {
+            "login": "bob_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "carol_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dave_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dimonchik0036",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "erin_user",
+            "team": "kotlin-analysis-api"
+          }
+        ],
+        "mark": "no_review",
+        "assignees": [
+          {
+            "login": "bob_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "*Generated.java"
+        ],
+        "mark": "no_review",
+        "assignees": [
+          {
+            "login": "bob_user"
+          }
+        ]
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "Code Owners Approval",
+      "state": "FAILURE",
+      "url": "https://kotlinlang.org/"
+    }
+  ],
+  "unresolvedThreads": 0,
+  "next": "me",
+  "reasons": [
+    {
+      "text": "dry-run rejected: A Coordinator build is already in progress for this pull request. Please wait for it to finish or cancel it with `/cancel-coordinator`",
+      "url": "https://github.com/JetBrains/kotlin/pull/90007#issuecomment-1702459693"
+    },
+    {
+      "text": "waiting: bob_user"
+    }
+  ]
+}

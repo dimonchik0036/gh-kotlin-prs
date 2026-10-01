@@ -1,0 +1,1050 @@
+{
+  "number": 90008,
+  "title": "Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90008",
+  "author": "judy3_user",
+  "branch": "topic/example-90008",
+  "section": "review",
+  "issues": [],
+  "updated": "2026-10-01T15:18:55Z",
+  "lastPush": "2026-10-01T14:14:15Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "running",
+    "buildUrl": "https://buildserver.labs.intellij.net/build/1077525189",
+    "started": "2026-10-01T14:20:05Z",
+    "updated": "2026-10-01T14:20:05Z",
+    "commentUrl": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1031842438"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "none"
+  },
+  "runs": [
+    {
+      "kind": "dry-run",
+      "state": "running",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1077525189",
+      "started": "2026-10-01T14:20:05Z",
+      "updated": "2026-10-01T14:20:05Z",
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1031842438"
+    },
+    {
+      "kind": "dry-run",
+      "state": "failed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1077216029",
+      "started": "2026-10-01T10:35:21Z",
+      "updated": "2026-10-01T14:15:47Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1124547116"
+    },
+    {
+      "kind": "dry-run",
+      "state": "failed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1076773656",
+      "started": "2026-09-30T22:43:21Z",
+      "updated": "2026-10-01T10:33:34Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1958917366"
+    },
+    {
+      "kind": "dry-run",
+      "state": "cancelled",
+      "reason": "cancelled",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1076717920",
+      "started": "2026-09-30T21:15:35Z",
+      "updated": "2026-09-30T22:41:48Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90008#issuecomment-1089513691"
+    }
+  ],
+  "reviewers": [
+    {
+      "login": "trent_user",
+      "state": "approved",
+      "final": true,
+      "at": "2026-10-01T14:37:56Z",
+      "codeOwner": true
+    },
+    {
+      "login": "peggy3_user",
+      "state": "approved",
+      "final": true,
+      "at": "2026-10-01T15:18:51Z",
+      "codeOwner": true
+    }
+  ],
+  "approvals": 2,
+  "codeOwners": {
+    "state": "ok",
+    "check": "SUCCESS",
+    "rules": [
+      {
+        "paths": [
+          "/.space/CODEOWNERS"
+        ],
+        "teams": [
+          "kotlin-build-infrastructure"
+        ],
+        "owners": [
+          {
+            "login": "kevin3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "laura3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "mallory3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "judy3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "niaj3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "olivia3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "peggy3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "quinn3_user",
+            "team": "kotlin-build-infrastructure",
+            "unavailable": true
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "peggy3_user",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "**.gradle.kts",
+          "/repo/"
+        ],
+        "teams": [
+          "kotlin-build-infrastructure"
+        ],
+        "owners": [
+          {
+            "login": "rupert3_user"
+          },
+          {
+            "login": "kevin3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "laura3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "mallory3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "judy3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "niaj3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "olivia3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "peggy3_user",
+            "team": "kotlin-build-infrastructure"
+          },
+          {
+            "login": "quinn3_user",
+            "team": "kotlin-build-infrastructure",
+            "unavailable": true
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "peggy3_user",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "*"
+        ],
+        "teams": [
+          "kotlin"
+        ],
+        "owners": [
+          {
+            "login": "sybil3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "trent3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "ursula3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "victor3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "walter3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "xavier3_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "yvonne3_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "zoe3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "alice4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "bob4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "carol4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "dave4_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "erin4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "frank4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "grace4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "heidi4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "ivan4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "judy4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "kevin4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "laura4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "mallory4_user",
+            "team": "kotlin",
+            "role": "QA"
+          },
+          {
+            "login": "niaj4_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "olivia4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "peggy4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "quinn4_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "rupert4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "sybil4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "trent4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "ursula4_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "victor4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "walter4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "xavier4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "yvonne4_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "zoe4_user",
+            "team": "kotlin",
+            "role": "QA"
+          },
+          {
+            "login": "alice5_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "rupert3_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "bob5_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "carol5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "dave5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "erin5_user",
+            "team": "kotlin",
+            "role": "QA"
+          },
+          {
+            "login": "frank5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "grace5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "heidi5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "ivan5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "judy5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "kevin5_user",
+            "team": "kotlin",
+            "role": "QA"
+          },
+          {
+            "login": "laura5_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "mallory5_user",
+            "team": "kotlin",
+            "unavailable": true
+          },
+          {
+            "login": "niaj5_user",
+            "team": "kotlin"
+          },
+          {
+            "login": "mallory_user",
+            "team": "kotlin-compiler",
+            "unavailable": true
+          },
+          {
+            "login": "niaj_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "olivia_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "peggy_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          },
+          {
+            "login": "bob2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "carol2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "dave2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "erin2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "frank2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "grace2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "frank_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "grace_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "ivan_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "judy_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "alice_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "kevin_user",
+            "team": "kotlin-jvm",
+            "role": "QA"
+          },
+          {
+            "login": "laura_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "ivan2_user",
+            "team": "kotlin-js",
+            "unavailable": true
+          },
+          {
+            "login": "judy2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "kevin2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "laura2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "niaj2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "olivia2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "peggy2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "quinn2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "rupert2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "sybil2_user",
+            "team": "kotlin-native",
+            "unavailable": true
+          },
+          {
+            "login": "trent2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "ursula2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "victor2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "walter2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "xavier2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "yvonne2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "zoe2_user",
+            "team": "kotlin-native",
+            "role": "QA"
+          },
+          {
+            "login": "alice3_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "ivan3_user",
+            "team": "kotlin-language-evolution"
+          },
+          {
+            "login": "olivia5_user",
+            "team": "kotlin-language-evolution"
+          },
+          {
+            "login": "peggy5_user",
+            "team": "kotlin-language-evolution"
+          },
+          {
+            "login": "quinn5_user",
+            "team": "kotlin-language-evolution"
+          },
+          {
+            "login": "rupert5_user",
+            "team": "kotlin-language-evolution"
+          },
+          {
+            "login": "sybil5_user",
+            "team": "kotlin-language-evolution"
+          },
+          {
+            "login": "trent5_user",
+            "team": "kotlin-language-evolution"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "trent_user",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/generators/tests/"
+        ],
+        "teams": [
+          "kotlin-compiler"
+        ],
+        "owners": [
+          {
+            "login": "mallory_user",
+            "team": "kotlin-compiler",
+            "unavailable": true
+          },
+          {
+            "login": "niaj_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "olivia_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "peggy_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          },
+          {
+            "login": "bob2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "carol2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "dave2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "erin2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "frank2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "grace2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "frank_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "grace_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "ivan_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "judy_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "alice_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "kevin_user",
+            "team": "kotlin-jvm",
+            "role": "QA"
+          },
+          {
+            "login": "laura_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "ivan2_user",
+            "team": "kotlin-js",
+            "unavailable": true
+          },
+          {
+            "login": "judy2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "kevin2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "laura2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "niaj2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "olivia2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "peggy2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "quinn2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "rupert2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "sybil2_user",
+            "team": "kotlin-native",
+            "unavailable": true
+          },
+          {
+            "login": "trent2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "ursula2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "victor2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "walter2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "xavier2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "yvonne2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "zoe2_user",
+            "team": "kotlin-native",
+            "role": "QA"
+          },
+          {
+            "login": "alice3_user",
+            "team": "kotlin-native"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "trent_user",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/libraries/scripting/"
+        ],
+        "teams": [
+          "kotlin-frontend"
+        ],
+        "owners": [
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "trent_user",
+            "final": true
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/plugins/atomicfu/"
+        ],
+        "teams": [
+          "kotlin-frontend"
+        ],
+        "owners": [
+          {
+            "login": "trent4_user"
+          },
+          {
+            "login": "erin4_user"
+          },
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend",
+            "unavailable": true
+          },
+          {
+            "login": "heidi3_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend",
+            "role": "QA"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend",
+            "unavailable": true,
+            "role": "QA"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "trent_user",
+            "final": true
+          }
+        ]
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "Aggregate (master) (Kotlin Dev)",
+      "state": "PENDING",
+      "url": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_Aggregate/1077525189"
+    },
+    {
+      "name": "Safe-Merge Coordinator (Kotlin Dev)",
+      "state": "PENDING",
+      "url": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1077518282"
+    },
+    {
+      "name": "Code Owners Approval",
+      "state": "SUCCESS",
+      "url": "https://kotlinlang.org/"
+    }
+  ],
+  "unresolvedThreads": 0,
+  "next": "author",
+  "reasons": [
+    {
+      "text": "not requested from you"
+    }
+  ],
+  "hidden": true
+}

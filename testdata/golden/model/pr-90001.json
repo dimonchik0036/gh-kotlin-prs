@@ -1,0 +1,584 @@
+{
+  "number": 90001,
+  "title": "Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90001",
+  "author": "alice_user",
+  "branch": "topic/kt-990002-example",
+  "draft": true,
+  "section": "review",
+  "issues": [
+    {
+      "id": "KT-990002",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990002",
+      "source": "trailer"
+    }
+  ],
+  "updated": "2026-09-28T05:53:00Z",
+  "lastPush": "2026-09-26T18:40:41Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "passed",
+    "buildUrl": "https://buildserver.labs.intellij.net/build/1072585435",
+    "started": "2026-09-26T19:08:05Z",
+    "updated": "2026-09-26T20:09:40Z",
+    "commentUrl": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1363663666"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "none"
+  },
+  "runs": [
+    {
+      "kind": "dry-run",
+      "state": "passed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1072585435",
+      "started": "2026-09-26T19:08:05Z",
+      "updated": "2026-09-26T20:09:40Z",
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1363663666"
+    },
+    {
+      "kind": "dry-run",
+      "state": "failed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1072552565",
+      "started": "2026-09-26T17:23:41Z",
+      "updated": "2026-09-26T18:46:33Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90001#issuecomment-1769099492"
+    }
+  ],
+  "reviewers": [
+    {
+      "login": "dimonchik0036",
+      "state": "pending",
+      "requested": true,
+      "codeOwner": true
+    },
+    {
+      "login": "grace_user",
+      "state": "changes_requested",
+      "at": "2026-09-27T10:39:02Z",
+      "codeOwner": true
+    }
+  ],
+  "approvals": 0,
+  "codeOwners": {
+    "state": "missing",
+    "check": "FAILURE",
+    "rules": [
+      {
+        "paths": [
+          "/analysis/"
+        ],
+        "teams": [
+          "kotlin-analysis-api"
+        ],
+        "owners": [
+          {
+            "login": "bob_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "carol_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dave_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dimonchik0036",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "erin_user",
+            "team": "kotlin-analysis-api"
+          }
+        ],
+        "mark": "no_review",
+        "assignees": [
+          {
+            "login": "dimonchik0036"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/compiler/ir/backend.jvm/",
+          "/compiler/testData/checkLocalVariablesTable/",
+          "/compiler/testData/codegen/asmLike/",
+          "/plugins/kapt/"
+        ],
+        "teams": [
+          "kotlin-jvm"
+        ],
+        "owners": [
+          {
+            "login": "frank_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "grace_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "ivan_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "judy_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "alice_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "kevin_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "laura_user",
+            "team": "kotlin-jvm"
+          }
+        ],
+        "mark": "changes_requested",
+        "assignees": [
+          {
+            "login": "grace_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/compiler/testData/codegen/boxJvm/"
+        ],
+        "teams": [
+          "kotlin-compiler"
+        ],
+        "owners": [
+          {
+            "login": "mallory_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "niaj_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "olivia_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "peggy_user",
+            "team": "kotlin-compiler"
+          },
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "bob2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "carol2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "dave2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "erin2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "frank2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "grace2_user",
+            "team": "kotlin-wasm"
+          },
+          {
+            "login": "frank_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "grace_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "ivan_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "judy_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "alice_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "kevin_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "laura_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "ivan2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "judy2_user",
+            "team": "kotlin-js"
+          },
+          {
+            "login": "kevin2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "laura2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "mallory2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "niaj2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "olivia2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "peggy2_user",
+            "team": "kotlin-common-backend"
+          },
+          {
+            "login": "quinn2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "rupert2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "sybil2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "trent2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "ursula2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "victor2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "walter2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "xavier2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "yvonne2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "zoe2_user",
+            "team": "kotlin-native"
+          },
+          {
+            "login": "alice3_user",
+            "team": "kotlin-native"
+          }
+        ],
+        "mark": "changes_requested",
+        "assignees": [
+          {
+            "login": "grace_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/core/compiler.common.jvm/"
+        ],
+        "teams": [
+          "kotlin-frontend",
+          "kotlin-jvm"
+        ],
+        "owners": [
+          {
+            "login": "quinn_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "rupert_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "sybil_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "trent_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "ursula_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "victor_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "walter_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "xavier_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "yvonne_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "zoe_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "alice2_user",
+            "team": "kotlin-frontend"
+          },
+          {
+            "login": "frank_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "grace_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "heidi_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "ivan_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "judy_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "alice_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "kevin_user",
+            "team": "kotlin-jvm"
+          },
+          {
+            "login": "laura_user",
+            "team": "kotlin-jvm"
+          }
+        ],
+        "mark": "changes_requested",
+        "assignees": [
+          {
+            "login": "grace_user"
+          }
+        ]
+      },
+      {
+        "paths": [
+          "/plugins/parcelize/"
+        ],
+        "owners": [
+          {
+            "login": "bob3_user"
+          },
+          {
+            "login": "carol3_user"
+          },
+          {
+            "login": "dave3_user"
+          },
+          {
+            "login": "erin3_user"
+          },
+          {
+            "login": "frank3_user"
+          },
+          {
+            "login": "grace3_user"
+          }
+        ],
+        "mark": "no_review"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "Code Owners Approval",
+      "state": "FAILURE",
+      "url": "https://kotlinlang.org/"
+    },
+    {
+      "name": "Safe-Merge Coordinator (Kotlin Dev)",
+      "state": "SUCCESS",
+      "url": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1072519661"
+    }
+  ],
+  "unresolvedThreads": 8,
+  "threads": [
+    {
+      "path": "src/fc76a277a.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1853677419",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:06:05Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fc76a277a.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1662744976",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:13:45Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fc76a277a.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1888453018",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:16:29Z",
+      "comments": 1
+    },
+    {
+      "path": "src/f8aa5e9fa.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1569677953",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:21:40Z",
+      "comments": 2,
+      "outdated": true
+    },
+    {
+      "path": "src/f944e962f.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1788219394",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:24:45Z",
+      "comments": 1
+    },
+    {
+      "path": "src/f944e962f.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1612536494",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:27:11Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fc76a277a.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1300290068",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:30:31Z",
+      "comments": 1
+    },
+    {
+      "path": "src/fc76a277a.kt",
+      "url": "https://github.com/JetBrains/kotlin/pull/90001#discussion_r1160664716",
+      "author": "grace_user",
+      "firstLine": "Review comment text.",
+      "lastAuthor": "grace_user",
+      "lastAt": "2026-09-27T10:33:25Z",
+      "comments": 1
+    }
+  ],
+  "next": "me",
+  "reasons": [
+    {
+      "text": "review requested 3d ago"
+    }
+  ],
+  "hidden": true
+}

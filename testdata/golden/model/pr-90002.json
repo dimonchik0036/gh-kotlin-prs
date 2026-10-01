@@ -1,0 +1,164 @@
+{
+  "number": 90002,
+  "title": "Example change",
+  "url": "https://github.com/JetBrains/kotlin/pull/90002",
+  "author": "erin_user",
+  "branch": "topic/example-90002",
+  "section": "review",
+  "issues": [
+    {
+      "id": "KT-990006",
+      "url": "https://youtrack.jetbrains.com/issue/KT-990006",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990001",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990001",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990002",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990002",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990003",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990003",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990004",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990004",
+      "source": "trailer"
+    },
+    {
+      "id": "KTIJ-990005",
+      "url": "https://youtrack.jetbrains.com/issue/KTIJ-990005",
+      "source": "trailer"
+    }
+  ],
+  "updated": "2026-10-01T13:39:36Z",
+  "lastPush": "2026-10-01T12:18:03Z",
+  "mergedAt": "2026-10-01T13:39:34Z",
+  "dryRun": {
+    "kind": "dry-run",
+    "state": "failed",
+    "buildUrl": "https://buildserver.labs.intellij.net/build/1074640104",
+    "started": "2026-09-29T12:15:54Z",
+    "updated": "2026-09-30T12:33:00Z",
+    "outdated": true,
+    "minimized": true,
+    "commentUrl": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1628554460"
+  },
+  "safeMerge": {
+    "kind": "safe-merge",
+    "state": "passed",
+    "buildUrl": "https://buildserver.labs.intellij.net/build/1077354565",
+    "started": "2026-10-01T12:30:24Z",
+    "updated": "2026-10-01T13:39:30Z",
+    "commentUrl": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1769256429"
+  },
+  "runs": [
+    {
+      "kind": "safe-merge",
+      "state": "passed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1077354565",
+      "started": "2026-10-01T12:30:24Z",
+      "updated": "2026-10-01T13:39:30Z",
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1769256429"
+    },
+    {
+      "kind": "safe-merge",
+      "state": "failed",
+      "reason": "retry 1/1",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1076030638",
+      "started": "2026-09-30T12:35:23Z",
+      "updated": "2026-10-01T12:27:19Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1710442571"
+    },
+    {
+      "kind": "dry-run",
+      "state": "failed",
+      "buildUrl": "https://buildserver.labs.intellij.net/build/1074640104",
+      "started": "2026-09-29T12:15:54Z",
+      "updated": "2026-09-30T12:33:00Z",
+      "outdated": true,
+      "minimized": true,
+      "commentUrl": "https://github.com/JetBrains/kotlin/pull/90002#issuecomment-1628554460"
+    }
+  ],
+  "reviewers": [
+    {
+      "login": "dimonchik0036",
+      "state": "approved",
+      "final": true,
+      "at": "2026-10-01T12:23:57Z",
+      "codeOwner": true
+    }
+  ],
+  "approvals": 1,
+  "codeOwners": {
+    "state": "ok",
+    "check": "SUCCESS",
+    "rules": [
+      {
+        "paths": [
+          "/analysis/"
+        ],
+        "teams": [
+          "kotlin-analysis-api"
+        ],
+        "owners": [
+          {
+            "login": "bob_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "carol_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dave_user",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "dimonchik0036",
+            "team": "kotlin-analysis-api"
+          },
+          {
+            "login": "erin_user",
+            "team": "kotlin-analysis-api"
+          }
+        ],
+        "mark": "approved",
+        "assignees": [
+          {
+            "login": "dimonchik0036",
+            "final": true
+          }
+        ]
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "Code Owners Approval",
+      "state": "SUCCESS",
+      "url": "https://kotlinlang.org/"
+    },
+    {
+      "name": "Safe-Merge Coordinator (Kotlin Dev)",
+      "state": "SUCCESS",
+      "url": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1077347337"
+    }
+  ],
+  "unresolvedThreads": 0,
+  "next": "done",
+  "reasons": [
+    {
+      "text": "merged 2h ago"
+    }
+  ]
+}
