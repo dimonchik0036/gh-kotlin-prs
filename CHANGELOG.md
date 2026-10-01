@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `gh kotlin-prs run <number> <command>` posts a bot command on a PR of yours: `dry-run`, `dry-run-retry`,
+  `safe-merge`, `cancel-coordinator`, `fixup` or `codeowners`. It shows the PR and the exact comment and asks first
+  (`--yes` skips that), and refuses what the bot would refuse or what makes no sense now, saying why.
+
 ## v0.2.0 — 2026-10-01
 
 An interactive view with background refresh and notifications, and a cache. On a terminal, `gh kotlin-prs` now opens

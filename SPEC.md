@@ -232,11 +232,8 @@ gh kotlin-prs list [--mine|--review] [--waiting-on-me] [--all] [--no-teams] [--n
                    [--format table|json|swiftbar] [--max-age DURATION]
 gh kotlin-prs show <number> [--max-age DURATION]  # details: reviewers, run history, threads, reasons
 gh kotlin-prs config [path|init [--force]]  # effective config with sources, its path, a commented template
-gh kotlin-prs dry-run <number> [--retry] [--yes]
-gh kotlin-prs safe-merge <number> [--yes]
-gh kotlin-prs cancel <number> [--yes]       # /cancel-coordinator
-gh kotlin-prs fixup <number> [--yes]        # /fixup
-gh kotlin-prs codeowners <number> [--yes]   # /codeowners
+gh kotlin-prs run <number> <command> [--yes]  # post a bot command (§8): dry-run, dry-run-retry, safe-merge,
+                                              # cancel-coordinator, fixup, codeowners
 gh kotlin-prs open <number>        # browser
 ```
 
@@ -293,14 +290,38 @@ gh kotlin-prs open <number>        # browser
 
 ## 8. Actions and safety
 
-- An action posts a regular PR comment (`POST /repos/{repo}/issues/{n}/comments`, never a review comment), so it's visible to everyone.
-- v1 actions: `/dry-run`, `/dry-run --retry`, `/safe-merge`, `/cancel-coordinator`, `/fixup`, `/codeowners`.
-  `/safe-squash-merge`, `/test-public` and `/cherry-pick` aren't in v1, because they need extra input or report differently.
-- `/cancel-coordinator` is offered only while a run is requested or running. `/codeowners` is offered when the check is missing or failing.
-- It always asks for confirmation: a `huh` dialog in the TUI, a y/N prompt in the CLI. `--yes` skips the prompt (CLI only).
-- Actions are allowed only on your own PRs.
-- An action is refused when one of the same kind is already requested or running, and when the PR is a draft.
-- Read commands never write anything.
+- An action posts one of the bot's commands as a regular PR comment with exactly the command's text
+  (`POST /repos/{repo}/issues/{n}/comments` with gh's token, never a review comment), so everyone sees it. It's the only
+  write the tool makes: `list`, `show`, `config` and the TUI's refreshes never write.
+- The commands (`internal/actions`):
+
+  | Name | Comment | What the bot does |
+  |---|---|---|
+  | `dry-run` | `/dry-run` | runs the checks on the PR rebased onto the latest master, without merging |
+  | `dry-run-retry` | `/dry-run --retry` | the same, restarting once when it fails |
+  | `safe-merge` | `/safe-merge` | the same checks, then a rebase-merge into master; `fixup!` commits are squashed first |
+  | `cancel-coordinator` | `/cancel-coordinator` | cancels the dry-run or safe-merge build that's running |
+  | `fixup` | `/fixup` | squashes `fixup!` commits into their targets and force-pushes the branch, no checks |
+  | `codeowners` | `/codeowners` | re-runs the code-owners check and refreshes its table comment |
+
+  Not in scope: `/safe-squash-merge`, `/cherry-pick`, `/test-public`, `/test-private`, `/review`, and `/safe-merge`'s
+  `--fixup=false`: they need extra input or report differently.
+- Checked before posting (`actions.Check`), each refusal with its reason:
+  - only on your own PRs, open (not merged, not closed);
+  - a dry-run or safe-merge only while no dry-run or safe-merge is requested or running: the bot runs one
+    coordinator build per PR and rejects a second one ("A Coordinator build is already in progress"). A request the bot
+    never answered ("no response") doesn't count, so it can be posted again;
+  - `/safe-merge` only on a PR that isn't a draft and is approved: at least one approval and a green
+    `Code Owners Approval`. A draft takes every other command;
+  - `/cancel-coordinator` only while a dry-run or safe-merge is requested or running;
+  - `/codeowners` only while its check is missing or failing.
+  The bot still has the last word (conflicts, stacked PRs, `amend!` / `squash!` commits); its rejection shows as the
+  run's state.
+- CLI: `run <number> <command>` fetches the PR live, checks the command, prints the PR's number and title and the exact
+  comment, and asks `Post this comment? [y/N]`: only `y` or `yes` posts. `--yes` skips the question; without a terminal
+  and without `--yes` it refuses (exit 2) before fetching anything. It prints the new comment's URL. A refusal or a
+  failed post exits 1.
+- Demo mode never posts.
 
 ## 9. Config
 

@@ -245,6 +245,11 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 			}
 			return client, "test-account", nil
 		},
+		newREST: func() (github.RESTClient, error) {
+			t.Error("a REST client was requested: a post")
+			return nil, errors.New("no posting in this test")
+		},
+		stdin:       strings.NewReader(""),
 		cacheDir:    t.TempDir(),
 		now:         func() time.Time { return now },
 		isTerminal:  func() bool { return false },

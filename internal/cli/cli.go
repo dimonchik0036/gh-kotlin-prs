@@ -37,12 +37,16 @@ type usageError struct{ error }
 // env is everything a run touches outside the process; tests substitute it.
 type env struct {
 	version        string
+	stdin          io.Reader
 	stdout, stderr io.Writer
 	// configPath is the config file unless --config is given; configFrom says why.
 	configPath, configFrom string
 	// newClient is called only once flags and config are valid, so usage errors never
 	// depend on gh's authentication. account identifies its credentials for the cache.
 	newClient func() (client github.Client, account string, err error)
+	// newREST is the client that posts PR commands, the tool's only write; it's called
+	// only once a command passed its checks.
+	newREST func() (github.RESTClient, error)
 	// cacheDir holds the cache (internal/cache); "" turns it off.
 	cacheDir string
 	now      func() time.Time
@@ -69,11 +73,13 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 	}
 	e := env{
 		version:    version,
+		stdin:      os.Stdin,
 		stdout:     stdout,
 		stderr:     stderr,
 		configPath: configPath,
 		configFrom: configFrom,
 		newClient:  github.DefaultClient,
+		newREST:    github.DefaultRESTClient,
 		cacheDir:   cache.DefaultDir(),
 		now:        time.Now,
 		isTerminal: func() bool { return term.IsTerminal(int(os.Stdout.Fd())) },
@@ -93,9 +99,11 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 	return run(ctx, args, e)
 }
 
-// withDemo serves the fixtures through the client and clock seams, without the cache.
+// withDemo serves the fixtures through the client and clock seams, without the cache,
+// and never posts.
 func withDemo(e env, fixtures *demo.Client) env {
 	e.newClient = func() (github.Client, string, error) { return fixtures, "", nil }
+	e.newREST = func() (github.RESTClient, error) { return nil, errDemoPosts }
 	e.cacheDir = ""
 	e.now = fixtures.Now
 	return e
@@ -244,7 +252,7 @@ func newRoot(e env) *cobra.Command {
 	show.Flags().StringVar(&showFormat, "format", "table", "output format: table or json")
 	addMaxAgeFlag(show, &showMaxAge)
 
-	root.AddCommand(list, show, newConfigCommand(e, &global))
+	root.AddCommand(list, show, newRunCommand(e, &global), newConfigCommand(e, &global))
 	return root
 }
 

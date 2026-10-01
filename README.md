@@ -16,6 +16,8 @@ gh extension upgrade kotlin-prs   # later updates
 gh alias set kp kotlin-prs        # optional short alias
 ```
 
+After that, `gh kp` works in place of `gh kotlin-prs` in every command below, e.g. `gh kp`, `gh kp list`.
+
 It needs `gh` logged in (`gh auth login`): the extension uses gh's authentication and never stores the token. For a specific
 version, add `--pin vX.Y.Z` to the install.
 
@@ -31,6 +33,20 @@ gh kotlin-prs list --no-teams --no-merged
 gh kotlin-prs list --format json   # the model with "version": 1
 gh kotlin-prs show <number>   # reviewers, code owners, runs, threads and all reasons
 ```
+
+### Commands
+
+`run` posts one of the bot's commands on a PR of yours, as a regular comment, after showing it and asking:
+
+```sh
+gh kotlin-prs run 90006 dry-run        # /dry-run; also dry-run-retry, safe-merge, cancel-coordinator, fixup, codeowners
+gh kotlin-prs run 90006 safe-merge --yes
+```
+
+It refuses what the bot would refuse or what makes no sense now: someone else's PR, a closed one, a second
+dry-run or safe-merge while one is requested or running, a safe-merge on a draft or before approval,
+`cancel-coordinator` with nothing running, `codeowners` while its check is green. Without a terminal it needs
+`--yes`. This is the only thing the tool ever writes to GitHub.
 
 ### Interactive view
 
