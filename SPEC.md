@@ -320,6 +320,7 @@ main.go
 internal/github/    queries, fetch, raw types
 internal/cache/     raw responses with their fetch time (§13)
 internal/classify/  bot parsing, rules → model
+internal/listing/   fetch the sections, classify them with any clock, --all / --waiting-on-me
 internal/model/
 internal/render/    table, json, swiftbar
 internal/tui/
@@ -372,6 +373,8 @@ scripts/fetch-fixtures.sh
   - An unreadable file (corrupt, another `format`, data that doesn't decode) is a miss: `--debug` notes it and the
     next fetch overwrites it. The cache never fails a command, and neither does a failed write.
   - Demo mode (`GH_KOTLIN_PRS_DEMO`) neither reads nor writes it.
+  - `cache.Offline` answers queries from the cache only (any age, or up to a bound) and reports the oldest entry it
+    used: the TUI starts from it (§12).
 - The CLI fetches every time by default; `--max-age DURATION` (`list` and `show`) lets it use a cache entry younger
   than that, per query: `list`'s search and its details are separate entries. `--max-age 0` always fetches. The TUI
   shows the cache at start and refreshes in the background.

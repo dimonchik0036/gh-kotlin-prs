@@ -76,27 +76,19 @@ func (c *Client) DoWithContext(ctx context.Context, query string, variables map[
 	path := c.path(op, query, variables)
 	why := ""
 	if c.MaxAge > 0 && path != "" {
-		switch e, err := c.read(path); {
+		fetchedAt, err := c.load(path, response, c.MaxAge)
+		var stale staleError
+		switch {
+		case err == nil:
+			c.debugf("%s: from the cache, fetched %s ago\n", op, c.Now().Sub(fetchedAt).Round(time.Second))
+			return nil
 		case errors.Is(err, os.ErrNotExist):
 			why = " (not cached)"
-		case err != nil:
+		case errors.As(err, &stale):
+			why = fmt.Sprintf(" (cached %s ago, --max-age %s)", stale.age.Round(time.Second), c.MaxAge)
+		default:
 			c.debugf("cache: ignoring %s: %v\n", path, err)
 			why = " (cache entry ignored)"
-		default:
-			age := c.Now().Sub(e.FetchedAt)
-			if age < 0 || age >= c.MaxAge {
-				why = fmt.Sprintf(" (cached %s ago, --max-age %s)", age.Round(time.Second), c.MaxAge)
-				break
-			}
-			// Decode into a fresh value first: a failed decode would leave a mix of
-			// cached and fetched fields in response.
-			if err := json.Unmarshal(e.Data, reflect.New(reflect.TypeOf(response).Elem()).Interface()); err != nil {
-				c.debugf("cache: ignoring %s: %v\n", path, err)
-				why = " (cache entry ignored)"
-				break
-			}
-			c.debugf("%s: from the cache, fetched %s ago\n", op, age.Round(time.Second))
-			return json.Unmarshal(e.Data, response)
 		}
 	}
 	var data json.RawMessage
@@ -122,6 +114,68 @@ func (c *Client) DoWithContext(ctx context.Context, query string, variables map[
 		}
 	}
 	return nil
+}
+
+// ErrMiss is the error of Offline when the cache has no usable entry for a query.
+var ErrMiss = errors.New("not in the cache")
+
+// Offline is a github.Client that answers from the cache only: entries at most MaxAge
+// old, any age when MaxAge is 0. Anything else is ErrMiss, and nothing is fetched.
+// Oldest is when the oldest entry it answered with was fetched.
+type Offline struct {
+	Cache  *Client
+	MaxAge time.Duration
+	Oldest time.Time
+}
+
+// DoWithContext answers the query from its cache entry (see Offline).
+func (o *Offline) DoWithContext(_ context.Context, query string, variables map[string]any, response any) error {
+	op := operation(query)
+	path := o.Cache.path(op, query, variables)
+	if path == "" {
+		return ErrMiss
+	}
+	fetchedAt, err := o.Cache.load(path, response, o.MaxAge)
+	var stale staleError
+	switch {
+	case err == nil:
+	case errors.Is(err, os.ErrNotExist):
+		return fmt.Errorf("%s: %w", op, ErrMiss)
+	case errors.As(err, &stale):
+		return fmt.Errorf("%s: %w: cached %s ago", op, ErrMiss, stale.age.Round(time.Second))
+	default:
+		o.Cache.debugf("cache: ignoring %s: %v\n", path, err)
+		return fmt.Errorf("%s: %w", op, ErrMiss)
+	}
+	o.Cache.debugf("%s: from the cache, fetched %s ago\n", op, o.Cache.Now().Sub(fetchedAt).Round(time.Second))
+	if o.Oldest.IsZero() || fetchedAt.Before(o.Oldest) {
+		o.Oldest = fetchedAt
+	}
+	return nil
+}
+
+// staleError is an entry older than the age asked for.
+type staleError struct{ age time.Duration }
+
+func (e staleError) Error() string { return fmt.Sprintf("cached %s ago", e.age) }
+
+// load decodes the entry at path into response and returns when it was fetched. The
+// entry must be younger than maxAge, unless that's 0. An error wrapping os.ErrNotExist
+// means there's none, a staleError that it's too old; any other, that it's unusable.
+func (c *Client) load(path string, response any, maxAge time.Duration) (time.Time, error) {
+	e, err := c.read(path)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if age := c.Now().Sub(e.FetchedAt); maxAge > 0 && (age < 0 || age >= maxAge) {
+		return time.Time{}, staleError{age}
+	}
+	// Decode into a fresh value first: a failed decode would leave a mix of cached and
+	// fetched fields in response.
+	if err := json.Unmarshal(e.Data, reflect.New(reflect.TypeOf(response).Elem()).Interface()); err != nil {
+		return time.Time{}, err
+	}
+	return e.FetchedAt, json.Unmarshal(e.Data, response)
 }
 
 var operationName = regexp.MustCompile(`^\s*query\s+(\w+)`)

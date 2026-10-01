@@ -291,3 +291,49 @@ func TestDefaultDir(t *testing.T) {
 		t.Errorf("DefaultDir() = %q", got)
 	}
 }
+
+// Offline answers only from the cache, at any age or up to its MaxAge, and remembers
+// the oldest entry it used.
+func TestOffline(t *testing.T) {
+	f := newFixture(t, 0)
+	f.query(vars)
+	f.now = start.Add(10 * time.Minute)
+	other := map[string]any{"q": "other"}
+	f.query(other)
+	f.now = start.Add(time.Hour)
+
+	offline := &Offline{Cache: f.client}
+	var resp response
+	for _, v := range []map[string]any{other, vars} {
+		if err := offline.DoWithContext(context.Background(), query, v, &resp); err != nil || resp.Viewer.Login != "alice_user" {
+			t.Fatalf("any age: %v, %q", err, resp.Viewer.Login)
+		}
+	}
+	if !offline.Oldest.Equal(start) {
+		t.Errorf("oldest %v, want %v", offline.Oldest, start)
+	}
+
+	bounded := &Offline{Cache: f.client, MaxAge: 55 * time.Minute}
+	if err := bounded.DoWithContext(context.Background(), query, other, &resp); err != nil {
+		t.Errorf("50m old, MaxAge 55m: %v", err)
+	}
+	if err := bounded.DoWithContext(context.Background(), query, vars, &resp); !errors.Is(err, ErrMiss) || !strings.Contains(err.Error(), "cached 1h0m0s ago") {
+		t.Errorf("1h old, MaxAge 55m: %v", err)
+	}
+	if err := offline.DoWithContext(context.Background(), query, map[string]any{"q": "never"}, &resp); !errors.Is(err, ErrMiss) {
+		t.Errorf("no entry: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(f.client.Dir, filepath.Base(f.client.path("Sections", query, vars))), []byte("{"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := offline.DoWithContext(context.Background(), query, vars, &resp); !errors.Is(err, ErrMiss) || !strings.Contains(f.debug.String(), "cache: ignoring ") {
+		t.Errorf("a corrupt entry: %v, debug %q", err, f.debug.String())
+	}
+	if f.github.calls != 2 {
+		t.Errorf("Offline fetched: %d calls", f.github.calls)
+	}
+	f.client.Dir = ""
+	if err := offline.DoWithContext(context.Background(), query, vars, &resp); !errors.Is(err, ErrMiss) {
+		t.Errorf("without a cache: %v", err)
+	}
+}
