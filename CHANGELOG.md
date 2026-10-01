@@ -6,22 +6,47 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
-- `gh kotlin-prs` on a terminal opens an interactive view: the rows of `list` with a selection, the `show` detail on
-  `enter`, a filter (`/`), `--all` on `a`, open the PR (`o`) or its build (`b`), copy its URL (`y`), and a refresh
-  every `refresh` (3m) or on `r` (one at a time, and not again within 5s unless the last one failed), with a status
-  bar. It starts from the cache when that's at most `startupMaxAge` old.
-  In a pipe or with `--format json`, it prints `list` as before.
-- Config: `keys` rebinds the interactive view's keys by action, e.g. `keys: {copy: c, refresh: [r, R]}`.
-  `config` and `config init` show `keys` and `notify` as blocks, a line and a source per sub-key.
-- Notifications from the interactive view when something changes between two refreshes (a run passed, failed or was
-  rejected, a PR became your move, changes requested, review requested, merged): as terminal notifications where
-  supported, the bell, or a command of yours. Config `notify`.
-- Every fetch is cached in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`); `list --max-age 5m` and `show --max-age 5m`
-  answer from it while it's younger than that. Ages are still computed from the current time. By default they
-  always fetch, as before.
+## v0.2.0 — 2026-10-01
+
+An interactive view with background refresh and notifications, and a cache. On a terminal, `gh kotlin-prs` now opens
+the interactive view; in a pipe it still prints `list`. The JSON output is unchanged (`"version": 1`).
+
+### Interactive view
+- `gh kotlin-prs` on a terminal shows the rows of `list` with a selection; `enter` shows the selected PR as `show`
+  does, `esc` goes back. The section flags (`--mine`, `--review`, `--all`, …) apply.
+- Keys: `j`/`k` or the arrows, `tab` for the next section, `/` to filter, `a` to toggle `--all`, `o` to open the PR,
+  `b` its newest build, `y` to copy its URL, `r` to refresh, `?` for help and the symbols, `q` to quit.
+- It refreshes in the background every 3 minutes and on `r`, one refresh at a time, and the ages ("failed 2h ago")
+  keep moving in between. The status bar says when the data was fetched and when the next refresh is due, keeps the
+  data on screen when a refresh fails, and warns when the API budget runs low.
+- It starts at once from the cache when the last fetch is at most 30 minutes old, then refreshes.
+
+### Notifications
+- While the interactive view runs: a dry-run or safe-merge of yours passed, failed or was rejected, a PR became your
+  move, changes were requested, your review was requested, a PR of yours was merged. Only what changes between two
+  refreshes, never what was already there.
+- As terminal notifications in iTerm2, WezTerm, Ghostty, kitty, foot and rxvt-unicode, the bell, or a command of
+  yours that gets `{title}`, `{body}` and `{url}` and the event as JSON.
+
+### Cache
+- Every fetch is kept in `~/.cache/gh-kotlin-prs/` (`$XDG_CACHE_HOME`). `list --max-age 5m` and `show --max-age 5m`
+  answer from it while it's younger than that; ages are still computed from the current time. By default they fetch
+  every time, as before. The cache is safe to delete, and old entries go after 3 days.
+
+### Configuration
+- `refresh` (3m) and `startupMaxAge` (30m) for the interactive view; `refresh` must be positive.
+- `keys` rebinds the interactive view's keys by action, e.g. `keys: {copy: c, refresh: [r, R]}`; a key bound to two
+  actions is an error.
+- `notify` picks the events and the channels: `events`, `terminal` (`auto`, `osc9`, `osc777`, `osc99`, `none`),
+  `bell`, `command` and `timeout`.
+
+### Output changes
+- `gh kotlin-prs` without a subcommand opens the interactive view on a terminal; `gh kotlin-prs list` is the plain
+  output everywhere.
+- `config` and `config init` show `keys` and `notify` as blocks, a line and a source per sub-key; the output of
+  `config` reads back as the same config.
 - `--debug` prints each query's cost under its name (`Sections`, `PullRequests`, `PullRequest`), or the age of the
   cache entry that answered it.
-- Config: `startupMaxAge` (default 30m), the oldest cached data the TUI starts from; `refresh` must be positive.
 
 ## v0.1.0 — 2026-10-01
 
