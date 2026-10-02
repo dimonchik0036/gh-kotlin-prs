@@ -612,21 +612,22 @@ scripts/fetch-fixtures.sh
   - the dropdown: "Your move: N ∙ updated 1m ago" (or the fetch error, with the cached data's age), the API budget when
     less than a tenth is left (live responses only), then the sections: Mine and Review at the top level, Team requests
     and Recently merged as submenus, each with its count and the `--all` note. A PR is one monospace line: who has
-    the move, the number, the issue, the title cut at 33 (the submenu starts with all of it), in Review the author
+    the move, the number, the issue, the title cut at 33 (the submenu starts with more of it), in Review the author
     (as in `list`), the dry-run, the
     safe-merge and `list`'s reviews cell (`1/2 ✗`: approvals of the people reviewing, the code-owners mark), no thread
     count;
-  - a PR's submenu: the whole title (gray, no action), in Review "by <login> · pushed 2h ago" (gray; Mine is always
-    mine), "Details in the interactive view", whose move it is and every
-    reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the reviewers and
-    the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in the tooltip,
-    so the owners after them stay), "Open on GitHub", "Copy link", "Copy branch" (through the script's `copy`
-    verb), and the commands `actions.Available` allows now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);
-    nothing is ever posted from the menu. On my open PRs, "Re-request review from a, b…" when there are default picks
-    (§8) runs `run N request-review` in the terminal (no `exec`: the tab stays open with the outcome), which asks
-    y/N there, and "Assign reviewers…" while a rule is unassigned opens the review picker (`--pr N --post
-    request-review`). A click on the row itself opens the details too (hovering opens the submenu), and ⌥ shows the
-    row's alternate, which opens the PR in the browser;
+  - a PR's submenu: the title (gray, no action; cut after a word at 100, with the whole title as the tooltip), in
+    Review "by <login> · pushed 2h ago" (gray; Mine is always mine), "Details in the interactive view", whose move it
+    is and every reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the
+    reviewers and the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in
+    the tooltip, so the owners after them stay), "Open on GitHub", "Copy link", "Copy branch" (through the script's
+    `copy` verb), and the commands `actions.Available` allows now. A command opens the interactive view on the PR with
+    that command's question (`--pr N --post <command>`); nothing is ever posted from the menu. On my open PRs,
+    "Re-request review from a, b…" when there are default picks (§8; cut between logins at 80 to `a, b (+N)…`, all
+    of them in the tooltip) runs `run N request-review` in the terminal (no `exec`: the tab stays open with the
+    outcome), which asks y/N there, and "Assign reviewers…" while a rule is unassigned opens the review picker
+    (`--pr N --post request-review`). A click on the row itself opens the details too (hovering opens the submenu), and
+    ⌥ shows the row's alternate, which opens the PR in the browser;
   - the footer: "Refresh now" (a live fetch, then SwiftBar runs the plugin again) and "Open the interactive view".
     When the running script's format (`GH_KOTLIN_PRS_SCRIPT`, 1 without it) is older than `swiftbar.ScriptFormat`,
     one more item, "Update the plugin script": `bash=<gh> param1=kotlin-prs param2=swiftbar param3=update

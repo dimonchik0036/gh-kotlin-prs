@@ -371,6 +371,56 @@ func TestCodeOwnerRulePaths(t *testing.T) {
 	}
 }
 
+// A long title at the top of a PR's submenu is cut after a word, the whole title in the
+// tooltip; a short one stays as it is, without one.
+func TestSubmenuTitle(t *testing.T) {
+	m := fixtureMenu(t)
+	long := strings.TrimSpace(strings.Repeat("Example change ", 8))
+	pr := model.PR{Number: 7, Title: long, URL: "https://example.org/pull/7", Author: m.Viewer, Section: model.SectionMine,
+		Next: model.NextMe}
+	m.PRs = []model.PR{pr}
+	want := "\n--" + strings.Repeat("Example change ", 6) + "Example⋯ | color=gray trim=false emojize=false " +
+		`symbolize=false tooltip="` + long + `"` + "\n"
+	if out := Render(m); !strings.Contains(out, want) {
+		t.Errorf("the menu lacks %q:\n%s", want, out)
+	}
+	m.PRs[0].Title = "Example change"
+	if out := Render(m); !strings.Contains(out, "\n--Example change | color=gray trim=false emojize=false symbolize=false\n") {
+		t.Errorf("a short title changed:\n%s", out)
+	}
+}
+
+// A long "Re-request review from …" is cut between logins, with the count of the rest,
+// the tooltip naming them all; it still requests everyone. A short one stays as it is.
+func TestReRequestItemLogins(t *testing.T) {
+	m := fixtureMenu(t)
+	logins := []string{"bob_user", "carol_user", "dave_user", "erin_user", "frank_user", "grace_user", "heidi_user",
+		"ivan_user", "judy_user"}
+	reRequest := func(logins ...string) model.PR {
+		pr := model.PR{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Author: m.Viewer,
+			Section: model.SectionMine, Next: model.NextMe, LastPush: time.Unix(2000, 0),
+			CodeOwners: model.CodeOwnersStatus{State: model.CodeOwnersMissing}}
+		for _, l := range logins {
+			pr.CodeOwners.Rules = append(pr.CodeOwners.Rules, model.CodeOwnerRule{Paths: []string{"/" + l + "/"},
+				Mark: model.MarkReRequest, Assignees: []model.Assignee{{Login: l}}, Owners: []model.Owner{{Login: l}}})
+			pr.Reviewers = append(pr.Reviewers, model.Reviewer{Login: l, State: model.ReviewerCommented, ReRequest: true})
+		}
+		return pr
+	}
+	action := " | bash=gh param1=kotlin-prs param2=run param3=7 param4=request-review terminal=true "
+	m.PRs = []model.PR{reRequest(logins...)}
+	want := "\n--Re-request review from bob_user, carol_user, dave_user, erin_user (+5)⋯" + action +
+		`tooltip="` + strings.Join(logins, ", ") + `: asks y/N in the terminal, then requests it"` + "\n"
+	if out := Render(m); !strings.Contains(out, want) {
+		t.Errorf("the menu lacks %q:\n%s", want, out)
+	}
+	m.PRs = []model.PR{reRequest("bob_user", "carol_user")}
+	want = "\n--Re-request review from bob_user, carol_user⋯" + action + `tooltip="asks y/N in the terminal, then requests it"` + "\n"
+	if out := Render(m); !strings.Contains(out, want) {
+		t.Errorf("the menu lacks %q:\n%s", want, out)
+	}
+}
+
 func TestUpdateItem(t *testing.T) {
 	m := fixtureMenu(t)
 	m.GH, m.ScriptFormat = "/opt/homebrew/bin/gh", 1

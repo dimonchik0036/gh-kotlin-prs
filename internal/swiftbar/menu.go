@@ -28,7 +28,8 @@ const Icon = "arrow.triangle.pull"
 // and dark menu bars.
 var failedIcon = base64.StdEncoding.EncodeToString([]byte(`{"renderingMode":"Palette","colors":["#FF3B30"]}`))
 
-// titleWidth is where a PR's title is cut in the menu; its submenu has it all.
+// titleWidth is where a PR's title is cut in the menu; its submenu has up to
+// submenuTitleWidth of it.
 const titleWidth = 33
 
 // Menu is what the plugin shows.
@@ -166,7 +167,7 @@ func (b *builder) header(m Menu) {
 // pr writes a PR's row, its submenu, and the ⌥ alternate that opens it in the browser.
 // A click on the row, like the submenu's "Details", opens the interactive view on the PR.
 func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
-	// The whole title opens the submenu, since the row cuts it.
+	// The title opens the submenu, since the row cuts it.
 	style := "font=Menlo size=12 trim=false emojize=false symbolize=false"
 	action := noAction
 	if m.Plugin != "" {
@@ -174,7 +175,11 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 	}
 	b.line(depth, text(row), style+" "+action)
 	sub := depth + 1
-	b.line(sub, text(pr.Title), "color=gray trim=false emojize=false symbolize=false")
+	title := "color=gray trim=false emojize=false symbolize=false"
+	if ansi.StringWidth(pr.Title) > submenuTitleWidth {
+		title += " tooltip=" + param(text(pr.Title))
+	}
+	b.line(sub, text(cutTitle(pr.Title, m.Icons.Ellipsis)), title)
 	if pr.Section == model.SectionReview {
 		// Mine are always mine.
 		by := "by " + pr.Author
@@ -208,8 +213,15 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 			b.line(sub, text(c.Text+m.Icons.Ellipsis), m.open(pr.Number, c.Name)+" tooltip="+param(text(c.Doc)))
 		}
 		if len(reRequest) > 0 {
-			b.line(sub, text("Re-request review from "+strings.Join(reRequest, ", ")+m.Icons.Ellipsis),
-				m.exec(m.runWords(pr.Number, actions.RequestReview))+" tooltip="+param("asks y/N in the terminal, then requests it"))
+			// Cut like a reason, the item's own ellipsis after the count; the request is still
+			// for everyone.
+			const item = "Re-request review from "
+			who, tooltip := strings.Join(reRequest, ", "), "asks y/N in the terminal, then requests it"
+			if cut := cutList(reRequest, reasonWidth-ansi.StringWidth(item), " (+%d)"); cut != who {
+				who, tooltip = cut, who+": "+tooltip
+			}
+			b.line(sub, text(item+who+m.Icons.Ellipsis),
+				m.exec(m.runWords(pr.Number, actions.RequestReview))+" tooltip="+param(text(tooltip)))
 		}
 		if assign {
 			b.line(sub, text("Assign reviewers"+m.Icons.Ellipsis), m.open(pr.Number, actions.RequestReview)+
@@ -349,7 +361,7 @@ func (b *builder) reviewers(depth int, pr model.PR, icons render.Icons) {
 		}
 		paths := strings.Join(rule.Paths, ", ")
 		params := "trim=false"
-		if cut := cutPaths(rule.Paths, icons.Ellipsis); cut != paths {
+		if cut := cutList(rule.Paths, pathsWidth, ", "+icons.Ellipsis+" (+%d)"); cut != paths {
 			params += " tooltip=" + param(text(paths))
 			paths = cut
 		}
@@ -365,20 +377,37 @@ func (b *builder) reviewers(depth int, pr model.PR, icons render.Icons) {
 // on screen; the tooltip has them all.
 const pathsWidth = 80
 
-// cutPaths joins paths, the ones past pathsWidth dropped for "⋯ (+N)". It cuts only
-// between paths, and keeps the first one however long.
-func cutPaths(paths []string, ellipsis string) string {
-	all := strings.Join(paths, ", ")
-	if ansi.StringWidth(all) <= pathsWidth {
+// cutList joins items, the ones past width dropped for more, a format of their count
+// (", ⋯ (+%d)"). It cuts only between items, and keeps the first one however long.
+func cutList(items []string, width int, more string) string {
+	all := strings.Join(items, ", ")
+	if ansi.StringWidth(all) <= width {
 		return all
 	}
-	for k := len(paths) - 1; k > 0; k-- {
-		s := strings.Join(paths[:k], ", ") + fmt.Sprintf(", %s (+%d)", ellipsis, len(paths)-k)
-		if ansi.StringWidth(s) <= pathsWidth || k == 1 {
+	for k := len(items) - 1; k > 0; k-- {
+		s := strings.Join(items[:k], ", ") + fmt.Sprintf(more, len(items)-k)
+		if ansi.StringWidth(s) <= width || k == 1 {
 			return s
 		}
 	}
-	return all // a single path: nothing to count
+	return all // a single item: nothing to count
+}
+
+// submenuTitleWidth is where the title at the top of a PR's submenu is cut; the tooltip
+// has it all.
+const submenuTitleWidth = 100
+
+// cutTitle cuts title to submenuTitleWidth with the ellipsis, after its last whole word
+// when there is one.
+func cutTitle(title, ellipsis string) string {
+	if ansi.StringWidth(title) <= submenuTitleWidth {
+		return title
+	}
+	cut := ansi.Truncate(title, submenuTitleWidth-ansi.StringWidth(ellipsis), "")
+	if i := strings.LastIndex(cut, " "); i > 0 && title[len(cut)] != ' ' {
+		cut = cut[:i]
+	}
+	return strings.TrimRight(cut, " ") + ellipsis
 }
 
 func (b *builder) footer(m Menu) {
