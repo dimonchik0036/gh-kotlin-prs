@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.5.1 — 2026-10-02
+
+A fix for `run`'s question. The JSON output is unchanged (`"version": 1`).
+
 - `run`'s `[y/N]` question ignores terminal replies that reach it ahead of the answer (gh asks the terminal for its
   background before it starts the extension), so they can no longer turn a `y` into "not posted: cancelled".
 
