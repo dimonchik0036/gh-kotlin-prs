@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -192,28 +193,44 @@ func TestSwiftbarNotifications(t *testing.T) {
 
 // The plugin runs the notify.command hook from the config, with the event on stdin.
 func TestSwiftbarNotifyCommand(t *testing.T) {
-	events := filepath.Join(t.TempDir(), "events.jsonl")
-	e, _, errOut := swiftbarEnv(t, &fakeClient{t: t}, "notify: {command: [sh, -c, 'cat >> \""+events+"\"']}\n")
-	e.start = func([]string) error { return nil }
-	menu := func() {
-		t.Helper()
-		if got := run(context.Background(), []string{"list", "--format", "swiftbar"}, e); got != exitOK {
-			t.Fatalf("exit %d, stderr %q", got, errOut.String())
-		}
-	}
-	menu()
-	prs, _ := swiftbar.LoadBaseline(e.cacheDir)
-	for i := range prs {
-		if prs[i].Number == 90006 {
-			prs[i].DryRun.State, prs[i].Next = model.RunRunning, model.NextCI
-		}
-	}
-	if err := swiftbar.SaveBaseline(e.cacheDir, prs); err != nil {
-		t.Fatal(err)
-	}
-	menu()
-	data, err := os.ReadFile(events)
-	if err != nil || !strings.Contains(string(data), `"kind":"runFailed"`) || !strings.Contains(string(data), `"number":90006`) {
-		t.Errorf("the hook wrote %q, %v; stderr %q", data, err, errOut.String())
+	for _, channel := range []bool{true, false} {
+		t.Run(fmt.Sprintf("swiftbar=%t", channel), func(t *testing.T) {
+			events := filepath.Join(t.TempDir(), "events.jsonl")
+			e, _, errOut := swiftbarEnv(t, &fakeClient{t: t}, fmt.Sprintf("notify: {swiftbar: %t, command: [sh, -c, 'cat >> \"%s\"']}\n", channel, events))
+			var started [][]string
+			e.start = func(argv []string) error { started = append(started, argv); return nil }
+			menu := func() {
+				t.Helper()
+				if got := run(context.Background(), []string{"list", "--format", "swiftbar"}, e); got != exitOK {
+					t.Fatalf("exit %d, stderr %q", got, errOut.String())
+				}
+			}
+			menu()
+			prs, _ := swiftbar.LoadBaseline(e.cacheDir)
+			for i := range prs {
+				if prs[i].Number == 90006 {
+					prs[i].DryRun.State, prs[i].Next = model.RunRunning, model.NextCI
+				}
+			}
+			if err := swiftbar.SaveBaseline(e.cacheDir, prs); err != nil {
+				t.Fatal(err)
+			}
+			menu()
+			// The hook runs whatever the channel; SwiftBar's notification only with it.
+			data, err := os.ReadFile(events)
+			if err != nil || !strings.Contains(string(data), `"kind":"runFailed"`) || !strings.Contains(string(data), `"number":90006`) {
+				t.Errorf("the hook wrote %q, %v; stderr %q", data, err, errOut.String())
+			}
+			if len(started) != map[bool]int{true: 1, false: 0}[channel] {
+				t.Errorf("notified through SwiftBar %q", started)
+			}
+			// The baseline moved on either way: turning the channel back on replays nothing.
+			e.configPath = filepath.Join(t.TempDir(), "config.yml")
+			started = nil
+			menu()
+			if len(started) != 0 {
+				t.Errorf("replayed %q", started)
+			}
+		})
 	}
 }

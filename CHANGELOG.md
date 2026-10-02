@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `notify.swiftbar: false` turns off the menu-bar plugin's SwiftBar notifications; `notify.command` still runs from it,
+  as it does from the interactive view whatever `notify.terminal` and `notify.bell` are. The docs and `config` say
+  which `notify` keys apply to the interactive view, to the plugin, or to both.
+
 ## v0.4.0 — 2026-10-02
 
 The menu bar: a SwiftBar plugin that shows your PRs, notifies of changes, and opens the interactive view on a PR or a

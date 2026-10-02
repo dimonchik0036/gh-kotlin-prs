@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-// NotifyEvents are the events the TUI can notify about (internal/notify), with what each means.
+// NotifyEvents are the events the TUI and the menu-bar plugin can notify about
+// (internal/notify), with what each means.
 var NotifyEvents = []struct{ Name, Doc string }{
 	{"runPassed", "a dry-run or safe-merge of yours passed"},
 	{"runFailed", "a dry-run or safe-merge of yours failed"},
@@ -22,25 +23,29 @@ var NotifyEvents = []struct{ Name, Doc string }{
 // rxvt-unicode), kitty's OSC 99; auto picks one by the terminal, none sends nothing.
 var notifyTerminals = []string{"auto", "osc9", "osc777", "osc99", "none"}
 
-// Notify configures the TUI's notifications. Its channels combine: a terminal
-// notification, the bell, and a command.
+// Notify configures the notifications of the TUI and the menu-bar plugin. Events, Command
+// and Timeout apply to both; each has its own channels besides the command, which runs
+// whatever they are: the TUI a terminal notification and the bell, the plugin SwiftBar's.
 type Notify struct {
 	Events   []string `yaml:"events"`
 	Terminal string   `yaml:"terminal"`
 	Bell     bool     `yaml:"bell"`
+	// Swiftbar is the plugin's notification through SwiftBar (AppleScript outside it).
+	Swiftbar bool `yaml:"swiftbar"`
 	// Command is run per event, its arguments' {title}, {body} and {url} replaced, the
 	// event as JSON on stdin. Empty runs nothing.
 	Command []string `yaml:"command"`
 	Timeout Duration `yaml:"timeout"`
 }
 
-// DefaultNotify notifies of every event through the terminal, when it's known to support that.
+// DefaultNotify notifies of every event through the terminal, when it's known to support
+// that, and through SwiftBar.
 func DefaultNotify() Notify {
 	events := make([]string, len(NotifyEvents))
 	for i, e := range NotifyEvents {
 		events[i] = e.Name
 	}
-	return Notify{Events: events, Terminal: "auto", Command: []string{}, Timeout: Duration(10 * time.Second)}
+	return Notify{Events: events, Terminal: "auto", Swiftbar: true, Command: []string{}, Timeout: Duration(10 * time.Second)}
 }
 
 func (n *Notify) validate() error {

@@ -56,13 +56,15 @@ var fields = []field{
 		}
 		return values
 	}},
-	{key: "notify", doc: "TUI notifications; unset keys keep their defaults. terminal: auto, osc9, osc777, osc99 or none. " +
+	{key: "notify", doc: "Notifications; unset keys keep their defaults. events, command and timeout: the TUI and the " +
+		"menu-bar plugin. terminal (auto, osc9, osc777, osc99 or none) and bell: the TUI. swiftbar: the plugin. " +
 		"command: run per event, {title}, {body} and {url} replaced, the event as JSON on stdin.", sub: func(c Config) []Value {
 		n := c.Notify
 		return []Value{
 			{Key: "events", Value: list(n.Events)},
 			{Key: "terminal", Value: scalar(n.Terminal)},
 			{Key: "bell", Value: fmt.Sprint(n.Bell)},
+			{Key: "swiftbar", Value: fmt.Sprint(n.Swiftbar)},
 			{Key: "command", Value: list(n.Command)},
 			{Key: "timeout", Value: n.Timeout.String()},
 		}

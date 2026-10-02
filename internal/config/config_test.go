@@ -138,11 +138,22 @@ func TestNotify(t *testing.T) {
 	}
 	n := cfg.Notify
 	if !n.Bell || !slices.Equal(n.Events, []string{"runFailed", "merged"}) || n.Terminal != "auto" || n.Timeout != Duration(10*time.Second) ||
-		!slices.Equal(n.Command, []string{"notify-send", "{title}", "{body}"}) {
+		!slices.Equal(n.Command, []string{"notify-send", "{title}", "{body}"}) || !n.Swiftbar {
 		t.Errorf("notify = %+v", n)
 	}
+	// swiftbar off leaves the other keys at their defaults.
+	off, err := Parse([]byte("notify: {swiftbar: false}\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if off.Notify.Swiftbar || off.Notify.Terminal != "auto" || len(off.Notify.Events) != len(NotifyEvents) {
+		t.Errorf("swiftbar: false = %+v", off.Notify)
+	}
+	if _, err := Parse([]byte("notify: {swiftbar: sometimes}\n")); err == nil {
+		t.Error("swiftbar: sometimes parsed")
+	}
 	defaults := Default()
-	if len(defaults.Notify.Events) != len(NotifyEvents) || defaults.Notify.validate() != nil {
+	if len(defaults.Notify.Events) != len(NotifyEvents) || defaults.Notify.validate() != nil || !defaults.Notify.Swiftbar {
 		t.Errorf("defaults %+v", defaults.Notify)
 	}
 	for data, want := range map[string]string{

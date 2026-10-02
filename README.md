@@ -74,13 +74,20 @@ refresh fails, and warns when less than a tenth of the hourly API budget is left
 
 ### Notifications
 
-While it runs, the interactive view notifies you of what changed between two refreshes: a dry-run or safe-merge of
-yours passed, failed or was rejected, a PR became your move, changes were requested, your review was requested, a PR
-of yours was merged (config `notify.events`). Nothing is sent for what was already there when it started.
+The interactive view, while it runs, and the [menu-bar plugin](#menu-bar-swiftbar) notify you of what changed between
+two refreshes: a dry-run or safe-merge of yours passed, failed or was rejected, a PR became your move, changes were
+requested, your review was requested, a PR of yours was merged. Nothing is sent for what was already there when they
+started.
 
-They go through the terminal where it's known to support that (iTerm2, WezTerm, Ghostty, kitty, foot, rxvt-unicode;
-`notify.terminal`), optionally the bell (`notify.bell: true`), and any command you like: its arguments get `{title}`,
-`{body}` and `{url}`, its stdin the event as JSON.
+Each delivers through its own channel, and both also run your command:
+
+- the interactive view: the terminal, where it's known to support that (iTerm2, WezTerm, Ghostty, kitty, foot,
+  rxvt-unicode; `notify.terminal`, `none` for nothing), and optionally the bell (`notify.bell: true`);
+- the plugin: SwiftBar's notification (`notify.swiftbar`, on by default);
+- both: any command you like (`notify.command`, empty by default, with `notify.timeout`), whatever the channels are
+  set to. Its arguments get `{title}`, `{body}` and `{url}`, its stdin the event as JSON.
+
+`notify.events` picks the events for all of them.
 
 ```yaml
 notify:
@@ -179,9 +186,12 @@ the interactive view on that PR, like the menu. One that was posted before you r
 
 Three things may notify, and they don't coordinate, so the same change can show up more than once:
 
-- the plugin, through SwiftBar, for the `notify.events` you keep;
+- the plugin, through SwiftBar (`notify.swiftbar: false` turns that off);
 - the interactive view, through the terminal (`notify.terminal: none` turns that off);
-- `notify.command`, empty by default, run by both the plugin and the interactive view.
+- `notify.command`, empty by default, run by both the plugin and the interactive view, whatever the two above are.
+
+`notify.events` applies to all three. With `notify.swiftbar: false` the plugin still keeps track of what it has seen,
+so turning it back on doesn't replay old changes.
 
 Known SwiftBar quirk: on macOS 26, SwiftBar 2.1.1 shows its "SwiftBar is already running" alert after every click on
 a notification (and on every `swiftbar://` link), next to what the click opens. SwiftBar 2.1.2 fixes it
@@ -213,12 +223,13 @@ issueProjects: [KT, KTIJ, KTI]   # issue IDs recognized in commit trailers, bran
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
 keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, F5]}; `?` lists the defaults
-notify:                   # TUI notifications; unset keys keep these defaults
-  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]
-  terminal: auto          # osc9, osc777, osc99, none
-  bell: false
-  command: []             # e.g. [terminal-notifier, -title, "{title}", -message, "{body}", -open, "{url}"]
-  timeout: 10s
+notify:                   # notifications; unset keys keep these defaults
+  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]   # TUI and plugin
+  terminal: auto          # TUI only: osc9, osc777, osc99, none
+  bell: false             # TUI only
+  swiftbar: true          # menu-bar plugin only: its notification through SwiftBar
+  command: []             # TUI and plugin, e.g. [notify-send, "{title}", "{body}"]
+  timeout: 10s            # TUI and plugin: for the command
 ```
 
 ## Development

@@ -207,8 +207,10 @@ func installSwiftbar(e env, global globalOptions, dir string, interval time.Dura
 
 // notifyChanges notifies of what changed since the plugin's last live run, and makes
 // this run the next one's baseline. The first run has nothing to compare with. Events go
-// through SwiftBar (or AppleScript), whose click opens the interactive view with gh, and
-// the notify.command hook.
+// through SwiftBar (or AppleScript), whose click opens the interactive view with gh,
+// unless notify.swiftbar is off, and the notify.command hook either way. The baseline
+// moves on even with nothing to notify through, so turning SwiftBar's back on replays
+// nothing.
 func notifyChanges(ctx context.Context, e env, cfg config.Config, prs []model.PR, plugin, gh string) {
 	if e.cacheDir == "" {
 		return
@@ -222,8 +224,10 @@ func notifyChanges(ctx context.Context, e env, cfg config.Config, prs []model.PR
 	}
 	n := notify.New(cfg.Notify, nil, nil)
 	for _, ev := range n.Enabled(notify.Diff(prev, prs)) {
-		if err := e.start(swiftbar.NotificationArgv(plugin, gh, ev)); err != nil {
-			writef(e.stderr, "notification: %v\n", err)
+		if cfg.Notify.Swiftbar {
+			if err := e.start(swiftbar.NotificationArgv(plugin, gh, ev)); err != nil {
+				writef(e.stderr, "notification: %v\n", err)
+			}
 		}
 		if err := n.Run(ctx, ev); err != nil {
 			writef(e.stderr, "notify command: %v\n", err)

@@ -544,6 +544,7 @@ func TestScroll(t *testing.T) {
 
 // Notifications come from two live refreshes in a row, never from the first load or the
 // cache: the terminal gets them, the command runs per event, the status bar names them.
+// notify.swiftbar is the plugin's channel: off, it changes nothing here.
 func TestNotifications(t *testing.T) {
 	var ran [][]string
 	fail := false
@@ -561,7 +562,7 @@ func TestNotifications(t *testing.T) {
 	}
 	h := newHarness(t, func(h *harness, opts *Options) {
 		opts.Initial = h.cached(time.Minute)
-		cfg, err := config.Parse([]byte("notify: {terminal: osc9, events: [runFailed, merged], command: [hook, '{title}']}\n"))
+		cfg, err := config.Parse([]byte("notify: {terminal: osc9, swiftbar: false, events: [runFailed, merged], command: [hook, '{title}']}\n"))
 		if err != nil {
 			t.Fatal(err)
 		}

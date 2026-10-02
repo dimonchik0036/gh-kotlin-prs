@@ -68,7 +68,7 @@ func TestTemplate(t *testing.T) {
 func TestDescribe(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yml")
 	file := "icons: ascii\nteams: [kotlin-analysis-api]\nkeys: {copy: c}\n" +
-		"notify: {command: [sh, -c, 'cat >> /tmp/kp-events.jsonl', '{title}', 'it''s'], events: [merged]}\n"
+		"notify: {command: [sh, -c, 'cat >> /tmp/kp-events.jsonl', '{title}', 'it''s'], events: [merged], swiftbar: false}\n"
 	if err := os.WriteFile(path, []byte(file), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -88,6 +88,7 @@ func TestDescribe(t *testing.T) {
 		"\n  command: [sh, -c, 'cat >> /tmp/kp-events.jsonl', '{title}', 'it''s'] # file\n",
 		"\n  events: [merged]  # file\n",
 		"\n  terminal: auto    # default\n",
+		"\n  swiftbar: false   # file\n",
 		"\nrepo: JetBrains/kotlin                               # default\n",
 		"\nissueURL: https://youtrack.jetbrains.com/issue/{id}  # default\n",
 	} {

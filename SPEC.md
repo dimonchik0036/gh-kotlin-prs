@@ -339,11 +339,12 @@ gh kotlin-prs open <number>        # browser
 optional, and the defaults are for Kotlin. The default location may have no file (all defaults then), but a file named
 by `--config` or `$GH_KOTLIN_PRS_CONFIG` must exist: else `list`, `show`, `run`, the TUI and `swiftbar install`/`script`
 fail with `config: <path> (from --config) doesn't exist`, and the plugin shows that in its menu. `config` and
-`config path` still answer (`config` marks the file not found), and `config init` creates it. `config` prints each value with its source (default, file, flag) as YAML
-that reads back as the same config: the maps (`keys`, `notify`) as blocks, a line and a source per sub-key, the source
-comments aligned per block unless a line is longer than 60 columns. Values are quoted only where plain YAML wouldn't
-read back the same. `config init` writes the same layout with every key commented out, so later default changes still
-apply.
+`config path` still answer (`config` marks the file not found), and `config init` creates it. `notify` serves the TUI
+and the menu-bar plugin: `events`, `command` and `timeout` apply to both, `terminal` and `bell` to the TUI, `swiftbar`
+to the plugin (§14). `config` prints each value with its source (default, file, flag) as YAML that reads back as the
+same config: the maps (`keys`, `notify`) as blocks, a line and a source per sub-key, the source comments aligned per
+block unless a line is longer than 60 columns. Values are quoted only where plain YAML wouldn't read back the same.
+`config init` writes the same layout with every key commented out, so later default changes still apply.
 
 ```yaml
 repo: JetBrains/kotlin
@@ -359,12 +360,13 @@ issueProjects: [KT, KTIJ, KTI]
 issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
 keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, F5]}; `?` lists the defaults
-notify:                   # TUI notifications; unset keys keep these defaults
-  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]
-  terminal: auto          # osc9, osc777, osc99, none
-  bell: false
-  command: []             # e.g. [terminal-notifier, -title, "{title}", -message, "{body}", -open, "{url}"]
-  timeout: 10s
+notify:                   # notifications; unset keys keep these defaults
+  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]   # TUI and plugin
+  terminal: auto          # TUI only: osc9, osc777, osc99, none
+  bell: false             # TUI only
+  swiftbar: true          # menu-bar plugin only: its notification through SwiftBar
+  command: []             # TUI and plugin, e.g. [notify-send, "{title}", "{body}"]
+  timeout: 10s            # TUI and plugin: for the command
 ```
 
 ## 10. Layout, tests, release
@@ -461,10 +463,11 @@ scripts/fetch-fixtures.sh
 
 ## 14. Notifications
 
-- In the TUI from v0.2.0, later in the daemon. They come from diffing two consecutive live refreshes (`notify.Diff` over
-  the classified rows, hidden ones included): never the first load, never the cache snapshot the TUI starts from, and
-  a failed refresh keeps the last good one as the baseline. A restart starts a new baseline, so it repeats nothing
-  but misses what changed while it was closed; keeping the last notified state (§13) is for later, with the daemon.
+- In the TUI from v0.2.0, in the menu-bar plugin from v0.4.0 (§15), later in the daemon. In the TUI they come from
+  diffing two consecutive live refreshes (`notify.Diff` over the classified rows, hidden ones included): never the first
+  load, never the cache snapshot the TUI starts from, and a failed refresh keeps the last good one as the baseline. A
+  restart starts a new baseline, so it repeats nothing but misses what changed while it was closed; keeping the last
+  notified state (§13) is for later, with the daemon.
 - Events (config `notify.events`, all on by default):
   - `runPassed`, `runFailed`, `runRejected`: the latest dry-run or safe-merge of my PR reached that state, a new run or
     the one seen before; not when it's outdated. The link is the build, or the bot's reply for a rejection, whose
@@ -475,17 +478,19 @@ scripts/fetch-fixtures.sh
   - `reviewRequested`: a PR in Review became my move (a new or repeated request);
   - `merged`: a PR of mine moved to Recently merged.
   A PR that's new in the snapshot only counts for `reviewRequested` and `merged`: a PR I just opened isn't news.
-- Delivery, configurable, several at once:
-  - `notify.terminal`: OSC 9 (`osc9`), OSC 777 `notify;title;body` (`osc777`), kitty's OSC 99 (`osc99`), or `none`.
-    `auto` (the default) picks by the terminal: iTerm2, WezTerm, Ghostty → OSC 9; kitty → OSC 99; foot,
+- Delivery, configurable, several at once. Each notifier has its own channels, and `notify.command` runs from both
+  whatever they're set to:
+  - `notify.terminal` (TUI only): OSC 9 (`osc9`), OSC 777 `notify;title;body` (`osc777`), kitty's OSC 99 (`osc99`), or
+    `none`. `auto` (the default) picks by the terminal: iTerm2, WezTerm, Ghostty → OSC 9; kitty → OSC 99; foot,
     rxvt-unicode → OSC 777; nothing in Terminal.app, VS Code, tmux and screen (which need passthrough), or anything
     unknown. Written through bubbletea (`tea.Raw`): the escapes don't move the cursor, so the screen stays whole.
     Control characters in the text become spaces, `;` becomes `,` for OSC 777;
-  - `notify.bell` (off by default): a BEL per event;
-  - `notify.command`: argv run per event, `{title}`, `{body}` and `{url}` replaced in its arguments and the event as
-    JSON on stdin (`{"kind", "number", "prTitle", "title", "body", "url"}`), in the background with a timeout
-    (`notify.timeout`, 10s). A failure shows in the status bar for a few seconds; nothing ever waits for it.
-    terminal-notifier, osascript, notify-send, ntfy or anything else works.
+  - `notify.bell` (TUI only, off by default): a BEL per event;
+  - `notify.swiftbar` (plugin only, on by default): SwiftBar's notification (§15);
+  - `notify.command` (TUI and plugin): argv run per event, `{title}`, `{body}` and `{url}` replaced in its arguments and
+    the event as JSON on stdin (`{"kind", "number", "prTitle", "title", "body", "url"}`), in the background with a
+    timeout (`notify.timeout`, 10s). In the TUI a failure shows in the status bar for a few seconds; nothing ever waits
+    for it. terminal-notifier, osascript, notify-send, ntfy or anything else works.
 - The status bar names the first event of a refresh ("#90006 dry-run failed (+1 more)").
 - One notifier: `internal/notify` knows nothing of the TUI (it returns the escapes as a string and runs the command
   where the caller says), so the daemon can reuse it.
@@ -546,11 +551,12 @@ scripts/fetch-fixtures.sh
   plugin script's (`GH_KOTLIN_PRS_GH`), the gh the plugin itself runs. There's no config of our own for it.
 - Notifications: a plugin run that fetched every query live (no cache hit) diffs its rows with the last live run's,
   kept in the cache dir (`swiftbar-baseline.json`), with `notify.Diff` and the `notify.events` of §14. The first run
-  only stores its rows. Each event goes to `notify.command`, and to SwiftBar's
+  only stores its rows. Each event goes to `notify.command`, and unless `notify.swiftbar` is false to SwiftBar's
   `swiftbar://notify?plugin=…&title=…&body=…&bash=exec&param1=<gh>&param2=kotlin-prs&param3=--pr&param4=N&terminal=true`
   (`osascript display notification`, which no click opens anything from, when SwiftBar isn't the caller). Every event
   is about a PR, and a click opens the interactive view on its details, the way the menu's items do; one about no PR
-  would carry `href=` and open its page.
+  would carry `href=` and open its page. With `notify.swiftbar: false` the run still diffs, runs the command and
+  stores its rows, so turning SwiftBar's notification back on replays nothing.
   - SwiftBar 2.1.1 keeps all the URL's parameters for the click and reads them as an item's: joined as `key=value`
     in no fixed order, a value with a space quoted in `'`, then parsed like a menu line. An apostrophe in a quoted
     title would end it there and lose `bash` and its params, so the title and body never have a space: SwiftBar shows
@@ -561,8 +567,9 @@ scripts/fetch-fixtures.sh
   - On macOS 26, SwiftBar 2.1.1 also shows its menu-bar recovery alert ("SwiftBar is already running") after every
     notification click and every `open` of a `swiftbar://` URL: macOS sends a reopen event after them (SwiftBar #535,
     fixed in 2.1.2-beta-4 by #562). The click's action still runs.
-  - Who notifies: the plugin through SwiftBar, the TUI through the terminal (`notify.terminal`, `none` for nothing,
-    and `notify.bell`), and `notify.command` (empty by default) from both. `notify.events` filters all of them.
+  - Who notifies: the plugin through SwiftBar (`notify.swiftbar`, false for nothing), the TUI through the terminal
+    (`notify.terminal`, `none` for nothing, and `notify.bell`), and `notify.command` (empty by default) from both,
+    whatever the channels are. `notify.events` filters all of them.
     They don't coordinate: the same change may be notified by each.
 
 ## 16. Open questions
