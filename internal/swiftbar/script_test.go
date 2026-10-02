@@ -1,6 +1,7 @@
 package swiftbar
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -94,6 +95,62 @@ func TestQuote(t *testing.T) {
 	for s, want := range map[string]string{"gh": "gh", "/a/b-c_d.e": "/a/b-c_d.e", "a b": "'a b'", "it's": `'it'\''s'`, "": "''", "$HOME": "'$HOME'"} {
 		if got := Quote(s); got != want {
 			t.Errorf("Quote(%q) = %s, want %s", s, got, want)
+		}
+	}
+}
+
+// ReadScript reads back what Script wrote, and what v0.4.0 to v0.5.2 wrote (format 1:
+// a version line, no GH_KOTLIN_PRS_SCRIPT, --max-age half the interval).
+func TestReadScript(t *testing.T) {
+	data, err := os.ReadFile("../../testdata/swiftbar-script-format1.sh")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := ReadScript(string(data))
+	if want := (Installed{Format: 1, GH: "/opt/homebrew/bin/gh", Config: "/Users/alice_user/my config.yml", MaxAge: 90 * time.Second}); err != nil || got != want {
+		t.Errorf("format 1: %+v, %v, want %+v", got, err, want)
+	}
+	o := ScriptOptions{GH: "/Users/alice_user/my tools/gh", Config: "/Users/alice_user/it's.yml", MaxAge: 3 * time.Minute}
+	got, err = ReadScript(Script(o))
+	if want := (Installed{Format: ScriptFormat, GH: o.GH, Config: o.Config, MaxAge: o.MaxAge}); err != nil || got != want {
+		t.Errorf("round trip: %+v, %v, want %+v", got, err, want)
+	}
+	if got, err := ReadScript(Script(ScriptOptions{GH: "/opt/homebrew/bin/gh", MaxAge: time.Minute})); err != nil || got.Config != "" {
+		t.Errorf("no config: %+v, %v", got, err)
+	}
+	for text, want := range map[string]error{
+		"#!/bin/bash\necho 'my own plugin'\n": ErrNotOurs,
+		"":                                    ErrNotOurs,
+	} {
+		if _, err := ReadScript(text); !errors.Is(err, want) {
+			t.Errorf("%q: %v", text, err)
+		}
+	}
+	broken := strings.Replace(Script(o), "export GH_KOTLIN_PRS_SCRIPT=2", "export GH_KOTLIN_PRS_SCRIPT=two", 1)
+	if _, err := ReadScript(broken); err == nil || errors.Is(err, ErrNotOurs) {
+		t.Errorf("a broken format: %v", err)
+	}
+}
+
+func TestUnquote(t *testing.T) {
+	for _, s := range []string{"/opt/homebrew/bin/gh", "/a b/c", "it's", "''", "a'b'c", ""} {
+		if got := Unquote(Quote(s)); got != s {
+			t.Errorf("Unquote(Quote(%q)) = %q", s, got)
+		}
+	}
+}
+
+func TestInterval(t *testing.T) {
+	for name, want := range map[string]time.Duration{"kotlin-prs.30s.sh": 30 * time.Second, "kotlin-prs.3m.sh": 3 * time.Minute,
+		"kotlin-prs.1h.sh": time.Hour, "kotlin-prs.sh": 0, "kotlin-prs.0s.sh": 0, "other.3m.sh": 0, "kotlin-prs.3m.py": 0} {
+		if got, ok := Interval(name); got != want || ok != (want != 0) {
+			t.Errorf("%s: %s, %v", name, got, ok)
+		}
+	}
+	for _, d := range []time.Duration{30 * time.Second, 3 * time.Minute, time.Hour} {
+		name, _ := FileName(d)
+		if got, ok := Interval(name); !ok || got != d {
+			t.Errorf("%s: %s", name, got)
 		}
 	}
 }

@@ -174,7 +174,13 @@ the same sections as `list`:
 ```sh
 gh kotlin-prs swiftbar install                 # into SwiftBar's plugin folder: a run every 30s, a fetch every 3m
 gh kotlin-prs swiftbar install --interval 1m --max-age 5m --force
+gh kotlin-prs swiftbar update                  # after an upgrade: this version's script, the plugin's settings
 ```
+
+`swiftbar update` rewrites the installed plugin with the current script and keeps its settings (interval, max-age,
+gh's path, the config file) unless flags say otherwise; a plugin of v0.5.2 or older gets the new timing, its old
+interval becoming the max-age. When the installed script is older than the one this version writes, the menu ends
+with "Update the plugin script", which runs it.
 
 It needs SwiftBar to have a plugin folder (SwiftBar asks for one on its first start); `--dir` names another. For a
 manual install, write the script yourself and make it executable:

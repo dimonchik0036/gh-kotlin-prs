@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,7 +48,10 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 	now := e.now()
 	sections := opts.sections()
 	menu := swiftbar.Menu{Sections: sections, Icons: ropts.Icons, Now: now, MaxAge: opts.maxAge,
-		Plugin: e.getenv("SWIFTBAR_PLUGIN_PATH"), GH: e.getenv("GH_KOTLIN_PRS_GH")}
+		Plugin: e.getenv("SWIFTBAR_PLUGIN_PATH"), GH: e.getenv("GH_KOTLIN_PRS_GH"), ScriptFormat: 1}
+	if f, err := strconv.Atoi(e.getenv("GH_KOTLIN_PRS_SCRIPT")); err == nil {
+		menu.ScriptFormat = f
+	}
 	next, account, err := e.newClient()
 	if err != nil {
 		menu.Err = err
@@ -91,7 +95,7 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 func newSwiftbarCommand(e env, global *globalOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "swiftbar",
-		Short: "The menu-bar plugin for SwiftBar: install it, or print its script",
+		Short: "The menu-bar plugin for SwiftBar: install it, update it, or print its script",
 		Long: "A SwiftBar plugin shows your PRs in the menu bar: the number waiting on you, a menu like `list`, " +
 			"and per PR its reasons, runs, reviewers and the commands you could post, which open the " +
 			"interactive view to ask. It runs `list --format swiftbar`.",
@@ -126,7 +130,23 @@ func newSwiftbarCommand(e env, global *globalOptions) *cobra.Command {
 		},
 	}
 	scriptTiming.flags(script)
-	cmd.AddCommand(install, script)
+	var updateDir string
+	var updateTiming pluginTiming
+	update := &cobra.Command{
+		Use:   "update",
+		Short: "Rewrite the installed plugin with this version's script, keeping its settings",
+		Long: "Reads the installed plugin's settings back (its interval from the file name, its max-age, gh's path " +
+			"and the config file) and rewrites it with this version's script; --interval, --max-age and --config " +
+			"override them. A plugin of v0.5.2 or older (script format 1) gets the new timing: its interval becomes " +
+			"the max-age, and it runs every 30s.",
+		Args: noArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return updateSwiftbar(e, *global, updateDir, updateTiming, cmd.Flags().Changed("interval"), cmd.Flags().Changed("max-age"))
+		},
+	}
+	update.Flags().StringVar(&updateDir, "dir", "", "the plugin folder (default: SwiftBar's)")
+	updateTiming.flags(update)
+	cmd.AddCommand(install, script, update)
 	return cmd
 }
 
@@ -159,8 +179,24 @@ func (t *pluginTiming) check() error {
 	return nil
 }
 
-// pluginScript is the plugin script and its file name for the timing.
+// pluginScript is the plugin script and its file name for the timing, with gh as found
+// on the PATH and the config file of --config or $GH_KOTLIN_PRS_CONFIG.
 func pluginScript(e env, global globalOptions, timing pluginTiming) (script, name string, err error) {
+	gh, err := e.lookGH()
+	if err != nil {
+		return "", "", fmt.Errorf("gh isn't on the PATH, and the plugin needs it: %w", err)
+	}
+	cfgPath, from := global.config, "--config"
+	if cfgPath == "" {
+		cfgPath, from = e.getenv(configEnv), "$"+configEnv
+	}
+	return writeScript(gh, cfgPath, from, timing)
+}
+
+// writeScript is the plugin script and its file name for gh, the config file ("" for
+// none; from says where it comes from, and the file must exist unless it's the
+// installed plugin's own, from "") and the timing.
+func writeScript(gh, cfgPath, from string, timing pluginTiming) (script, name string, err error) {
 	name, err = swiftbar.FileName(timing.interval)
 	if err != nil {
 		return "", "", usageError{err}
@@ -168,26 +204,48 @@ func pluginScript(e env, global globalOptions, timing pluginTiming) (script, nam
 	if err := timing.check(); err != nil {
 		return "", "", err
 	}
-	gh, err := e.lookGH()
-	if err != nil {
-		return "", "", fmt.Errorf("gh isn't on the PATH, and the plugin needs it: %w", err)
-	}
 	if gh, err = filepath.Abs(gh); err != nil {
 		return "", "", err
-	}
-	cfgPath, from := global.config, "--config"
-	if cfgPath == "" {
-		cfgPath, from = e.getenv(configEnv), "$"+configEnv
 	}
 	if cfgPath != "" {
 		if cfgPath, err = filepath.Abs(cfgPath); err != nil {
 			return "", "", err
 		}
-		if err := checkConfigFile(cfgPath, from); err != nil {
-			return "", "", err
+		if from != "" {
+			if err := checkConfigFile(cfgPath, from); err != nil {
+				return "", "", err
+			}
 		}
 	}
 	return swiftbar.Script(swiftbar.ScriptOptions{GH: gh, Config: cfgPath, MaxAge: timing.maxAge}), name, nil
+}
+
+// pluginDir is the plugin folder: dir, else SwiftBar's.
+func pluginDir(e env, dir string) (string, error) {
+	if dir == "" {
+		if dir = e.swiftbarDir(); dir == "" {
+			return "", errors.New("SwiftBar has no plugin folder yet: open SwiftBar and choose one, or pass --dir")
+		}
+	}
+	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+		return "", fmt.Errorf("the plugin folder %s doesn't exist", dir)
+	}
+	return dir, nil
+}
+
+// installedPlugins are the plugin files in dir.
+func installedPlugins(dir string) ([]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	var installed []string
+	for _, entry := range entries {
+		if swiftbar.IsPlugin(entry.Name()) {
+			installed = append(installed, entry.Name())
+		}
+	}
+	return installed, nil
 }
 
 // installSwiftbar writes the plugin into the folder, replacing an installed one only
@@ -197,43 +255,111 @@ func installSwiftbar(e env, global globalOptions, dir string, timing pluginTimin
 	if err != nil {
 		return err
 	}
-	if dir == "" {
-		if dir = e.swiftbarDir(); dir == "" {
-			return errors.New("SwiftBar has no plugin folder yet: open SwiftBar and choose one, or pass --dir")
-		}
-	}
-	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
-		return fmt.Errorf("the plugin folder %s doesn't exist", dir)
-	}
-	entries, err := os.ReadDir(dir)
-	if err != nil {
+	if dir, err = pluginDir(e, dir); err != nil {
 		return err
 	}
-	var installed []string
-	for _, entry := range entries {
-		if swiftbar.IsPlugin(entry.Name()) {
-			installed = append(installed, entry.Name())
-		}
+	installed, err := installedPlugins(dir)
+	if err != nil {
+		return err
 	}
 	if len(installed) > 0 && !force {
 		return fmt.Errorf("%s already has the plugin (%s); --force replaces it", dir, strings.Join(installed, ", "))
 	}
-	for _, old := range installed {
-		if old != name {
-			if err := os.Remove(filepath.Join(dir, old)); err != nil {
-				return err
-			}
-		}
-	}
-	path := filepath.Join(dir, name)
-	if err := os.WriteFile(path, []byte(script), 0o755); err != nil {
-		return err
-	}
-	if err := os.Chmod(path, 0o755); err != nil {
+	path, err := writePlugin(dir, name, script, installed)
+	if err != nil {
 		return err
 	}
 	writef(e.stdout, "wrote %s\n", path)
 	return nil
+}
+
+// updateSwiftbar rewrites the installed plugin with the current script, keeping its
+// settings unless flags (changed) say otherwise. A format-1 script's interval was its
+// freshness: it becomes the max-age, and the interval the default.
+func updateSwiftbar(e env, global globalOptions, dir string, flags pluginTiming, intervalChanged, maxAgeChanged bool) error {
+	dir, err := pluginDir(e, dir)
+	if err != nil {
+		return err
+	}
+	installed, err := installedPlugins(dir)
+	switch {
+	case err != nil:
+		return err
+	case len(installed) == 0:
+		return fmt.Errorf("%s has no plugin to update; install it with `gh kotlin-prs swiftbar install`", dir)
+	case len(installed) > 1:
+		return fmt.Errorf("%s has several plugins (%s); `gh kotlin-prs swiftbar install --force` replaces them", dir, strings.Join(installed, ", "))
+	}
+	old := filepath.Join(dir, installed[0])
+	data, err := os.ReadFile(old)
+	if err != nil {
+		return err
+	}
+	in, err := swiftbar.ReadScript(string(data))
+	interval, ok := swiftbar.Interval(installed[0])
+	if err == nil && !ok {
+		err = errors.New("its file name has no interval")
+	}
+	if err != nil {
+		return fmt.Errorf("%s: %w; `gh kotlin-prs swiftbar install --force` replaces it", old, err)
+	}
+	timing := pluginTiming{interval: interval, maxAge: in.MaxAge}
+	if in.Format < 2 {
+		timing = pluginTiming{interval: defaultInterval, maxAge: interval}
+	}
+	if intervalChanged {
+		timing.interval = flags.interval
+	}
+	if maxAgeChanged {
+		timing.maxAge = flags.maxAge
+	}
+	cfgPath, from := in.Config, ""
+	if global.config != "" {
+		cfgPath, from = global.config, "--config"
+	}
+	script, name, err := writeScript(in.GH, cfgPath, from, timing)
+	if err != nil {
+		return err
+	}
+	path, err := writePlugin(dir, name, script, installed)
+	if err != nil {
+		return err
+	}
+	writef(e.stdout, "updated %s (a run every %s, a fetch every %s)\n", path, timing.interval, timing.maxAge)
+	return nil
+}
+
+// writePlugin writes the script as dir/name atomically (a hidden temp file renamed over
+// it, so SwiftBar never runs half a script), then removes the replaced plugins of other
+// names. It returns the path written.
+func writePlugin(dir, name, script string, replaced []string) (string, error) {
+	tmp, err := os.CreateTemp(dir, ".kotlin-prs-*.tmp")
+	if err != nil {
+		return "", err
+	}
+	_, err = tmp.WriteString(script)
+	if closeErr := tmp.Close(); err == nil {
+		err = closeErr
+	}
+	path := filepath.Join(dir, name)
+	if err == nil {
+		err = os.Chmod(tmp.Name(), 0o755)
+	}
+	if err == nil {
+		err = os.Rename(tmp.Name(), path)
+	}
+	if err != nil {
+		_ = os.Remove(tmp.Name())
+		return "", err
+	}
+	for _, other := range replaced {
+		if other != name {
+			if err := os.Remove(filepath.Join(dir, other)); err != nil {
+				return "", err
+			}
+		}
+	}
+	return path, nil
 }
 
 // notifyChanges notifies of what changed since the plugin's last live run, and makes

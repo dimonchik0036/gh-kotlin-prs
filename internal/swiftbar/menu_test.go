@@ -317,3 +317,23 @@ func TestReviewItems(t *testing.T) {
 		t.Errorf("outside SwiftBar:\n%s", out)
 	}
 }
+
+func TestUpdateItem(t *testing.T) {
+	m := fixtureMenu(t)
+	m.GH, m.ScriptFormat = "/opt/homebrew/bin/gh", 1
+	want := "\nUpdate the plugin script | bash=/opt/homebrew/bin/gh param1=kotlin-prs param2=swiftbar param3=update " +
+		`param4=--dir param5="/Users/alice_user/Library/Application Support/SwiftBar/Plugins" terminal=false refresh=true` + "\n"
+	if out := Render(m); !strings.HasSuffix(out, want) {
+		t.Errorf("format 1: the menu doesn't end with the item:\n%s", out)
+	}
+	m.Plugin = ""
+	if out := Render(m); !strings.HasSuffix(out, "\nUpdate the plugin script | bash=/opt/homebrew/bin/gh param1=kotlin-prs param2=swiftbar param3=update terminal=false refresh=true\n") {
+		t.Errorf("no plugin path, so no --dir:\n%s", out)
+	}
+	for _, format := range []int{0, ScriptFormat, ScriptFormat + 1} {
+		m.ScriptFormat = format
+		if out := Render(m); strings.Contains(out, "Update the plugin script") {
+			t.Errorf("format %d: an update item", format)
+		}
+	}
+}

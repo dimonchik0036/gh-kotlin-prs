@@ -9,7 +9,10 @@ breaking JSON changes and noted here.
 - The menu-bar plugin runs every 30s and fetches every 3m: `swiftbar install` and `swiftbar script` take
   `--interval` (how often SwiftBar runs it, 30s) and `--max-age` (how old cached data a run takes, 3m) instead of one
   interval of 3m. A run picks up within 30s what the interactive view fetched or a command changed.
-- The plugin script drops its version line, which went stale with every upgrade.
+- The plugin script drops its version line, which went stale with every upgrade. `gh kotlin-prs swiftbar update`
+  rewrites the installed plugin with this version's script, keeping its settings; a plugin of v0.5.2 or older moves
+  to the new timing, its old interval becoming the max-age. The menu offers it ("Update the plugin script") while the
+  installed script is older.
 - While a dry-run or safe-merge of yours is requested or running, "re-request review…" and "assign reviewers…" wait
   for it: the PR is CI's, with them as secondary lines, and your move once the run passed.
 - The code-owners table is read by its links: a person is whoever the profile link names, so full names the bot may

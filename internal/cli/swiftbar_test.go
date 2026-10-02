@@ -22,7 +22,7 @@ func swiftbarEnv(t *testing.T, client github.Client, configYAML string) (env, *s
 	t.Helper()
 	e, out, errOut := testEnv(t, client, configYAML)
 	e.getenv = func(k string) string {
-		return map[string]string{"SWIFTBAR_PLUGIN_PATH": pluginPath, "GH_KOTLIN_PRS_GH": "/opt/homebrew/bin/gh"}[k]
+		return map[string]string{"SWIFTBAR_PLUGIN_PATH": pluginPath, "GH_KOTLIN_PRS_GH": "/opt/homebrew/bin/gh", "GH_KOTLIN_PRS_SCRIPT": "2"}[k]
 	}
 	return e, out, errOut
 }
@@ -235,5 +235,132 @@ func TestSwiftbarNotifyCommand(t *testing.T) {
 				t.Errorf("replayed %q", started)
 			}
 		})
+	}
+}
+
+// update rewrites the installed plugin with the current script and its own settings.
+func TestSwiftbarUpdate(t *testing.T) {
+	dir := t.TempDir()
+	cfg := filepath.Join(t.TempDir(), "my config.yml")
+	if err := os.WriteFile(cfg, []byte("icons: ascii\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	e, out, errOut := testEnv(t, nil, "")
+	if got := run(context.Background(), []string{"swiftbar", "install", "--dir", dir, "--interval", "1m", "--max-age", "5m", "--config", cfg}, e); got != exitOK {
+		t.Fatalf("install: exit %d, stderr %q", got, errOut.String())
+	}
+	path := filepath.Join(dir, "kotlin-prs.1m.sh")
+	installed, _ := os.ReadFile(path)
+	// gh moved on the PATH since: the plugin keeps the gh it was written with.
+	e.lookGH = func() (string, error) { return "/usr/local/bin/gh", nil }
+	out.Reset()
+	if got := run(context.Background(), []string{"swiftbar", "update", "--dir", dir}, e); got != exitOK {
+		t.Fatalf("update: exit %d, stderr %q", got, errOut.String())
+	}
+	if updated, _ := os.ReadFile(path); string(updated) != string(installed) || out.String() != "updated "+path+" (a run every 1m0s, a fetch every 5m0s)\n" {
+		t.Errorf("the round trip changed the plugin (%q):\n%s", out.String(), updated)
+	}
+	// A new --interval renames it; --max-age replaces its own.
+	if got := run(context.Background(), []string{"swiftbar", "update", "--dir", dir, "--interval", "45s", "--max-age", "2m"}, e); got != exitOK {
+		t.Fatalf("update --interval: exit %d, stderr %q", got, errOut.String())
+	}
+	entries, _ := os.ReadDir(dir)
+	data, _ := os.ReadFile(filepath.Join(dir, "kotlin-prs.45s.sh"))
+	if len(entries) != 1 || entries[0].Name() != "kotlin-prs.45s.sh" || !strings.Contains(string(data), "--max-age 2m0s\n") ||
+		!strings.Contains(string(data), "export GH_KOTLIN_PRS_CONFIG="+swiftbar.Quote(cfg)+"\n") || !strings.Contains(string(data), "gh=/opt/homebrew/bin/gh\n") {
+		t.Errorf("the folder holds %v:\n%s", entries, data)
+	}
+}
+
+// A v0.5.2 plugin (format 1) every 3m, --max-age 1m30s: its interval meant freshness,
+// so it becomes a fetch every 3m and a run every 30s, under the new file name.
+func TestSwiftbarUpdateFormat1(t *testing.T) {
+	dir := t.TempDir()
+	old, err := os.ReadFile("../../testdata/swiftbar-script-format1.sh")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "kotlin-prs.3m.sh"), old, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	e, out, errOut := testEnv(t, nil, "")
+	e.swiftbarDir = func() string { return dir }
+	if got := run(context.Background(), []string{"swiftbar", "update"}, e); got != exitOK {
+		t.Fatalf("exit %d, stderr %q", got, errOut.String())
+	}
+	entries, _ := os.ReadDir(dir)
+	data, _ := os.ReadFile(filepath.Join(dir, "kotlin-prs.30s.sh"))
+	want := swiftbar.Script(swiftbar.ScriptOptions{GH: "/opt/homebrew/bin/gh", Config: "/Users/alice_user/my config.yml", MaxAge: 3 * time.Minute})
+	if len(entries) != 1 || string(data) != want || !strings.Contains(out.String(), "kotlin-prs.30s.sh (a run every 30s, a fetch every 3m0s)") {
+		t.Errorf("the folder holds %v (%q):\n%s", entries, out.String(), data)
+	}
+	if info, _ := os.Stat(filepath.Join(dir, "kotlin-prs.30s.sh")); info.Mode().Perm() != 0o755 {
+		t.Errorf("mode %v", info.Mode())
+	}
+}
+
+func TestSwiftbarUpdateRefuses(t *testing.T) {
+	foreign := t.TempDir()
+	if err := os.WriteFile(filepath.Join(foreign, "kotlin-prs.5m.sh"), []byte("#!/bin/bash\necho mine\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	several := t.TempDir()
+	for _, name := range []string{"kotlin-prs.30s.sh", "kotlin-prs.3m.sh"} {
+		if err := os.WriteFile(filepath.Join(several, name), []byte(swiftbar.Script(swiftbar.ScriptOptions{GH: "/opt/homebrew/bin/gh", MaxAge: time.Minute})), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	empty := t.TempDir()
+	for _, tt := range []struct {
+		args   []string
+		exit   int
+		stderr string
+	}{
+		{[]string{"swiftbar", "update", "--dir", foreign}, exitError,
+			`kotlin-prs.5m.sh: not written by "gh kotlin-prs swiftbar install"; ` + "`gh kotlin-prs swiftbar install --force` replaces it"},
+		{[]string{"swiftbar", "update", "--dir", empty}, exitError, "has no plugin to update; install it with `gh kotlin-prs swiftbar install`"},
+		{[]string{"swiftbar", "update", "--dir", several}, exitError, "has several plugins (kotlin-prs.30s.sh, kotlin-prs.3m.sh)"},
+		{[]string{"swiftbar", "update"}, exitError, "SwiftBar has no plugin folder yet"},
+		{[]string{"swiftbar", "update", "--dir", several + "/missing"}, exitError, "doesn't exist"},
+		{[]string{"swiftbar", "update", "--dir", empty, "--max-age", "10s"}, exitError, "has no plugin to update"},
+	} {
+		e, _, errOut := testEnv(t, nil, "")
+		if got := run(context.Background(), tt.args, e); got != tt.exit || !strings.Contains(errOut.String(), tt.stderr) {
+			t.Errorf("%q: exit %d, stderr %q", tt.args, got, errOut.String())
+		}
+	}
+	// A max-age below the interval is refused, and nothing is written.
+	dir := t.TempDir()
+	e, _, errOut := testEnv(t, nil, "")
+	run(context.Background(), []string{"swiftbar", "install", "--dir", dir}, e)
+	if got := run(context.Background(), []string{"swiftbar", "update", "--dir", dir, "--max-age", "10s"}, e); got != exitUsage ||
+		!strings.Contains(errOut.String(), "--max-age 10s is shorter than --interval 30s") {
+		t.Errorf("exit %d, stderr %q", got, errOut.String())
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 1 || entries[0].Name() != "kotlin-prs.30s.sh" {
+		t.Errorf("the folder holds %v", entries)
+	}
+}
+
+// An older plugin script than this binary writes gets an item to update it, run in the
+// background on its folder; a current or newer one (a downgraded binary) doesn't.
+func TestSwiftbarUpdateItem(t *testing.T) {
+	const item = "\nUpdate the plugin script | bash=/opt/homebrew/bin/gh param1=kotlin-prs param2=swiftbar param3=update " +
+		"param4=--dir param5=/Users/alice_user/Plugins terminal=false refresh=true\n"
+	for format, shown := range map[string]bool{"": true, "1": true, "2": false, "3": false} {
+		e, out, errOut := swiftbarEnv(t, &fakeClient{t: t}, "")
+		env := e.getenv
+		e.getenv = func(k string) string {
+			if k == "GH_KOTLIN_PRS_SCRIPT" {
+				return format
+			}
+			return env(k)
+		}
+		if got := run(context.Background(), []string{"list", "--format", "swiftbar"}, e); got != exitOK {
+			t.Fatalf("exit %d, stderr %q", got, errOut.String())
+		}
+		if strings.Contains(out.String(), item) != shown || strings.Count(out.String(), "Update the plugin script") > 1 {
+			t.Errorf("format %q: shown %v, want %v:\n%s", format, !shown, shown, out.String())
+		}
 	}
 }

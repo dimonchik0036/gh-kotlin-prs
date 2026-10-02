@@ -6,6 +6,7 @@ package swiftbar
 import (
 	"encoding/base64"
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -53,6 +54,11 @@ type Menu struct {
 	Plugin string
 	// GH is gh's path for the clicks that open the interactive view ("gh" when empty).
 	GH string
+	// ScriptFormat is the running plugin script's (GH_KOTLIN_PRS_SCRIPT, 1 without it);
+	// 0 when unknown. An older one than ScriptFormat gets an item to update it. A future
+	// incompatible format would also gate which items the binary emits for old scripts;
+	// there's nothing to gate yet.
+	ScriptFormat int
 }
 
 // Render is the plugin's output: the menu-bar title, then the dropdown.
@@ -212,6 +218,11 @@ func (m Menu) open(number int, command string) string {
 
 // exec runs words in the terminal of SwiftBar's settings, as open does.
 func (m Menu) exec(words []string) string {
+	return bashParams(words) + " terminal=true"
+}
+
+// bashParams are an item's bash and params for words.
+func bashParams(words []string) string {
 	s := ""
 	for i, w := range words {
 		if i == 0 {
@@ -220,7 +231,7 @@ func (m Menu) exec(words []string) string {
 			s += fmt.Sprintf(" param%d=%s", i, param(w))
 		}
 	}
-	return s + " terminal=true"
+	return s
 }
 
 // runWords run a `run` command on PR number: "<gh> kotlin-prs run N <command>", without
@@ -336,10 +347,23 @@ func (b *builder) reviewers(depth int, pr model.PR, icons render.Icons) {
 func (b *builder) footer(m Menu) {
 	if m.Plugin == "" {
 		b.line(0, "Refresh now", "refresh=true")
-		return
+	} else {
+		b.line(0, "Refresh now", "bash="+param(m.Plugin)+" param1=refresh terminal=false refresh=true")
+		b.line(0, "Open the interactive view", m.open(0, ""))
 	}
-	b.line(0, "Refresh now", "bash="+param(m.Plugin)+" param1=refresh terminal=false refresh=true")
-	b.line(0, "Open the interactive view", m.open(0, ""))
+	if m.ScriptFormat > 0 && m.ScriptFormat < ScriptFormat {
+		b.line(0, "Update the plugin script", m.updateAction())
+	}
+}
+
+// updateAction runs `swiftbar update` on the running plugin's folder in the background,
+// then SwiftBar runs the plugin again.
+func (m Menu) updateAction() string {
+	words := append(openWords(m.GH, 0, "")[1:], "swiftbar", "update")
+	if m.Plugin != "" {
+		words = append(words, "--dir", filepath.Dir(m.Plugin))
+	}
+	return bashParams(words) + " terminal=false refresh=true"
 }
 
 // rowLines are the rows as aligned plain text: who has the move, the number, the issue,

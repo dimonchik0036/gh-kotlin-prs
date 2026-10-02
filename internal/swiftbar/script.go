@@ -1,8 +1,10 @@
 package swiftbar
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -71,6 +73,74 @@ func FileName(interval time.Duration) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("--interval %s isn't a whole number of seconds", interval)
+}
+
+// Interval is the run interval a FileName says, false for another name.
+func Interval(name string) (time.Duration, bool) {
+	if !IsPlugin(name) {
+		return 0, false
+	}
+	d, err := time.ParseDuration(strings.TrimSuffix(strings.TrimPrefix(name, "kotlin-prs."), ".sh"))
+	if err != nil || d <= 0 {
+		return 0, false
+	}
+	return d, true
+}
+
+// writtenBy starts the line every script Script writes has, of any format.
+const writtenBy = `# Written by "gh kotlin-prs swiftbar install"`
+
+// ErrNotOurs is ReadScript's error for a file Script didn't write.
+var ErrNotOurs = errors.New(`not written by "gh kotlin-prs swiftbar install"`)
+
+// Installed is what an installed plugin script says of itself.
+type Installed struct {
+	// Format is its GH_KOTLIN_PRS_SCRIPT, 1 without one.
+	Format int
+	// GH and Config are the paths it bakes in, Config "" for none.
+	GH, Config string
+	// MaxAge is its run's --max-age.
+	MaxAge time.Duration
+}
+
+// ReadScript reads back what a script of any format bakes in.
+func ReadScript(text string) (Installed, error) {
+	if !strings.Contains(text, "\n"+writtenBy) {
+		return Installed{}, ErrNotOurs
+	}
+	in := Installed{Format: 1}
+	for _, line := range strings.Split(text, "\n") {
+		switch {
+		case strings.HasPrefix(line, "gh="):
+			in.GH = Unquote(strings.TrimPrefix(line, "gh="))
+		case strings.HasPrefix(line, "export GH_KOTLIN_PRS_CONFIG="):
+			in.Config = Unquote(strings.TrimPrefix(line, "export GH_KOTLIN_PRS_CONFIG="))
+		case strings.HasPrefix(line, "export GH_KOTLIN_PRS_SCRIPT="):
+			n, err := strconv.Atoi(strings.TrimPrefix(line, "export GH_KOTLIN_PRS_SCRIPT="))
+			if err != nil {
+				return Installed{}, fmt.Errorf("its GH_KOTLIN_PRS_SCRIPT: %w", err)
+			}
+			in.Format = n
+		case strings.HasPrefix(line, `exec "$gh" kotlin-prs list --format swiftbar --max-age `):
+			d, err := time.ParseDuration(strings.TrimPrefix(line, `exec "$gh" kotlin-prs list --format swiftbar --max-age `))
+			if err != nil {
+				return Installed{}, fmt.Errorf("its --max-age: %w", err)
+			}
+			in.MaxAge = d
+		}
+	}
+	if in.GH == "" {
+		return Installed{}, errors.New("it names no gh")
+	}
+	return in, nil
+}
+
+// Unquote undoes Quote.
+func Unquote(s string) string {
+	if len(s) >= 2 && strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+		return strings.ReplaceAll(s[1:len(s)-1], `'\''`, "'")
+	}
+	return s
 }
 
 // IsPlugin reports whether a file name is one of FileName's.

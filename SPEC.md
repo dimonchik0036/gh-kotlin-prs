@@ -280,6 +280,7 @@ gh kotlin-prs run <number> <command> [--yes]  # post a bot command (§8): dry-ru
 gh kotlin-prs run <number> request-review [login...] [--yes]  # request a review from code owners (§8)
 gh kotlin-prs swiftbar install [--dir D] [--interval 30s] [--max-age 3m] [--force]  # the menu-bar plugin (§15)
 gh kotlin-prs swiftbar script [--interval 30s] [--max-age 3m]  # its script, for a manual install
+gh kotlin-prs swiftbar update [--dir D] [--interval I] [--max-age A]  # the installed plugin, with this script
 gh kotlin-prs open <number>        # browser
 ```
 
@@ -604,6 +605,11 @@ scripts/fetch-fixtures.sh
     request-review`). A click on the row itself opens the details too (hovering opens the submenu), and ⌥ shows the
     row's alternate, which opens the PR in the browser;
   - the footer: "Refresh now" (a live fetch, then SwiftBar runs the plugin again) and "Open the interactive view".
+    When the running script's format (`GH_KOTLIN_PRS_SCRIPT`, 1 without it) is older than `swiftbar.ScriptFormat`,
+    one more item, "Update the plugin script": `bash=<gh> param1=kotlin-prs param2=swiftbar param3=update
+    param4=--dir param5=<the folder of $SWIFTBAR_PLUGIN_PATH> terminal=false refresh=true` (no `--dir` without that
+    variable). Not in the title, no `!`. A newer format than the binary knows (a downgraded binary) gets nothing. A
+    future incompatible format would also gate which items the binary emits for old scripts; nothing is gated now.
   - Item texts are neutralized for SwiftBar: `|` becomes `¦`, newlines spaces, a leading `-` gets a zero-width space,
     and user text has `emojize=false symbolize=false`; parameter values with blanks are quoted.
   - Every item with a submenu has an action: a PR row the details' (`bash=exec … --pr N terminal=true`; `href=.`
@@ -633,7 +639,14 @@ scripts/fetch-fixtures.sh
     a script without it is format 1, what v0.4.0 to v0.5.2 wrote).
 - `swiftbar install` writes into SwiftBar's plugin folder (`defaults read com.ameba.SwiftBar PluginDirectory`) or
   `--dir`; it refuses when SwiftBar has no folder yet, and replaces an installed `kotlin-prs.*.sh` only with `--force`
-  (removing the other intervals' files).
+  (removing the other intervals' files). It writes atomically: a hidden temp file renamed over the plugin.
+- `swiftbar update [--dir D] [--interval I] [--max-age A]` rewrites the installed plugin with the current script,
+  from its own settings: the interval from its file name, gh's path from its `gh=` line, the config file from its
+  `export GH_KOTLIN_PRS_CONFIG=` (unquoted), the max-age from its run line. Flags override them (`--config` too); a
+  new interval renames the file (the new one written, then the old removed). A format-1 script's interval meant
+  freshness (its `--max-age` was half of it), so it becomes the max-age and the interval the default 30s. It refuses
+  a folder without the plugin (pointing to `install`), with several, and a file without the script's "Written by"
+  line (pointing to `install --force`). `install --force` still writes a fresh one from its flags.
 - Opening the interactive view from the menu: the items are `bash=exec param1=<gh> param2=kotlin-prs param3=--pr
   param4=N [param5=--post param6=<command>] terminal=true`. SwiftBar opens a new tab in the terminal of its Settings →
   Advanced → Terminal (Terminal, iTerm or Ghostty) and types `export <its SWIFTBAR_*/OS_* variables>; <bash> <params>`
