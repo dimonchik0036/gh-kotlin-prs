@@ -198,7 +198,10 @@ breaking change (RELEASING.md).
 ## 5. "Whose move" rules
 
 Bots (`KotlinBuild`, `kotlin-safemerge`, `*[bot]`) are ignored in every "someone commented" rule.
-`myLastActivity` is the latest of: last push, my last comment, my last review, my last thread reply.
+Slash-command comments (`/dry-run`, `/safe-merge`, …) are nobody's "comment": they're never a new comment and never an
+author's reply to a review.
+`myLastActivity` is the latest of: last push, my last comment, my last slash command, my last review, my last thread
+reply.
 
 **Mine:** the first rule that matches sets `Next`. Every rule that matches is added to `Reasons`.
 1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected, or got no response

@@ -375,9 +375,13 @@ func (f *facts) reviewed(login string) bool {
 	return false
 }
 
-// myLastActivity is the latest of the last push and my last comment, review or thread reply.
+// myLastActivity is the latest of the last push and my last comment, slash command,
+// review or thread reply.
 func (f *facts) myLastActivity() time.Time {
 	t := f.lastPush
+	if f.myLastCommand.After(t) {
+		t = f.myLastCommand
+	}
 	for _, e := range f.events {
 		if sameLogin(e.login, f.me) && e.at.After(t) {
 			t = e.at
@@ -407,7 +411,8 @@ func (f *facts) myOpinion() string {
 	return ""
 }
 
-// authorActivitySince returns "author pushed" or "author replied" if the author did so after t.
+// authorActivitySince returns "author pushed" or "author replied" if the author did so
+// after t. The author's slash commands aren't replies to a reviewer.
 func (f *facts) authorActivitySince(t time.Time) string {
 	if f.lastPush.After(t) {
 		return "author pushed"

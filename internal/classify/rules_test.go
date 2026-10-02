@@ -243,6 +243,19 @@ func TestMineRule4NewComment(t *testing.T) {
 			pr:   readyPR().thread(true, false, by("bob_user", at(60))),
 			next: model.NextMe, reason: "new thread comment from bob_user 1h ago",
 		},
+		{
+			name: "my bot command after it is my activity",
+			pr: readyPR().says("bob_user", "One test failed but it's unrelated", at(60)).
+				says(me, "/dry-run", at(70), rocket).gate(model.DryRun, 100, "passed", at(80)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"new comment"},
+		},
+		{
+			name: "someone else's command isn't my activity",
+			pr: readyPR().says("bob_user", "Is this ready?", at(60)).
+				says("carol_user", "/dry-run", at(70), rocket).gate(model.DryRun, 100, "passed", at(80)),
+			next: model.NextMe, reason: "new comment from bob_user 1h ago",
+		},
 	})
 }
 
@@ -419,6 +432,12 @@ func TestReviewRule3NotRequested(t *testing.T) {
 			name: "my approval was dismissed",
 			pr:   newPR("alice_user").reviewed(me, "DISMISSED", at(-30)),
 			next: model.NextAuthor, reason: "review dismissed, not re-requested; author pushed since", hidden: true,
+		},
+		{
+			name: "the author's bot command isn't a reply",
+			pr:   newPR("alice_user").reviewed(me, "COMMENTED", at(30)).says("alice_user", "/dry-run", at(40), rocket),
+			next: model.NextAuthor, reason: "commented 1h ago, not re-requested", hidden: true,
+			absent: []string{"author replied"},
 		},
 		{
 			name: "a bot comment isn't the author's",

@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A PR of yours no longer shows "new comment from …" as your move for a comment you already answered with a bot
+  command such as `/dry-run`: the command counts as your activity.
+
 ## v0.5.1 — 2026-10-02
 
 A fix for `run`'s question. The JSON output is unchanged (`"version": 1`).

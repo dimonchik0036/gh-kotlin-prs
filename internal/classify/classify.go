@@ -108,7 +108,10 @@ type facts struct {
 	// reviews by people other than the author and bots, oldest first.
 	reviews []github.Review
 	// events: non-bot comments, thread comments and COMMENTED reviews, slash commands excluded.
-	events         []event
+	events []event
+	// myLastCommand: my latest slash-command comment (/dry-run, /safe-merge, …), activity
+	// of mine though not an event.
+	myLastCommand  time.Time
 	requestedUsers map[string]bool
 	requestedTeams []string
 	// requestedAt: the latest REVIEW_REQUESTED event per user, if in the fetched timeline.
@@ -169,7 +172,13 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 	}
 	slices.SortStableFunc(f.reviews, func(a, b github.Review) int { return a.SubmittedAt.Compare(b.SubmittedAt) })
 	for _, cm := range raw.Comments.Nodes {
-		if cm.IsMinimized || c.isBot(cm.Author) || cm.Author == nil || IsCommand(cm.Body) {
+		if cm.IsMinimized || c.isBot(cm.Author) || cm.Author == nil {
+			continue
+		}
+		if IsCommand(cm.Body) {
+			if sameLogin(cm.Author.Login, f.me) && cm.CreatedAt.After(f.myLastCommand) {
+				f.myLastCommand = cm.CreatedAt
+			}
 			continue
 		}
 		f.events = append(f.events, event{login: cm.Author.Login, at: cm.CreatedAt, what: "comment", thread: -1, url: cm.URL})
