@@ -306,12 +306,30 @@ func TestAgesMoveBetweenRefreshes(t *testing.T) {
 
 func selectedLine(t *testing.T, h *harness) string {
 	t.Helper()
+	return ansi.Strip(styledSelectedLine(t, h))
+}
+
+// styledSelectedLine is the selected line with its escapes.
+func styledSelectedLine(t *testing.T, h *harness) string {
+	t.Helper()
 	for _, line := range strings.Split(h.m.content(), "\n") {
 		if strings.Contains(line, "\x1b[7m") {
-			return ansi.Strip(line)
+			return line
 		}
 	}
 	t.Fatalf("no selected line:\n%s", h.screen())
+	return ""
+}
+
+// lineWith is the line of the screen, with its escapes, that shows text.
+func lineWith(t *testing.T, h *harness, text string) string {
+	t.Helper()
+	for _, line := range strings.Split(h.m.content(), "\n") {
+		if strings.Contains(ansi.Strip(line), text) {
+			return line
+		}
+	}
+	t.Fatalf("no line with %q:\n%s", text, h.screen())
 	return ""
 }
 
@@ -344,6 +362,39 @@ func TestSelection(t *testing.T) {
 	}
 	if got := selectedLine(t, h); !strings.Contains(got, "#90004") {
 		t.Errorf("a refresh moved the selection: %q", got)
+	}
+}
+
+// The selected row keeps the links it has unselected, in the selection's style alone, and
+// spans the screen; without hyperlinks it has none.
+func TestSelectedRowLinks(t *testing.T) {
+	selection := strings.Split(styleSelected.Render("x"), "x")
+	for _, on := range []bool{true, false} {
+		h := newHarness(t, func(_ *harness, opts *Options) { opts.Render.Hyperlinks = on })
+		h.start()
+		pr, _ := h.m.current()
+		line := styledSelectedLine(t, h)
+		h.keys("j")
+		unselected := render.StripStyles(lineWith(t, h, fmt.Sprintf("#%d", pr.Number)))
+		if !strings.HasPrefix(line, selection[0]) || !strings.HasSuffix(line, selection[1]) {
+			t.Fatalf("links %v: not in the selection's style: %q", on, line)
+		}
+		inner := strings.TrimSuffix(strings.TrimPrefix(line, selection[0]), selection[1])
+		if render.StripStyles(inner) != inner {
+			t.Errorf("links %v: styles inside the selection: %q", on, line)
+		}
+		if rest, ok := strings.CutPrefix(inner, unselected); !ok || strings.TrimRight(rest, " ") != "" {
+			t.Errorf("links %v: the selected row is %q, unselected %q", on, inner, unselected)
+		}
+		if w := ansi.StringWidth(line); w != 120 {
+			t.Errorf("links %v: the selection is %d wide", on, w)
+		}
+		if has := strings.Contains(line, ansi.SetHyperlink(pr.URL)); has != on {
+			t.Errorf("links %v: the PR's link in the selected row: %v: %q", on, has, line)
+		}
+		if !on && strings.Contains(line, "\x1b]8;") {
+			t.Errorf("a hyperlink without hyperlinks: %q", line)
+		}
 	}
 }
 

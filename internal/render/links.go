@@ -100,6 +100,10 @@ func NewWriter(w io.Writer, environ []string, hyperlinks bool) io.Writer {
 
 var sgr = regexp.MustCompile("\x1b\\[[0-9;:]*m")
 
+// StripStyles drops the SGR sequences of s (colors, bold, faint) and keeps everything
+// else: its hyperlinks stay.
+func StripStyles(s string) string { return sgr.ReplaceAllString(s, "") }
+
 // sgrStripper drops SGR sequences (colors, bold, faint) and keeps everything else.
 type sgrStripper struct{ w io.Writer }
 

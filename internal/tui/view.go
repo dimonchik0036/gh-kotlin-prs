@@ -139,7 +139,8 @@ func (m *Model) listLayout() (lines []string, selected, top int) {
 				if k > 0 {
 					top = len(lines)
 				}
-				plain := ansi.Strip(line)
+				// Without the row's own styles, whose resets would end the highlight; its links stay.
+				plain := render.StripStyles(line)
 				line = styleSelected.Render(plain + strings.Repeat(" ", max(0, m.width-ansi.StringWidth(plain))))
 			}
 			lines = append(lines, line)

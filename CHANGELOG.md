@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- The selected row of the interactive view keeps its links: its PR number, issue IDs, DR / SM cells and reason
+  are clickable like the other rows'.
+
 ## v0.6.0 — 2026-10-02
 
 Requesting reviews from code owners, fixes to whose move a PR is, and a faster menu-bar plugin. The JSON output only
