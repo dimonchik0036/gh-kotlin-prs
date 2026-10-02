@@ -219,7 +219,11 @@ A pending review request to someone, made after their activity, hands that activ
 timeline (its last items, so after many commits it may be missing, and nothing is handed over); "pending" means
 they're in the review requests now. It applies to rules 2, 3 and 4; the thread or comment still shows in the details.
 
-**Mine:** the first rule that matches sets `Next`. Every rule that matches is added to `Reasons`.
+**Mine:** the first rule that matches sets `Next`. Every rule that matches is added to `Reasons`. Reviewers usually
+come after CI, so 2a and 2c wait for a run: while a dry-run or safe-merge is requested or running (rule 5) they don't
+set `Next` and their reasons come after all the others, so the PR is CI's (unless an earlier rule makes it mine), with
+"re-request…" or "assign reviewers…" as secondary lines; once the run passed, they make it mine (and the TUI hints
+`A` either way). A failed run is rule 1's.
 1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected for a cause of mine, or got no
    response → "safe-merge failed 2h ago", "dry-run rejected: <reason>". Whose a rejection is, by the bot's reason
    (§3):
@@ -233,10 +237,10 @@ they're in the review requests now. It applies to rules 2, 3 and 4; the thread o
    on whose move it leaves.
 2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED, newer than my last push, and they weren't
    re-requested since (a re-request without a push says "I answered, your turn").
-2a. **Me:** a code owner is marked `🔄` (commented and needs a re-request) → "re-request review from alice_user"; one
+2a. **Me** (after a run going on): a code owner is marked `🔄` (commented and needs a re-request) → "re-request review from alice_user"; one
     reason lists every such owner: "re-request review from alice_user, bob_user".
 2b. **Me:** a missing code-owner rule where every listed owner who hasn't reviewed is `⏳` → "all owners for /analysis/ unavailable".
-2c. **Me:** a missing code-owner rule nobody was asked for: the bot shows `UNASSIGNED`, the rule has owners besides me,
+2c. **Me** (after a run going on): a missing code-owner rule nobody was asked for: the bot shows `UNASSIGNED`, the rule has owners besides me,
     and none of them, nor a team of it, is requested now (the table lags behind a request, so the live requests
     decide) → "assign reviewers for /analysis/"; one reason lists every such rule's first path. A rule without owners
     (`#NO_OWNERS`) isn't one: any reviewer's decision covers it.

@@ -312,6 +312,39 @@ func TestMineRule2cAssignReviewers(t *testing.T) {
 	})
 }
 
+// Reviewers usually come after CI: while a dry-run or safe-merge goes on, 2a and 2c leave
+// the move to it (their reasons come after); once it passed, they're mine.
+func TestMineReviewersAfterRuns(t *testing.T) {
+	unassigned := ownerRow{path: "/analysis/", team: "kotlin-analysis-api", members: []string{"alice_user", "carol_user"}, mark: "❌"}
+	commented := ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"dave_user", "erin_user"}, mark: "🔄", assignees: []string{"dave_user"}}
+	runRuleCases(t, model.SectionMine, []ruleCase{
+		{
+			name: "unassigned, a dry-run running",
+			pr:   newPR(me).ownersRed().owners(unassigned).says(me, "/dry-run", at(100), rocket).gate(model.DryRun, 100, "", at(110)),
+			next: model.NextCI, reason: "dry-run running 10m ago",
+			extra: []string{"assign reviewers for /analysis/"},
+		},
+		{
+			name: "unassigned, the dry-run passed",
+			pr:   newPR(me).ownersRed().owners(unassigned).says(me, "/dry-run", at(100), rocket).gate(model.DryRun, 100, "passed", at(110)),
+			next: model.NextMe, reason: "assign reviewers for /analysis/",
+		},
+		{
+			name: "🔄, a safe-merge requested",
+			pr: newPR(me).ownersRed().owners(commented).reviewed("dave_user", "COMMENTED", at(20)).
+				says(me, "/safe-merge", at(115)),
+			next: model.NextCI, reason: "safe-merge requested 5m ago",
+			extra: []string{"re-request review from dave_user"},
+		},
+		{
+			name: "a failed run is rule 1's anyway",
+			pr:   newPR(me).ownersRed().owners(unassigned).says(me, "/dry-run", at(100), rocket).gate(model.DryRun, 100, "failed", at(110)),
+			next: model.NextMe, reason: "dry-run failed 10m ago",
+			extra: []string{"assign reviewers for /analysis/"},
+		},
+	})
+}
+
 func TestMineRule2bOwnersUnavailable(t *testing.T) {
 	runRuleCases(t, model.SectionMine, []ruleCase{
 		{

@@ -11,18 +11,27 @@ import (
 )
 
 // rule is one "whose move" rule (SPEC §5). The first matching rule of a section sets
-// Next; every matching rule adds its reasons.
+// Next; every matching rule adds its reasons. A rule that yields (afterRuns, while a run is
+// requested or running) doesn't set Next, and its reasons come after all the others.
 type rule struct {
 	name   string
 	next   model.NextAction
 	hidden bool
 	match  func(f *facts) []model.Reason
+	// afterRuns: reviewers usually come after CI, so while a dry-run or safe-merge goes on,
+	// the rule leaves the move to the others (rule 5, CI, unless an earlier one is mine).
+	afterRuns bool
 }
 
 func applyRules(f *facts, rules []rule) {
+	var yielded []model.Reason
 	for _, r := range rules {
 		reasons := r.match(f)
 		if len(reasons) == 0 {
+			continue
+		}
+		if r.afterRuns && len(mineRunInProgress(f)) > 0 {
+			yielded = append(yielded, reasons...)
 			continue
 		}
 		if f.pr.Next == "" {
@@ -31,6 +40,7 @@ func applyRules(f *facts, rules []rule) {
 		}
 		f.pr.Reasons = append(f.pr.Reasons, reasons...)
 	}
+	f.pr.Reasons = append(f.pr.Reasons, yielded...)
 	if f.pr.Draft && f.pr.Section != model.SectionMine {
 		f.pr.Hidden = true
 	}
@@ -39,9 +49,9 @@ func applyRules(f *facts, rules []rule) {
 var mineRules = []rule{
 	{name: "run failed", next: model.NextMe, match: mineRunFailed},
 	{name: "changes requested", next: model.NextMe, match: mineChangesRequested},
-	{name: "re-request", next: model.NextMe, match: mineReRequest},
+	{name: "re-request", next: model.NextMe, match: mineReRequest, afterRuns: true},
 	{name: "owners unavailable", next: model.NextMe, match: mineOwnersUnavailable},
-	{name: "assign reviewers", next: model.NextMe, match: mineAssignReviewers},
+	{name: "assign reviewers", next: model.NextMe, match: mineAssignReviewers, afterRuns: true},
 	{name: "unresolved thread", next: model.NextMe, match: mineUnresolvedThreads},
 	{name: "new comment", next: model.NextMe, match: mineNewComment},
 	{name: "run in progress", next: model.NextCI, match: mineRunInProgress},
@@ -108,7 +118,8 @@ func mineChangesRequested(f *facts) []model.Reason {
 	return linked("changes requested by "+strings.Join(logins, ", "), url)
 }
 
-// 2a. A code owner is marked 🔄 and isn't re-requested yet.
+// 2a. A code owner is marked 🔄 and isn't re-requested yet. While a run goes on, after it
+// (afterRuns).
 func mineReRequest(f *facts) []model.Reason {
 	var logins []string
 	for _, rule := range f.missingRules() {
@@ -147,7 +158,8 @@ func mineOwnersUnavailable(f *facts) []model.Reason {
 	return reasons
 }
 
-// 2c. A missing code-owner rule nobody was asked for: the bot shows UNASSIGNED, it has
+// 2c (after a run going on, like 2a). A missing code-owner rule nobody was asked for: the
+// bot shows UNASSIGNED, it has
 // owners besides me, and none of them, nor a team of it, is requested now (the table
 // lags behind a request).
 func mineAssignReviewers(f *facts) []model.Reason {

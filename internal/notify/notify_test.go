@@ -289,3 +289,24 @@ func TestRejectionNotifiesWhateverTheMove(t *testing.T) {
 		t.Errorf("events %v", got)
 	}
 }
+
+// A run passing and the PR becoming my move for its reviewers (rule 2c, which waits for
+// runs) notifies both, deliberately: the pass, then "your move — assign reviewers".
+func TestPassThenAssignReviewers(t *testing.T) {
+	running := model.PR{Number: 7, Title: "Example change", Section: model.SectionMine, Next: model.NextCI,
+		DryRun:  model.Run{Kind: model.DryRun, State: model.RunRunning, Started: time.Unix(100, 0), BuildURL: "https://ci.example.org/build/1"},
+		Reasons: []model.Reason{{Text: "dry-run running 10m ago"}, {Text: "assign reviewers for /analysis/"}}}
+	passed := running
+	passed.Next = model.NextMe
+	passed.DryRun.State = model.RunPassed
+	passed.Reasons = []model.Reason{{Text: "assign reviewers for /analysis/"}}
+	events := Diff([]model.PR{running}, []model.PR{passed})
+	got := kinds(events)
+	slices.Sort(got)
+	if !slices.Equal(got, []string{"myMove #7", "runPassed #7"}) {
+		t.Fatalf("events %v", kinds(events))
+	}
+	if i := slices.IndexFunc(events, func(e Event) bool { return e.Kind == MyMove }); events[i].Body != "assign reviewers for /analysis/" {
+		t.Errorf("myMove %+v", events[i])
+	}
+}

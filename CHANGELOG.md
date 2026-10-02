@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- While a dry-run or safe-merge of yours is requested or running, "re-request review…" and "assign reviewers…" wait
+  for it: the PR is CI's, with them as secondary lines, and your move once the run passed.
 - The code-owners table is read by its links: a person is whoever the profile link names, so full names the bot may
   add next to logins don't break it, and the review picker shows them (`judy_user (Judy Doe)`).
 - A safe-merge or dry-run rejected for missing code-owner approval no longer makes a PR of yours your move: only
