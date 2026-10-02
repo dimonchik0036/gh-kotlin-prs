@@ -188,6 +188,9 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 	b.line(sub, "Open on GitHub", "href="+param(pr.URL))
 	if m.Plugin != "" {
 		b.line(sub, "Copy link", "bash="+param(m.Plugin)+" param1=copy param2="+param(pr.URL)+" terminal=false")
+		if pr.Branch != "" {
+			b.line(sub, "Copy branch", "bash="+param(m.Plugin)+" param1=copy param2="+param(pr.Branch)+" terminal=false")
+		}
 		cmds := actions.Available(pr, m.Viewer)
 		reRequest, assign := reviewItems(pr, m.Viewer)
 		if len(cmds) > 0 || len(reRequest) > 0 || assign {

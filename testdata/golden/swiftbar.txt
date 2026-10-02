@@ -21,6 +21,7 @@ Mine (3) | font=Menlo-Bold size=12
 -----
 --Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90006
 --Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90006 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=topic/KT-990004-example terminal=false
 -----
 --/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
 --/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
@@ -45,6 +46,7 @@ Mine (3) | font=Menlo-Bold size=12
 -----
 --Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90007
 --Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90007 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=topic/KT-990001-example terminal=false
 -----
 --/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
 --/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
@@ -69,6 +71,7 @@ Mine (3) | font=Menlo-Bold size=12
 -----
 --Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90005
 --Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90005 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=topic/KT-990003-example terminal=false
 -----
 --/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
 --/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
@@ -84,6 +87,7 @@ Recently merged (24h) (1) | font=Menlo-Bold size=12 href=.
 -------
 ----Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/90004
 ----Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/90004 terminal=false
+----Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=topic/KT-990005-example terminal=false
 --✓  #90004  KT-990005  Example change | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90004
 ---
 Refresh now | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=refresh terminal=false refresh=true

@@ -749,7 +749,8 @@ func (m *Model) openHelp() {
 	m.viewport.GotoTop()
 }
 
-// onPRKey handles the actions on the current PR: open it, open its build, copy its URL.
+// onPRKey handles the actions on the current PR: open it, open its build, copy its URL or
+// its branch name.
 func (m *Model) onPRKey(action string) tea.Cmd {
 	pr, ok := m.current()
 	if !ok {
@@ -764,13 +765,24 @@ func (m *Model) onPRKey(action string) tea.Cmd {
 		}
 		m.setNote("#" + strconv.Itoa(pr.Number) + " has no build")
 	case "copy":
-		copyText, url := m.opts.Copy, pr.URL
-		if copyText == nil {
-			return func() tea.Msg { return copyMsg{text: url, err: errors.ErrUnsupported} }
+		return m.copy(pr.URL)
+	case "copyBranch":
+		if pr.Branch == "" {
+			m.setNote("#" + strconv.Itoa(pr.Number) + " has no branch")
+			return nil
 		}
-		return func() tea.Msg { return copyMsg{text: url, err: copyText(url)} }
+		return m.copy(pr.Branch)
 	}
 	return nil
+}
+
+// copy puts text on the clipboard, or through the terminal (OSC 52) when that fails.
+func (m *Model) copy(text string) tea.Cmd {
+	copyText := m.opts.Copy
+	if copyText == nil {
+		return func() tea.Msg { return copyMsg{text: text, err: errors.ErrUnsupported} }
+	}
+	return func() tea.Msg { return copyMsg{text: text, err: copyText(text)} }
 }
 
 func (m *Model) open(url string) tea.Cmd {

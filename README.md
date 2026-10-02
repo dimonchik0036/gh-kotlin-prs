@@ -69,6 +69,7 @@ cache when the last fetch is at most 30 minutes old (config `startupMaxAge`), el
 j/k, up/down  select            enter  details (esc: back)     o  open the PR       r  refresh now
 tab           next section      /      filter                  b  open its build    ?  help and symbols
 a             toggle --all      g/G    first / last            y  copy its URL      q  quit
+                                                               Y  copy its branch
 x             commands for it: D dry-run, R dry-run --retry, M safe-merge, C cancel-coordinator, F fixup, O codeowners
 A             request a review from code owners
 ```
@@ -191,7 +192,7 @@ gh kotlin-prs swiftbar script > ~/your-plugin-folder/kotlin-prs.30s.sh && chmod 
 
 The icon turns red while a dry-run or safe-merge of yours failed or was rejected, and shows `⋯` while one runs and `!`
 when refreshes keep failing and the menu shows old data. Each PR's submenu has whose move it is and why, its runs,
-reviewers and missing code owners, links, and the commands you could post now. A click on the PR's row, "Details in the
+reviewers and missing code owners, links ("Copy link", "Copy branch"), and the commands you could post now. A click on the PR's row, "Details in the
 interactive view" and the commands open the interactive view on that PR in a terminal, a command with its `[y/N]`
 question; nothing is posted from the menu. "Re-request review from …" runs `run <number> request-review` there, which
 asks too, and "Assign reviewers…" opens the review tree on a PR with a rule nobody was asked for. Hold ⌥ to open a PR

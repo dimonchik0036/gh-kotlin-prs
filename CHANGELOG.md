@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `Y` (config `copyBranch`) copies the selected PR's branch name in the interactive view, and the menu-bar plugin's
+  PR submenu has "Copy branch" after "Copy link".
 - The menu-bar plugin runs every 30s and fetches every 3m: `swiftbar install` and `swiftbar script` take
   `--interval` (how often SwiftBar runs it, 30s) and `--max-age` (how old cached data a run takes, 3m) instead of one
   interval of 3m. A run picks up within 30s what the interactive view fetched or a command changed. Existing plugins

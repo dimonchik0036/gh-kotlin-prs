@@ -34,6 +34,7 @@ var Actions = []Action{
 	{"open", "open the PR in the browser", []string{"o"}},
 	{"build", "open its newest build (or the bot comment)", []string{"b"}},
 	{"copy", "copy its URL", []string{"y"}},
+	{"copyBranch", "copy its branch name", []string{"Y"}},
 	{"actions", "the commands that can be posted on it now", []string{"x"}},
 	{"dryRun", "post /dry-run on it, after asking", []string{"D"}},
 	{"dryRunRetry", "post /dry-run --retry, after asking", []string{"R"}},

@@ -337,3 +337,20 @@ func TestUpdateItem(t *testing.T) {
 		}
 	}
 }
+
+// "Copy branch" follows "Copy link", through the script's copy verb; a PR without a
+// branch name has none.
+func TestCopyBranchItem(t *testing.T) {
+	m := fixtureMenu(t)
+	m.PRs = []model.PR{{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Branch: "bob_user/KT-1.fix", Author: m.Viewer,
+		Section: model.SectionMine, Next: model.NextMe}}
+	want := "\n--Copy link | bash=\"" + plugin + "\" param1=copy param2=https://example.org/pull/7 terminal=false\n" +
+		"--Copy branch | bash=\"" + plugin + "\" param1=copy param2=bob_user/KT-1.fix terminal=false\n"
+	if out := Render(m); !strings.Contains(out, want) {
+		t.Errorf("the menu lacks %q:\n%s", want, out)
+	}
+	m.PRs[0].Branch = ""
+	if out := Render(m); strings.Contains(out, "Copy branch") {
+		t.Errorf("a branch item without a branch:\n%s", out)
+	}
+}

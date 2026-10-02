@@ -323,15 +323,15 @@ gh kotlin-prs open <number>        # browser
   - unresolved threads (author, path, first line);
   - all reasons.
 - **Keys:** `↑↓/jk` select (`g`/`G` first/last), `enter` details, `o` open the PR, `b` open its newest build (or the
-  bot comment before a build exists), `y` copy its URL (system clipboard, else OSC 52), `r` refresh, `/` filter (over
-  the cells' text; `enter` keeps it, `esc` clears it), `tab`/`shift+tab` next/previous section, `a` toggle `--all`,
+  bot comment before a build exists), `y` copy its URL (system clipboard, else OSC 52), `Y` its branch name (as `show`
+  prints it), `r` refresh, `/` filter (over the cells' text; `enter` keeps it, `esc` clears it), `tab`/`shift+tab`
+  next/previous section, `a` toggle `--all`,
   `?` help with the symbol legend (scrollable), `q` quit; `ctrl+c` always quits. The commands of §8, in the list and
   in the details: `D` dry-run, `R` dry-run --retry, `M` safe-merge, `C` cancel-coordinator, `F` fixup, `O` codeowners,
   and `x` for a menu of the ones that can be posted now; `A` requests a review (§8). Config `keys` rebinds them by action
   (`config.Actions`: up, down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all,
-  open, build, copy, actions, dryRun, dryRunRetry, safeMerge, cancelCoordinator, fixup, codeowners, requestReview,
-  refresh, help, quit): a key or a list
-  replaces that action's keys. An unknown action, an action without keys, or a key bound twice is a config error.
+  open, build, copy, copyBranch, actions, dryRun, dryRunRetry, safeMerge, cancelCoordinator, fixup, codeowners,
+  requestReview, refresh, help, quit): a key or a list replaces that action's keys. An unknown action, an action without keys, or a key bound twice is a config error.
   Inside the filter, enter and esc are fixed.
 - **Refresh:** in the background every `refresh` (3m) and on `r`. The UI never blocks while a fetch runs; a spinner
   shows it. One fetch at a time: `r` during a refresh only notes "already refreshing", and the timer waits for it. `r`
@@ -597,8 +597,8 @@ scripts/fetch-fixtures.sh
     count;
   - a PR's submenu: the whole title (gray, no action), "Details in the interactive view", whose move it is and every
     reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the reviewers and
-    the code-owner rules still missing, "Open on GitHub", "Copy link", and the commands `actions.Available` allows
-    now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);
+    the code-owner rules still missing, "Open on GitHub", "Copy link", "Copy branch" (through the script's `copy`
+    verb), and the commands `actions.Available` allows now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);
     nothing is ever posted from the menu. On my open PRs, "Re-request review from a, b…" when there are default picks
     (§8) runs `run N request-review` in the terminal (no `exec`: the tab stays open with the outcome), which asks
     y/N there, and "Assign reviewers…" while a rule is unassigned opens the review picker (`--pr N --post

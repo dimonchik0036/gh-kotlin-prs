@@ -375,6 +375,10 @@ func TestDetail(t *testing.T) {
 	if got := h.statusBar(); !strings.HasPrefix(got, "copied "+pr.URL) && !strings.Contains(got, "copied "+pr.URL) {
 		t.Errorf("status bar %q", got)
 	}
+	h.keys("Y")
+	if !slices.Equal(h.copied, []string{pr.URL, "topic/KT-990004-example"}) || !strings.Contains(h.statusBar(), "copied topic/KT-990004-example") {
+		t.Errorf("the branch: copied %q, status bar %q", h.copied, h.statusBar())
+	}
 	h.keys("esc")
 	h.contains("Mine (3)")
 }
@@ -613,5 +617,24 @@ func TestNotifications(t *testing.T) {
 	h.keys("r")
 	if diffs != 2 {
 		t.Errorf("a failed refresh was diffed: %d diffs", diffs)
+	}
+}
+
+// Y copies the selected PR's branch name, in the list too; without a clipboard it goes
+// through the terminal (OSC 52), like the URL.
+func TestCopyBranch(t *testing.T) {
+	h := newHarness(t, nil)
+	h.start()
+	h.keys("j", "Y")
+	if pr, _ := h.m.current(); pr.Number != 90007 || !slices.Equal(h.copied, []string{pr.Branch}) || pr.Branch == "" ||
+		!strings.Contains(h.statusBar(), "copied "+pr.Branch) {
+		t.Errorf("#%d: copied %q, status bar %q", pr.Number, h.copied, h.statusBar())
+	}
+	h = newHarness(t, func(_ *harness, opts *Options) { opts.Copy = nil })
+	h.start()
+	cmd := h.m.onPRKey("copyBranch")
+	_, fallback := h.m.Update(cmd())
+	if fallback == nil || !strings.Contains(h.statusBar(), "copied topic/KT-990004-example") {
+		t.Errorf("no clipboard: %q", h.statusBar())
 	}
 }
