@@ -156,7 +156,7 @@ func pluginScript(e env, global globalOptions, interval time.Duration) (script, 
 		}
 	}
 	maxAge := max(interval/2, 10*time.Second).Truncate(time.Second)
-	return swiftbar.Script(swiftbar.ScriptOptions{GH: gh, Config: cfgPath, MaxAge: maxAge, Version: e.version}), name, nil
+	return swiftbar.Script(swiftbar.ScriptOptions{GH: gh, Config: cfgPath, MaxAge: maxAge}), name, nil
 }
 
 // installSwiftbar writes the plugin into the folder, replacing an installed one only

@@ -622,8 +622,11 @@ scripts/fetch-fixtures.sh
   "About" items. Without arguments it runs `list --format swiftbar --max-age <interval/2, at least 10s>`, so a fresh
   fetch of the TUI or the CLI answers; with `copy <url>` and `refresh` it serves those clicks of the menu.
   - Its xbar tags fill SwiftBar's plugin details, with the names SwiftBar 2.1.1's `PluginMetadata` reads: `title`,
-    `version` (the `--version` of the tool that wrote it), `author` and `author.github` (dimonchik0036), `desc`,
-    `dependencies` (gh) and `about` (the repo; not xbar's `abouturl`). No schedule: the file name has the interval.
+    `author` and `author.github` (dimonchik0036), `desc`, `dependencies` (gh) and `about` (the repo; not xbar's
+    `abouturl`). No schedule: the file name has the interval. No version either: the script doesn't depend on the
+    binary's, and it would go stale after every `gh extension upgrade`.
+  - It exports `GH_KOTLIN_PRS_SCRIPT=<format>` (`swiftbar.ScriptFormat`, bumped on any change to the script's text;
+    a script without it is format 1, what v0.4.0 to v0.5.2 wrote).
 - `swiftbar install` writes into SwiftBar's plugin folder (`defaults read com.ameba.SwiftBar PluginDirectory`) or
   `--dir`; it refuses when SwiftBar has no folder yet, and replaces an installed `kotlin-prs.*.sh` only with `--force`
   (removing the other intervals' files).

@@ -144,7 +144,7 @@ func TestSwiftbarScript(t *testing.T) {
 	e, out, _ := testEnv(t, nil, "")
 	if got := run(context.Background(), []string{"swiftbar", "script", "--interval", "30s"}, e); got != exitOK ||
 		!strings.HasPrefix(out.String(), "#!/bin/bash\n") || !strings.Contains(out.String(), "--max-age 15s\n") ||
-		!strings.Contains(out.String(), "# <xbar.version>v0.0.0-test</xbar.version>\n") {
+		!strings.Contains(out.String(), "\nexport GH_KOTLIN_PRS_SCRIPT=2\n") {
 		t.Errorf("exit %d:\n%s", got, out.String())
 	}
 }

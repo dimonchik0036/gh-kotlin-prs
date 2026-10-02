@@ -10,18 +10,18 @@ import (
 )
 
 func TestScript(t *testing.T) {
-	s := Script(ScriptOptions{GH: "/opt/homebrew/bin/gh", Config: "/Users/alice_user/my config.yml", MaxAge: time.Minute, Version: "v0.4.0"})
+	s := Script(ScriptOptions{GH: "/opt/homebrew/bin/gh", Config: "/Users/alice_user/my config.yml", MaxAge: time.Minute})
 	golden(t, "swiftbar-script.sh", s)
 	// SwiftBar 2.1.1's PluginMetadata reads each tag between "<xbar.<key>>" and its close.
-	for key, want := range map[string]string{"title": "gh kotlin-prs", "version": "v0.4.0", "author": "dimonchik0036",
+	for key, want := range map[string]string{"title": "gh kotlin-prs", "author": "dimonchik0036",
 		"author.github": "dimonchik0036", "dependencies": "gh", "about": "https://github.com/dimonchik0036/gh-kotlin-prs"} {
 		_, rest, _ := strings.Cut(s, "<xbar."+key+">")
 		if got, _, _ := strings.Cut(rest, "</xbar."+key+">"); got != want {
 			t.Errorf("xbar.%s is %q, want %q", key, got, want)
 		}
 	}
-	if strings.Contains(s, "schedule>") {
-		t.Error("a schedule besides the file name's")
+	if strings.Contains(s, "schedule>") || strings.Contains(s, "version>") {
+		t.Error("a schedule besides the file name's, or a version that goes stale")
 	}
 	for _, want := range []string{
 		"#!/bin/bash\n",
@@ -30,6 +30,7 @@ func TestScript(t *testing.T) {
 		"export PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin\n",
 		"export GH_KOTLIN_PRS_CONFIG='/Users/alice_user/my config.yml'\n",
 		"export GH_KOTLIN_PRS_GH=/opt/homebrew/bin/gh\n",
+		"export GH_KOTLIN_PRS_SCRIPT=2\n",
 		`refresh) exec "$gh" kotlin-prs list --format swiftbar --max-age 0 > /dev/null ;;`,
 		"exec \"$gh\" kotlin-prs list --format swiftbar --max-age 1m0s\n",
 	} {

@@ -6,6 +6,7 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- The plugin script drops its version line, which went stale with every upgrade.
 - While a dry-run or safe-merge of yours is requested or running, "re-request review…" and "assign reviewers…" wait
   for it: the PR is CI's, with them as secondary lines, and your move once the run passed.
 - The code-owners table is read by its links: a person is whoever the profile link names, so full names the bot may

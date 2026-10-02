@@ -183,9 +183,6 @@ manual install, write the script yourself and make it executable:
 gh kotlin-prs swiftbar script > ~/your-plugin-folder/kotlin-prs.3m.sh && chmod +x ~/your-plugin-folder/kotlin-prs.3m.sh
 ```
 
-The Version in SwiftBar's plugin details is the version that wrote the plugin: after an upgrade,
-`gh kotlin-prs swiftbar install --force` refreshes it.
-
 The icon turns red while a dry-run or safe-merge of yours failed or was rejected, and shows `⋯` while one runs and `!`
 when refreshes keep failing and the menu shows old data. Each PR's submenu has whose move it is and why, its runs,
 reviewers and missing code owners, links, and the commands you could post now. A click on the PR's row, "Details in the

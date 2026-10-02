@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+// ScriptFormat is the version of the plugin script's text, which the script exports as
+// GH_KOTLIN_PRS_SCRIPT for the menu to see (none was format 1, v0.4.0 to v0.5.2). Bump it
+// on any change to the script's text: the menu then offers `swiftbar update`.
+const ScriptFormat = 2
+
 // ScriptOptions are what the plugin script bakes in: SwiftBar runs it with a bare
 // environment, so it needs absolute paths.
 type ScriptOptions struct {
@@ -16,8 +21,6 @@ type ScriptOptions struct {
 	Config string
 	// MaxAge lets a run answer from the cache when that's this fresh.
 	MaxAge time.Duration
-	// Version is the tool's version that writes the script, for SwiftBar's plugin details.
-	Version string
 }
 
 // Script is the plugin script. Without arguments it prints the menu; SwiftBar runs it
@@ -25,10 +28,10 @@ type ScriptOptions struct {
 // GH_KOTLIN_PRS_GH tells the menu which gh opens the interactive view.
 func Script(o ScriptOptions) string {
 	var b strings.Builder
-	// SwiftBar's plugin details show the xbar tags; the schedule is the file name's.
-	writef(&b, `#!/bin/bash
+	// SwiftBar's plugin details show the xbar tags; the schedule is the file name's. No
+	// version: it would go stale with every upgrade of the extension.
+	b.WriteString(`#!/bin/bash
 # <xbar.title>gh kotlin-prs</xbar.title>
-# <xbar.version>%s</xbar.version>
 # <xbar.author>dimonchik0036</xbar.author>
 # <xbar.author.github>dimonchik0036</xbar.author.github>
 # <xbar.desc>Your PRs: whose move it is, their dry-runs, safe-merges and reviews.</xbar.desc>
@@ -38,8 +41,9 @@ func Script(o ScriptOptions) string {
 # <swiftbar.hideAbout>true</swiftbar.hideAbout>
 #
 # Written by "gh kotlin-prs swiftbar install"; "gh kotlin-prs swiftbar script" prints it.
-`, strings.NewReplacer("<", "", ">", "", "\n", " ").Replace(o.Version))
+`)
 	writef(&b, "export PATH=%s\n", Quote(filepath.Dir(o.GH)+":/usr/bin:/bin:/usr/sbin:/sbin"))
+	writef(&b, "export GH_KOTLIN_PRS_SCRIPT=%d\n", ScriptFormat)
 	writef(&b, "export GH_KOTLIN_PRS_GH=%s\n", Quote(o.GH))
 	if o.Config != "" {
 		writef(&b, "export GH_KOTLIN_PRS_CONFIG=%s\n", Quote(o.Config))
