@@ -566,8 +566,11 @@ scripts/fetch-fixtures.sh
     reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the reviewers and
     the code-owner rules still missing, "Open on GitHub", "Copy link", and the commands `actions.Available` allows
     now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);
-    nothing is ever posted from the menu. A click on the row itself opens the details too (hovering opens the submenu),
-    and ⌥ shows the row's alternate, which opens the PR in the browser;
+    nothing is ever posted from the menu. On my open PRs, "Re-request review from a, b…" when there are default picks
+    (§8) runs `run N request-review` in the terminal (no `exec`: the tab stays open with the outcome), which asks
+    y/N there, and "Assign reviewers…" while a rule is unassigned opens the review picker (`--pr N --post
+    request-review`). A click on the row itself opens the details too (hovering opens the submenu), and ⌥ shows the
+    row's alternate, which opens the PR in the browser;
   - the footer: "Refresh now" (a live fetch, then SwiftBar runs the plugin again) and "Open the interactive view".
   - Item texts are neutralized for SwiftBar: `|` becomes `¦`, newlines spaces, a leading `-` gets a zero-width space,
     and user text has `emojize=false symbolize=false`; parameter values with blanks are quoted.

@@ -270,3 +270,50 @@ func TestParentsHaveAnAction(t *testing.T) {
 		}
 	}
 }
+
+// A PR of mine with someone to re-request gets an item that runs `run N request-review`
+// in the terminal; one with an unassigned code-owner rule an item that opens the picker.
+func TestReviewItems(t *testing.T) {
+	m := fixtureMenu(t)
+	pr := model.PR{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Author: m.Viewer, Section: model.SectionMine,
+		Next: model.NextMe, LastPush: time.Unix(2000, 0),
+		CodeOwners: model.CodeOwnersStatus{State: model.CodeOwnersMissing, Rules: []model.CodeOwnerRule{
+			{Paths: []string{"/analysis/"}, Mark: model.MarkReRequest, Assignees: []model.Assignee{{Login: "bob_user"}},
+				Owners: []model.Owner{{Login: "bob_user"}, {Login: "carol_user"}}},
+			{Paths: []string{"/compiler/fir/"}, Mark: model.MarkNoReview, Owners: []model.Owner{{Login: "dave_user"}}},
+		}},
+		Reviewers: []model.Reviewer{{Login: "bob_user", State: model.ReviewerCommented, ReRequest: true}},
+	}
+	m.PRs = []model.PR{pr}
+	out := Render(m)
+	for _, want := range []string{
+		// No exec: the tab stays open with the outcome.
+		"\n--Re-request review from bob_user⋯ | bash=gh param1=kotlin-prs param2=run param3=7 param4=request-review terminal=true " +
+			`tooltip="asks y/N in the terminal, then requests it"` + "\n",
+		"\n--Assign reviewers⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=7 param5=--post param6=request-review terminal=true " +
+			`tooltip="pick the code owners in the interactive view"` + "\n",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("the menu lacks %q:\n%s", want, out)
+		}
+	}
+	// Nobody to re-request, nothing unassigned, or not mine: no items.
+	pr.CodeOwners.Rules = pr.CodeOwners.Rules[:1]
+	pr.Reviewers[0].Requested = true
+	m.PRs = []model.PR{pr}
+	if out := Render(m); strings.Contains(out, "Re-request review") || strings.Contains(out, "Assign reviewers") {
+		t.Errorf("items without anything to do:\n%s", out)
+	}
+	pr = m.PRs[0]
+	pr.Author, pr.Reviewers[0].Requested = "erin_user", false
+	m.PRs = []model.PR{pr}
+	if out := Render(m); strings.Contains(out, "Re-request review") {
+		t.Errorf("someone else's PR:\n%s", out)
+	}
+	m.Plugin = ""
+	pr.Author = m.Viewer
+	m.PRs = []model.PR{pr}
+	if out := Render(m); strings.Contains(out, "Re-request review") {
+		t.Errorf("outside SwiftBar:\n%s", out)
+	}
+}

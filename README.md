@@ -190,7 +190,9 @@ The icon turns red while a dry-run or safe-merge of yours failed or was rejected
 when refreshes keep failing and the menu shows old data. Each PR's submenu has whose move it is and why, its runs,
 reviewers and missing code owners, links, and the commands you could post now. A click on the PR's row, "Details in the
 interactive view" and the commands open the interactive view on that PR in a terminal, a command with its `[y/N]`
-question; nothing is posted from the menu. Hold ⌥ to open a PR in the browser instead.
+question; nothing is posted from the menu. "Re-request review from …" runs `run <number> request-review` there, which
+asks too, and "Assign reviewers…" opens the review tree on a PR with a rule nobody was asked for. Hold ⌥ to open a PR
+in the browser instead.
 
 They open in the terminal chosen in SwiftBar's Settings → Advanced → Terminal (Terminal, iTerm or Ghostty), in a new
 tab that closes when you quit the interactive view.

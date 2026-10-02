@@ -182,11 +182,21 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 	b.line(sub, "Open on GitHub", "href="+param(pr.URL))
 	if m.Plugin != "" {
 		b.line(sub, "Copy link", "bash="+param(m.Plugin)+" param1=copy param2="+param(pr.URL)+" terminal=false")
-		if cmds := actions.Available(pr, m.Viewer); len(cmds) > 0 {
+		cmds := actions.Available(pr, m.Viewer)
+		reRequest, assign := reviewItems(pr, m.Viewer)
+		if len(cmds) > 0 || len(reRequest) > 0 || assign {
 			b.line(sub, "---", "")
-			for _, c := range cmds {
-				b.line(sub, text(c.Text+m.Icons.Ellipsis), m.open(pr.Number, c.Name)+" tooltip="+param(text(c.Doc)))
-			}
+		}
+		for _, c := range cmds {
+			b.line(sub, text(c.Text+m.Icons.Ellipsis), m.open(pr.Number, c.Name)+" tooltip="+param(text(c.Doc)))
+		}
+		if len(reRequest) > 0 {
+			b.line(sub, text("Re-request review from "+strings.Join(reRequest, ", ")+m.Icons.Ellipsis),
+				m.exec(m.runWords(pr.Number, actions.RequestReview))+" tooltip="+param("asks y/N in the terminal, then requests it"))
+		}
+		if assign {
+			b.line(sub, text("Assign reviewers"+m.Icons.Ellipsis), m.open(pr.Number, actions.RequestReview)+
+				" tooltip="+param("pick the code owners in the interactive view"))
 		}
 	}
 	b.line(depth, text(row), style+" alternate=true href="+param(pr.URL))
@@ -197,8 +207,13 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 // <params>" into a new tab of the user's shell: with "exec gh kotlin-prs --pr N" the
 // tab closes when the interactive view quits.
 func (m Menu) open(number int, command string) string {
+	return m.exec(openWords(m.GH, number, command))
+}
+
+// exec runs words in the terminal of SwiftBar's settings, as open does.
+func (m Menu) exec(words []string) string {
 	s := ""
-	for i, w := range openWords(m.GH, number, command) {
+	for i, w := range words {
 		if i == 0 {
 			s = "bash=" + param(w)
 		} else {
@@ -206,6 +221,25 @@ func (m Menu) open(number int, command string) string {
 		}
 	}
 	return s + " terminal=true"
+}
+
+// runWords run a `run` command on PR number: "<gh> kotlin-prs run N <command>", without
+// exec, so the tab stays open with the outcome.
+func (m Menu) runWords(number int, command string) []string {
+	words := openWords(m.GH, 0, "")[1:]
+	return append(words, "run", fmt.Sprint(number), command)
+}
+
+// reviewItems say which review items a PR of the viewer gets: "Re-request review from"
+// the people to re-request, and "Assign reviewers…" while a code-owner rule is unassigned.
+func reviewItems(pr model.PR, viewer string) (reRequest []string, assign bool) {
+	if actions.CheckOwnOpen(pr, viewer) != nil {
+		return nil, false
+	}
+	for _, s := range actions.Subsystems(pr) {
+		assign = assign || s.Status == "unassigned"
+	}
+	return actions.PreSelected(pr), assign
 }
 
 // openWords are the words of the line that opens the interactive view on PR number (0
