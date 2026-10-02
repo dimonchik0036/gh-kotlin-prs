@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -112,7 +111,8 @@ func TestRunPostFails(t *testing.T) {
 func TestRunInDemoMode(t *testing.T) {
 	t.Setenv("XDG_CACHE_HOME", t.TempDir())
 	t.Setenv(demoEnv, "../../testdata/raw")
-	t.Setenv(configEnv, filepath.Join(t.TempDir(), "none.yml"))
+	t.Setenv(configEnv, "")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // no config file there
 	var out, errOut strings.Builder
 	if got := Execute(context.Background(), []string{"run", "90006", "dry-run", "--yes"}, &out, &errOut, "test"); got != exitError ||
 		!strings.Contains(errOut.String(), "not posted: demo mode never posts") {

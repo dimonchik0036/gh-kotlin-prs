@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strconv"
@@ -74,12 +75,16 @@ type env struct {
 // configEnv overrides the default config path.
 const configEnv = "GH_KOTLIN_PRS_CONFIG"
 
+// defaultLocation is where the default config path comes from; only there may the file
+// be missing.
+const defaultLocation = "default location"
+
 // demoEnv names a directory of fixtures to serve instead of GitHub (see internal/demo).
 const demoEnv = "GH_KOTLIN_PRS_DEMO"
 
 // Execute runs the CLI and returns the process exit code. version is what --version prints.
 func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, version string) int {
-	configPath, configFrom := config.DefaultPath(), "default location"
+	configPath, configFrom := config.DefaultPath(), defaultLocation
 	if p := os.Getenv(configEnv); p != "" {
 		configPath, configFrom = p, "$"+configEnv
 	}
@@ -169,6 +174,19 @@ func (g globalOptions) configFile(e env) (path, from string) {
 		return g.config, "--config"
 	}
 	return e.configPath, e.configFrom
+}
+
+// checkConfigFile fails for a config file that --config or $GH_KOTLIN_PRS_CONFIG names
+// and that doesn't exist: a typo would silently give the defaults. The default location
+// may have none.
+func checkConfigFile(path, from string) error {
+	if from == defaultLocation {
+		return nil
+	}
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("config: %s (from %s) doesn't exist", path, from)
+	}
+	return nil
 }
 
 // hyperlinksFor resolves --hyperlinks over the config: auto means only on a terminal,
@@ -333,7 +351,10 @@ func checkFormat(format string) error {
 // prepare validates the config and the global flags. It runs before anything touches
 // authentication or the network.
 func prepare(e env, global globalOptions, format string) (config.Config, render.Options, error) {
-	path, _ := global.configFile(e)
+	path, from := global.configFile(e)
+	if err := checkConfigFile(path, from); err != nil {
+		return config.Default(), render.Options{}, err
+	}
 	cfg, err := config.Load(path)
 	if err != nil {
 		return cfg, render.Options{}, err

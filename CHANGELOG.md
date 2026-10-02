@@ -16,6 +16,9 @@ breaking JSON changes and noted here.
 
 - `gh kotlin-prs --pr <number>` opens the interactive view on that PR's details; `--post <command>` with it also asks
   to post that command there. Nothing is posted without `y`.
+- A config file named by `--config` or `$GH_KOTLIN_PRS_CONFIG` must exist: a typo in the path is now an error instead
+  of silently giving the defaults (the menu-bar plugin shows it in its menu). The default location may still have no
+  file; `config`, `config path` and `config init` work either way.
 
 ## v0.3.0 — 2026-10-02
 

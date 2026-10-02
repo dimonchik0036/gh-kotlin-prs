@@ -190,7 +190,7 @@ a notification (and on every `swiftbar://` link), next to what the click opens. 
 ## Config
 
 `~/.config/gh-kotlin-prs/config.yml` (or `$XDG_CONFIG_HOME/gh-kotlin-prs/config.yml`); `--config PATH` or
-`$GH_KOTLIN_PRS_CONFIG` point elsewhere. Every key is optional:
+`$GH_KOTLIN_PRS_CONFIG` point elsewhere, to a file that must exist (`config init` creates it). Every key is optional:
 
 ```sh
 gh kotlin-prs config          # the effective config, each value marked default, file or flag

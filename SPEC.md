@@ -336,7 +336,10 @@ gh kotlin-prs open <number>        # browser
 ## 9. Config
 
 `~/.config/gh-kotlin-prs/config.yml` (`$XDG_CONFIG_HOME`), or `--config PATH`, or `$GH_KOTLIN_PRS_CONFIG`. Every key is
-optional, and the defaults are for Kotlin. `config` prints each value with its source (default, file, flag) as YAML
+optional, and the defaults are for Kotlin. The default location may have no file (all defaults then), but a file named
+by `--config` or `$GH_KOTLIN_PRS_CONFIG` must exist: else `list`, `show`, `run`, the TUI and `swiftbar install`/`script`
+fail with `config: <path> (from --config) doesn't exist`, and the plugin shows that in its menu. `config` and
+`config path` still answer (`config` marks the file not found), and `config init` creates it. `config` prints each value with its source (default, file, flag) as YAML
 that reads back as the same config: the maps (`keys`, `notify`) as blocks, a line and a source per sub-key, the source
 comments aligned per block unless a line is longer than 60 columns. Values are quoted only where plain YAML wouldn't
 read back the same. `config init` writes the same layout with every key commented out, so later default changes still
@@ -521,12 +524,14 @@ scripts/fetch-fixtures.sh
     so the item turns grey and its submenu stays shut until a full rebuild (SwiftBar #512, fixed in 2.1.2-beta-1). An
     action of its own survives the patch, and AppKit runs it on a click on the item. The ⌥ alternate rows have their
     main row's text.
-  - It never fails: an error shows in the menu, with the last cached data (any age) when there is some, and exits 0.
+  - It never fails: an error shows in the menu (with the whole first line as the tooltip when the menu cuts it),
+    with the last cached data (any age) when there is some, and exits 0. A bad config is such an error: the run fetches
+    nothing and shows what the cache has for the default config. A bad flag still fails.
 - The plugin script (`swiftbar script`, written by `swiftbar install` as `kotlin-prs.<interval>.sh`, mode 0755) bakes in
-  gh's absolute path, a PATH with its folder, and the config file when `--config` or `$GH_KOTLIN_PRS_CONFIG` names one,
-  since SwiftBar runs it with a bare environment. It hides SwiftBar's "Run in Terminal" and "About" items. Without
-  arguments it runs `list --format swiftbar --max-age <interval/2, at least 10s>`, so a fresh fetch of the TUI or the
-  CLI answers; with `copy <url>` and `refresh` it serves those clicks of the menu.
+  gh's absolute path, a PATH with its folder, and the config file when `--config` or `$GH_KOTLIN_PRS_CONFIG` names one
+  (which must exist), since SwiftBar runs it with a bare environment. It hides SwiftBar's "Run in Terminal" and
+  "About" items. Without arguments it runs `list --format swiftbar --max-age <interval/2, at least 10s>`, so a fresh
+  fetch of the TUI or the CLI answers; with `copy <url>` and `refresh` it serves those clicks of the menu.
   - Its xbar tags fill SwiftBar's plugin details, with the names SwiftBar 2.1.1's `PluginMetadata` reads: `title`,
     `version` (the `--version` of the tool that wrote it), `author` and `author.github` (dimonchik0036), `desc`,
     `dependencies` (gh) and `about` (the repo; not xbar's `abouturl`). No schedule: the file name has the interval.

@@ -17,7 +17,7 @@ func TestConfigCommand(t *testing.T) {
 		t.Fatalf("exit %d, stderr %q", got, errOut.String())
 	}
 	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
-	if lines[0] != "# "+e.configPath+" (test, found)" {
+	if lines[0] != "# "+e.configPath+" (default location, found)" {
 		t.Errorf("header %q", lines[0])
 	}
 	for _, want := range []string{

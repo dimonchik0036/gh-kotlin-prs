@@ -30,9 +30,19 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 	if err := checkMaxAge(opts.maxAge); err != nil {
 		return err
 	}
-	cfg, ropts, err := prepare(e, global, "json")
-	if err != nil {
-		return err
+	// A bad flag fails; a bad config shows in the menu, over what the cache has for the
+	// defaults.
+	cfg, ropts, cfgErr := prepare(e, global, "json")
+	if usage := (usageError{}); errors.As(cfgErr, &usage) {
+		return cfgErr
+	}
+	if cfgErr != nil {
+		cfg = config.Default()
+		icons, err := (globalOptions{}).iconsFor(cfg)
+		if err != nil {
+			return err
+		}
+		ropts.Icons = icons
 	}
 	now := e.now()
 	sections := opts.sections()
@@ -41,6 +51,9 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 	next, account, err := e.newClient()
 	if err != nil {
 		menu.Err = err
+		if cfgErr != nil {
+			menu.Err = cfgErr
+		}
 		_, err := io.WriteString(e.stdout, swiftbar.Render(menu))
 		return err
 	}
@@ -48,7 +61,10 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 	if global.debug {
 		client.Debug = e.stderr
 	}
-	data, err := listing.Fetch(ctx, client, cfg, now, sections)
+	var data *listing.Data
+	if err = cfgErr; err == nil {
+		data, err = listing.Fetch(ctx, client, cfg, now, sections)
+	}
 	switch {
 	case err == nil:
 		menu.FetchedAt = client.Oldest
@@ -127,12 +143,15 @@ func pluginScript(e env, global globalOptions, interval time.Duration) (script, 
 	if gh, err = filepath.Abs(gh); err != nil {
 		return "", "", err
 	}
-	cfgPath := global.config
+	cfgPath, from := global.config, "--config"
 	if cfgPath == "" {
-		cfgPath = e.getenv(configEnv)
+		cfgPath, from = e.getenv(configEnv), "$"+configEnv
 	}
 	if cfgPath != "" {
 		if cfgPath, err = filepath.Abs(cfgPath); err != nil {
+			return "", "", err
+		}
+		if err := checkConfigFile(cfgPath, from); err != nil {
 			return "", "", err
 		}
 	}

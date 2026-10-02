@@ -144,10 +144,10 @@ func (b *builder) header(m Menu) {
 	sep := " " + m.Icons.Separator + " "
 	switch {
 	case m.Err != nil && m.FetchedAt.IsZero():
-		b.line(0, text("Couldn't fetch your PRs: "+firstLine(m.Err)), "color=red")
+		b.line(0, text("Couldn't fetch your PRs: "+firstLine(m.Err)), errorParams(m.Err))
 		return
 	case m.Err != nil:
-		b.line(0, text("Refresh failed: "+firstLine(m.Err)), "color=red")
+		b.line(0, text("Refresh failed: "+firstLine(m.Err)), errorParams(m.Err))
 		b.line(0, text(fmt.Sprintf("Your move: %d%sdata from %s", mine, sep, model.Ago(m.Now, m.FetchedAt))), "")
 	default:
 		b.line(0, text(fmt.Sprintf("Your move: %d%supdated %s", mine, sep, model.Ago(m.Now, m.FetchedAt))), "")
@@ -359,7 +359,20 @@ func param(v string) string {
 	return v
 }
 
+// errorWidth is where an error is cut in the menu; the tooltip has it all.
+const errorWidth = 80
+
 func firstLine(err error) string {
 	s, _, _ := strings.Cut(err.Error(), "\n")
-	return ansi.Truncate(s, 80, "...")
+	return ansi.Truncate(s, errorWidth, "...")
+}
+
+// errorParams are an error line's: red, with the whole first line as the tooltip when
+// the line cuts it (a config path's "doesn't exist" comes last).
+func errorParams(err error) string {
+	s, _, _ := strings.Cut(err.Error(), "\n")
+	if ansi.StringWidth(s) <= errorWidth {
+		return "color=red"
+	}
+	return "color=red tooltip=" + param(text(s))
 }

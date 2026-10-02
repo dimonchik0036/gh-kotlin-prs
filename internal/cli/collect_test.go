@@ -221,8 +221,9 @@ func TestSortedForJSON(t *testing.T) {
 	}
 }
 
-// testEnv never reaches gh's authentication or the user's config: the client comes
-// from client, or fails the test when nil.
+// testEnv never reaches gh's authentication or the user's config: the config file is in
+// a temp dir standing for the default location (none for an empty configYAML), and the
+// client comes from client, or fails the test when nil.
 func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strings.Builder, *strings.Builder) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config.yml")
@@ -237,7 +238,7 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 		stdout:     &out,
 		stderr:     &errOut,
 		configPath: path,
-		configFrom: "test",
+		configFrom: defaultLocation,
 		newClient: func() (github.Client, string, error) {
 			if client == nil {
 				t.Error("a GitHub client was requested")
@@ -421,7 +422,8 @@ func TestDemoMode(t *testing.T) {
 	cacheHome := t.TempDir()
 	t.Setenv("XDG_CACHE_HOME", cacheHome)
 	t.Setenv(demoEnv, "../../testdata/raw")
-	t.Setenv(configEnv, filepath.Join(t.TempDir(), "none.yml"))
+	t.Setenv(configEnv, "")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // no config file there
 	var out, errOut strings.Builder
 	if got := Execute(context.Background(), []string{"list", "--format", "json"}, &out, &errOut, "test"); got != exitOK {
 		t.Fatalf("exit %d, stderr %q", got, errOut.String())
