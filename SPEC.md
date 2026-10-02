@@ -560,7 +560,7 @@ scripts/fetch-fixtures.sh
   param4=N [param5=--post param6=<command>] terminal=true`. SwiftBar opens a new tab in the terminal of its Settings →
   Advanced → Terminal (Terminal, iTerm or Ghostty) and types `export <its SWIFTBAR_*/OS_* variables>; <bash> <params>`
   into the user's shell, unquoted, with no PATH of its own, so the line reads `…; exec /opt/homebrew/bin/gh kotlin-prs
-  --pr 8563`. `exec` replaces the tab's shell, so the tab closes when the interactive view quits. gh's path is the
+  --pr 90006`. `exec` replaces the tab's shell, so the tab closes when the interactive view quits. gh's path is the
   plugin script's (`GH_KOTLIN_PRS_GH`), the gh the plugin itself runs. There's no config of our own for it.
 - Notifications: a plugin run that fetched every query live (no cache hit) diffs its rows with the last live run's,
   kept in the cache dir (`swiftbar-baseline.json`), with `notify.Diff` and the `notify.events` of §14. The first run

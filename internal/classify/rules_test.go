@@ -337,8 +337,8 @@ func TestMineRule4NewComment(t *testing.T) {
 			next: model.NextMe, reason: "1 unresolved thread from bob_user",
 		},
 		{
-			// JetBrains/kotlin#8563: "one test failed but it's unrelated", an approval 20s
-			// later, then my /dry-run, still running.
+			// "One test failed but it's unrelated", an approval 20s later, then my /dry-run,
+			// still running.
 			name: "a comment, its approval, then my running dry-run",
 			pr: readyPR().says("bob_user", "One test failed but it's definitely unrelated", at(60)).
 				reviewed("bob_user", "APPROVED", at(60).Add(20*time.Second)).

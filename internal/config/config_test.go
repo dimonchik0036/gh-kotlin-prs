@@ -73,12 +73,12 @@ func TestIssues(t *testing.T) {
 	cfg := Default()
 	re := cfg.IssuePattern()
 	for text, want := range map[string]string{
-		"KT-123: Fix":         "KT-123",
-		"rr/x/kt-73995-value": "kt-73995",
-		"KTIJ-35000 in IDE":   "KTIJ-35000",
-		"KTI-2 infra":         "KTI-2",
-		"MKT-1 isn't one":     "",
-		"KT-12x isn't either": "",
+		"KT-123: Fix":          "KT-123",
+		"rr/x/kt-990007-value": "kt-990007",
+		"KTIJ-35000 in IDE":    "KTIJ-35000",
+		"KTI-2 infra":          "KTI-2",
+		"MKT-1 isn't one":      "",
+		"KT-12x isn't either":  "",
 	} {
 		if got := re.FindString(text); got != want {
 			t.Errorf("%q: %q, want %q", text, got, want)
