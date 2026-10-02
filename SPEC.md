@@ -619,7 +619,8 @@ scripts/fetch-fixtures.sh
   - a PR's submenu: the whole title (gray, no action), in Review "by <login> · pushed 2h ago" (gray; Mine is always
     mine), "Details in the interactive view", whose move it is and every
     reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the reviewers and
-    the code-owner rules still missing, "Open on GitHub", "Copy link", "Copy branch" (through the script's `copy`
+    the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in the tooltip,
+    so the owners after them stay), "Open on GitHub", "Copy link", "Copy branch" (through the script's `copy`
     verb), and the commands `actions.Available` allows now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);
     nothing is ever posted from the menu. On my open PRs, "Re-request review from a, b…" when there are default picks
     (§8) runs `run N request-review` in the terminal (no `exec`: the tab stays open with the outcome), which asks

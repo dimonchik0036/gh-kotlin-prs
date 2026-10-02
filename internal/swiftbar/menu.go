@@ -347,12 +347,38 @@ func (b *builder) reviewers(depth int, pr model.PR, icons render.Icons) {
 		for _, a := range rule.Assignees {
 			who = append(who, a.Login)
 		}
-		s := "  " + icons.OwnersMissing + " " + strings.Join(rule.Paths, ", ")
+		paths := strings.Join(rule.Paths, ", ")
+		params := "trim=false"
+		if cut := cutPaths(rule.Paths, icons.Ellipsis); cut != paths {
+			params += " tooltip=" + param(text(paths))
+			paths = cut
+		}
+		s := "  " + icons.OwnersMissing + " " + paths
 		if len(who) > 0 {
 			s += ": " + strings.Join(who, ", ")
 		}
-		b.line(depth, text(s), "trim=false")
+		b.line(depth, text(s), params)
 	}
+}
+
+// pathsWidth is where a code-owner rule's paths are cut in the menu, so its owners stay
+// on screen; the tooltip has them all.
+const pathsWidth = 80
+
+// cutPaths joins paths, the ones past pathsWidth dropped for "⋯ (+N)". It cuts only
+// between paths, and keeps the first one however long.
+func cutPaths(paths []string, ellipsis string) string {
+	all := strings.Join(paths, ", ")
+	if ansi.StringWidth(all) <= pathsWidth {
+		return all
+	}
+	for k := len(paths) - 1; k > 0; k-- {
+		s := strings.Join(paths[:k], ", ") + fmt.Sprintf(", %s (+%d)", ellipsis, len(paths)-k)
+		if ansi.StringWidth(s) <= pathsWidth || k == 1 {
+			return s
+		}
+	}
+	return all // a single path: nothing to count
 }
 
 func (b *builder) footer(m Menu) {

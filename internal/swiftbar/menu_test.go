@@ -343,6 +343,34 @@ func TestReviewItems(t *testing.T) {
 	}
 }
 
+// A code-owner rule's long paths are cut between paths, with the count of the rest, so
+// the owners stay on screen; the tooltip has every path. A rule that fits stays as it is,
+// and so does a single path however long.
+func TestCodeOwnerRulePaths(t *testing.T) {
+	m := fixtureMenu(t)
+	long := []string{"/compiler/cli/", "/compiler/config/", "/compiler/fir/checkers/", "/compiler/fir/resolve/",
+		"/compiler/ir/backend.jvm/", "/compiler/ir/backend.js/", "/compiler/frontend/", "/compiler/psi/", "/compiler/util/"}
+	single := "/compiler/testData/diagnostics/tests/multiplatform/hmpp/multiplatformCompositeAnalysis/expectActual/"
+	m.PRs = []model.PR{{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Author: m.Viewer,
+		Section: model.SectionMine, Next: model.NextMe,
+		CodeOwners: model.CodeOwnersStatus{State: model.CodeOwnersMissing, Rules: []model.CodeOwnerRule{
+			{Paths: long, Mark: model.MarkNoReview, Assignees: []model.Assignee{{Login: "bob_user"}, {Login: "carol_user"}}},
+			{Paths: []string{"/analysis/", "/compiler/fir/"}, Mark: model.MarkNoReview, Assignees: []model.Assignee{{Login: "dave_user"}}},
+			{Paths: []string{single}, Mark: model.MarkNoReview, Assignees: []model.Assignee{{Login: "erin_user"}}},
+		}}}}
+	out := Render(m)
+	for _, want := range []string{
+		"\n--  ✗ /compiler/cli/, /compiler/config/, /compiler/fir/checkers/, ⋯ (+6): bob_user, carol_user | trim=false " +
+			`tooltip="` + strings.Join(long, ", ") + `"` + "\n",
+		"\n--  ✗ /analysis/, /compiler/fir/: dave_user | trim=false\n",
+		"\n--  ✗ " + single + ": erin_user | trim=false\n",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("the menu lacks %q:\n%s", want, out)
+		}
+	}
+}
+
 func TestUpdateItem(t *testing.T) {
 	m := fixtureMenu(t)
 	m.GH, m.ScriptFormat = "/opt/homebrew/bin/gh", 1
