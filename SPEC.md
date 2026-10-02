@@ -72,6 +72,13 @@ We read the check first: the comment is old, so on a busy PR it falls out of `co
   `<summary>` and its members and nested teams as `<li>`, or a bare team link when it has neither. A member can be
   followed by `(QA)` or `(PM)`, and by `⏳` when unavailable. A rule without owners (`#NO_OWNERS`) has an empty cell and
   takes any reviewer's decision.
+- A person, in the Owners and the Approval cells, is a link whose href is a profile, `https://github.com/<login>`
+  (a trailing slash, a query or a fragment don't matter): the login comes from the href, and the link's text is only
+  shown. A link elsewhere counts only when its text is a valid login (`[A-Za-z0-9-]+`, maybe with `[bot]`). The marks
+  after a person (`⏳`, `🔒`, `(QA)`, `(PM)`) are read from all the text up to the next link, `<br>`, `<li>` or the
+  end of the cell, inline elements such as `<sub>` included. A display name, in the link (`<code>login</code> Name`,
+  or a text that isn't the login) or after it, is kept (`Owner.Name`, `Assignee.Name`; the picker shows
+  `judy_user (Judy Doe)`) only when there's exactly one that looks like a name; otherwise none.
 - Approval: a mark, then the people it refers to:
   - `❌` no decision: the owners currently requested as reviewers, or `UNASSIGNED`;
   - `🔄` an owner only commented and isn't requested again: they owe a decision and need a re-request;

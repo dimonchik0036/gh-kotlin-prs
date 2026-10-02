@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- The code-owners table is read by its links: a person is whoever the profile link names, so full names the bot may
+  add next to logins don't break it, and the review picker shows them (`judy_user (Judy Doe)`).
 - A safe-merge or dry-run rejected for missing code-owner approval no longer makes a PR of yours your move: only
   reviewers resolve that, so it's "waiting: …" like before the command. The rejection still notifies and shows in
   the run history; rejections you can fix (conflicts, `fixup!` commits, a draft, …) stay your move.

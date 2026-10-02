@@ -37,6 +37,8 @@ type Subsystem struct {
 // Candidate is someone a review may be requested from.
 type Candidate struct {
 	Login string
+	// Name is the display name the bot shows, when it does.
+	Name string
 	// Role is "QA" or "PM" when the bot marks the member so.
 	Role        string
 	Unavailable bool
@@ -73,7 +75,7 @@ func Subsystems(pr model.PR) []Subsystem {
 			if strings.EqualFold(o.Login, pr.Author) {
 				continue
 			}
-			c := Candidate{Login: o.Login, Role: o.Role, Unavailable: o.Unavailable}
+			c := Candidate{Login: o.Login, Name: o.Name, Role: o.Role, Unavailable: o.Unavailable}
 			if r, ok := reviewers[strings.ToLower(o.Login)]; ok {
 				c.Activity = activity(r)
 				requested = requested || r.Requested

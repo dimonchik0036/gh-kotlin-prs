@@ -240,3 +240,63 @@ func TestPRURLFallback(t *testing.T) {
 		t.Errorf("URL = %q", got)
 	}
 }
+
+// A person is whoever a profile link names, whatever its text says: the bot may show full
+// names next to logins. The marks come from all text up to the next link, <br> or <li>;
+// a display name is kept only when it's clearly one.
+func TestParseCodeOwnersPeople(t *testing.T) {
+	link := func(href, inner string) string { return `<a href="` + href + `">` + inner + `</a>` }
+	profile := "https://github.com/judy"
+	for _, tt := range []struct {
+		name  string
+		cell  string
+		owner model.Owner
+		none  bool
+	}{
+		{"today's format", link(profile, "<b><code>judy</code></b>") + " (QA) ⏳", model.Owner{Login: "judy", Role: "QA", Unavailable: true}, false},
+		{"a name after the link", link(profile, "<b><code>judy</code></b>") + " Judy Doe ⏳ (QA)",
+			model.Owner{Login: "judy", Name: "Judy Doe", Role: "QA", Unavailable: true}, false},
+		{"a name in the link", link(profile, "<b><code>judy</code></b> Judy Doe") + " ⏳",
+			model.Owner{Login: "judy", Name: "Judy Doe", Unavailable: true}, false},
+		{"only a name: the login from the href", link(profile, "<b><code>Judy Doe</code></b>"),
+			model.Owner{Login: "judy", Name: "Judy Doe"}, false},
+		{"a name in an inline element", link(profile, "<b><code>judy</code></b>") + " <sub>Judy Doe</sub> ⏳",
+			model.Owner{Login: "judy", Name: "Judy Doe", Unavailable: true}, false},
+		{"a trailing slash and a fragment", link("https://github.com/judy/#profile", "<code>judy</code>"), model.Owner{Login: "judy"}, false},
+		{"another host, a login text", link("https://example.org/people/42", "<code>judy-doe</code>") + " (PM)",
+			model.Owner{Login: "judy-doe", Role: "PM"}, false},
+		{"another host, a name text", link("https://example.org/people/42", "<code>Judy Doe</code>"), model.Owner{}, true},
+		{"two names: unsure", link(profile, "<code>judy</code> Judy Doe") + " <sub>J. Doe</sub>", model.Owner{Login: "judy"}, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			body := "<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/src/</code></td><td>" + tt.cell +
+				`</td><td align="center">❌<br><b><code>UNASSIGNED</code></b></td></tr></table>` + "\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"
+			rules, ok := ParseCodeOwners(body)
+			if !ok || len(rules) != 1 || len(rules[0].Assignees) != 0 {
+				t.Fatalf("rules = %+v, %v", rules, ok)
+			}
+			switch {
+			case tt.none && len(rules[0].Owners) != 0:
+				t.Errorf("owners = %+v, want none", rules[0].Owners)
+			case !tt.none && (len(rules[0].Owners) != 1 || rules[0].Owners[0] != tt.owner):
+				t.Errorf("owners = %+v, want %+v", rules[0].Owners, tt.owner)
+			}
+		})
+	}
+}
+
+// The approval cell reads people the same way: 🔒 and ⏳ from any text after the link.
+func TestParseCodeOwnersAssigneesWithNames(t *testing.T) {
+	body := "<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/src/</code></td><td></td>" +
+		`<td align="center">✅<br><a href="https://github.com/judy"><b><code>judy</code></b></a> <sub>Judy Doe</sub> 🔒, ` +
+		`<a href="https://github.com/kevin/"><b><code>Kevin Roe</code></b></a> ⏳, ` +
+		`<a href="https://github.com/laura"><b><code>laura</code></b></a></td></tr></table>` + "\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"
+	rules, ok := ParseCodeOwners(body)
+	if !ok || len(rules) != 1 {
+		t.Fatalf("rules = %+v, %v", rules, ok)
+	}
+	want := []model.Assignee{{Login: "judy", Name: "Judy Doe", Final: true}, {Login: "kevin", Name: "Kevin Roe", Unavailable: true}, {Login: "laura"}}
+	if r := rules[0]; r.Mark != model.MarkApproved || !slices.Equal(r.Assignees, want) {
+		t.Errorf("approval = %s %+v, want %+v", r.Mark, r.Assignees, want)
+	}
+}

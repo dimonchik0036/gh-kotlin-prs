@@ -189,3 +189,12 @@ func TestCandidatesText(t *testing.T) {
 		t.Errorf("got\n%s\nwant\n%s", got, want)
 	}
 }
+
+// A display name from the table goes with the candidate.
+func TestSubsystemsKeepNames(t *testing.T) {
+	pr := firstAssignment()
+	pr.CodeOwners.Rules[0].Owners[0].Name = "Bob Roe"
+	if c := Subsystems(pr)[0].Candidates[0]; c.Login != "bob_user" || c.Name != "Bob Roe" {
+		t.Errorf("candidate %+v", c)
+	}
+}

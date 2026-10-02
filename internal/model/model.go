@@ -152,6 +152,8 @@ const (
 
 type Owner struct {
 	Login string `json:"login"`
+	// Name is the display name the bot shows next to the login, when it does.
+	Name string `json:"name,omitempty"`
 	// Team is the innermost team listing this owner; empty for individual owners.
 	Team        string `json:"team,omitempty"`
 	Unavailable bool   `json:"unavailable,omitempty"`
@@ -161,7 +163,9 @@ type Owner struct {
 
 // Assignee is a login from the Approval column: who approved, requested changes or is assigned.
 type Assignee struct {
-	Login       string `json:"login"`
+	Login string `json:"login"`
+	// Name is the display name the bot shows next to the login, when it does.
+	Name        string `json:"name,omitempty"`
 	Final       bool   `json:"final,omitempty"`
 	Unavailable bool   `json:"unavailable,omitempty"`
 }

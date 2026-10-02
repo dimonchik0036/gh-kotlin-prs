@@ -283,9 +283,13 @@ func rowPath(s actions.Subsystem) string {
 	return s.Path
 }
 
-// candidateName is the login with the bot's marks: "(QA)", "⏳".
+// candidateName is the login with the display name and the bot's marks:
+// "judy_user (Judy Doe) (QA) ⏳".
 func candidateName(c actions.Candidate) string {
 	name := c.Login
+	if c.Name != "" {
+		name += " (" + c.Name + ")"
+	}
 	if c.Role != "" {
 		name += " (" + c.Role + ")"
 	}

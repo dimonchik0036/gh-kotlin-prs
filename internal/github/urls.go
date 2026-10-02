@@ -20,6 +20,19 @@ func PRURL(repo string, number int) string { return fmt.Sprintf("%s%s/pull/%d", 
 
 var teamURL = regexp.MustCompile(`^https://github\.com/orgs/([^/?#]+)/teams/([^/?#]+)/?$`)
 
+// profileURL is a page right under github.com: a user's (or an organization's) profile.
+var profileURL = regexp.MustCompile(`^https://github\.com/([^/?#]+)/?(?:[?#].*)?$`)
+
+// ParseProfileURL recognizes a user's profile page, https://github.com/<login>, with an
+// optional trailing slash; a query or fragment is ignored.
+func ParseProfileURL(url string) (login string, ok bool) {
+	m := profileURL.FindStringSubmatch(url)
+	if m == nil {
+		return "", false
+	}
+	return m[1], true
+}
+
 // ParseTeamURL recognizes a team page of any organization.
 func ParseTeamURL(url string) (org, slug string, ok bool) {
 	m := teamURL.FindStringSubmatch(url)

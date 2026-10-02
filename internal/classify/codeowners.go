@@ -95,18 +95,13 @@ func parseOwners(td *html.Node) (teams []string, owners []model.Owner) {
 				if depth == 0 {
 					teams = append(teams, cleanText(c)) // a team without members
 				}
-			case c.DataAtom == atom.A && find(c, atom.Code) != nil:
-				login := cleanText(c)
-				if seen[strings.ToLower(login)] {
+			case c.DataAtom == atom.A:
+				p, ok := parsePerson(c)
+				if !ok || seen[strings.ToLower(p.login)] {
 					continue
 				}
-				seen[strings.ToLower(login)] = true
-				suffix := trailingText(c)
-				owner := model.Owner{Login: login, Team: team, Unavailable: strings.Contains(suffix, markUnavailable)}
-				if m := memberRole.FindStringSubmatch(suffix); m != nil {
-					owner.Role = m[1]
-				}
-				owners = append(owners, owner)
+				seen[strings.ToLower(p.login)] = true
+				owners = append(owners, model.Owner{Login: p.login, Name: p.name, Team: team, Unavailable: p.unavailable, Role: p.role})
 			default:
 				walk(c, team, depth)
 			}
@@ -138,30 +133,99 @@ func parseApproval(td *html.Node) (model.ApprovalMark, []model.Assignee) {
 	}
 	var assignees []model.Assignee
 	for n := range td.Descendants() {
-		if n.DataAtom != atom.A || find(n, atom.Code) == nil {
+		if n.DataAtom != atom.A || isTeamLink(n) {
 			continue
 		}
-		login := cleanText(n)
-		if login == unassigned {
+		p, ok := parsePerson(n)
+		if !ok || p.login == unassigned {
 			continue
 		}
-		suffix := trailingText(n)
-		assignees = append(assignees, model.Assignee{
-			Login:       login,
-			Final:       strings.Contains(suffix, markFinal),
-			Unavailable: strings.Contains(suffix, markUnavailable),
-		})
+		assignees = append(assignees, model.Assignee{Login: p.login, Name: p.name, Final: p.final, Unavailable: p.unavailable})
 	}
 	return mark, assignees
 }
 
-// trailingText is the text right after a node up to the next element, e.g. " ⏳ (QA)" or " 🔒, ".
-func trailingText(n *html.Node) string {
+// person is a person link of the table, with the marks and name around it.
+type person struct {
+	login, name        string
+	unavailable, final bool
+	role               string
+}
+
+// validLogin is a GitHub login (an app's ends in "[bot]").
+var validLogin = regexp.MustCompile(`^[A-Za-z0-9-]+(\[bot])?$`)
+
+// displayName is a name to show next to a login: letters, spaces and the usual
+// punctuation of names, nothing like a mark or a list.
+var displayName = regexp.MustCompile(`^\p{L}[\p{L}\p{M} .'-]*$`)
+
+// parsePerson reads a person link: the login from its href, a profile URL, else from its
+// text when that's a valid login (anything else isn't a person). The marks (⏳, 🔒, (QA),
+// (PM)) are in the text up to the next link, <br>, <li> or the cell's end, whatever
+// inline elements hold it; a display name, in the link or after it, only when it's clearly
+// one: a single candidate that looks like a name and isn't the login.
+func parsePerson(a *html.Node) (person, bool) {
+	inside := cleanText(a)
+	code := inside
+	if c := find(a, atom.Code); c != nil {
+		code = cleanText(c)
+	}
+	var p person
+	if login, ok := github.ParseProfileURL(attr(a, "href")); ok {
+		p.login = login
+	} else if validLogin.MatchString(code) {
+		p.login = code
+	} else {
+		return person{}, false
+	}
+	after := textAfter(a)
+	marks := inside + " " + after
+	p.unavailable = strings.Contains(marks, markUnavailable)
+	p.final = strings.Contains(marks, markFinal)
+	if m := memberRole.FindStringSubmatch(marks); m != nil {
+		p.role = m[1]
+	}
+	var names []string
+	for _, candidate := range []string{strings.Replace(inside, code, "", 1), code, after} {
+		if n := stripMarks(candidate); n != "" && !strings.EqualFold(n, p.login) && displayName.MatchString(n) {
+			names = append(names, n)
+		}
+	}
+	if len(names) == 1 {
+		p.name = names[0]
+	}
+	return p, true
+}
+
+// stripMarks drops the marks and list punctuation around a name.
+func stripMarks(s string) string {
+	s = memberRole.ReplaceAllString(s, "")
+	s = strings.NewReplacer(markUnavailable, "", markFinal, "", ",", "").Replace(s)
+	return strings.Join(strings.Fields(s), " ")
+}
+
+// textAfter is the text after a node up to the next link, <br> or <li> (or the end of
+// its parent), inside inline elements too: " ⏳ (QA)", " <sub>Judy Doe</sub> 🔒, ".
+func textAfter(n *html.Node) string {
 	var b strings.Builder
-	for s := n.NextSibling; s != nil && s.Type == html.TextNode; s = s.NextSibling {
-		b.WriteString(s.Data)
+	for s := n.NextSibling; s != nil; s = s.NextSibling {
+		if stopsMarks(s) {
+			break
+		}
+		stop := false
+		for d := range s.Descendants() {
+			stop = stop || stopsMarks(d)
+		}
+		if stop {
+			break
+		}
+		b.WriteString(text(s))
 	}
 	return b.String()
+}
+
+func stopsMarks(n *html.Node) bool {
+	return n.DataAtom == atom.A || n.DataAtom == atom.Br || n.DataAtom == atom.Li || n.DataAtom == atom.Details
 }
 
 // isTeamLink: a link to a team page, of any organization.

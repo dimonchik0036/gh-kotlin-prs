@@ -30,3 +30,22 @@ func TestParseTeamURL(t *testing.T) {
 		}
 	}
 }
+
+func TestParseProfileURL(t *testing.T) {
+	for url, want := range map[string]string{
+		"https://github.com/judy_user":         "judy_user",
+		"https://github.com/judy-doe/":         "judy-doe",
+		"https://github.com/judy?tab=repos":    "judy",
+		"https://github.com/judy#top":          "judy",
+		"https://github.com/orgs/JetBrains":    "",
+		"https://github.com/JetBrains/kotlin":  "",
+		"https://example.org/judy":             "",
+		"http://github.com/judy":               "",
+		"https://github.com/":                  "",
+		"https://github.com/orgs/x/teams/core": "",
+	} {
+		if got, ok := ParseProfileURL(url); got != want || ok != (want != "") {
+			t.Errorf("%s: %q, %v", url, got, ok)
+		}
+	}
+}

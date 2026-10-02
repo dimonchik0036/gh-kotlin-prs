@@ -9,6 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/actions"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 )
 
@@ -210,5 +211,20 @@ func TestStartReview(t *testing.T) {
 	h.keys("esc")
 	if h.m.screen != screenDetail {
 		t.Errorf("screen %v after closing the picker", h.m.screen)
+	}
+}
+
+// A display name from the bot's table shows after the login.
+func TestCandidateName(t *testing.T) {
+	for _, tt := range []struct {
+		c    actions.Candidate
+		want string
+	}{
+		{actions.Candidate{Login: "judy_user"}, "judy_user"},
+		{actions.Candidate{Login: "judy_user", Name: "Judy Doe", Role: "QA", Unavailable: true}, "judy_user (Judy Doe) (QA) ⏳"},
+	} {
+		if got := candidateName(tt.c); got != tt.want {
+			t.Errorf("%+v: %q, want %q", tt.c, got, tt.want)
+		}
 	}
 }
