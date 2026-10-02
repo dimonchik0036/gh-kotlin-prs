@@ -64,13 +64,17 @@ var teamRules = []rule{
 
 // Mine.
 
-// 1. The latest run failed and isn't outdated, a command was rejected, or a command got
-// no response. A rejection is the outcome of its command, so it stays until a newer
-// command or run supersedes it, even if the build it collided with finished later.
+// 1. The latest run failed and isn't outdated, a command was rejected for a cause of
+// mine, or a command got no response. A rejection is the outcome of its command, so it
+// stays until a newer command or run supersedes it, even if the build it collided with
+// finished later. One only reviewers resolve (missing code-owner approval) isn't my move:
+// the other rules say whose it is.
 func mineRunFailed(f *facts) []model.Reason {
 	switch run := latest(f.pr.Runs); {
 	case run.NoResponse:
 		return linked(fmt.Sprintf("%s requested %s, no response", run.Kind, model.Ago(f.c.Now, run.Started)), run.CommentURL)
+	case run.State == model.RunRejected && ReviewersToFix(run.Reason):
+		return nil
 	case run.State == model.RunRejected:
 		return linked(fmt.Sprintf("%s rejected: %s", run.Kind, run.Reason), run.CommentURL)
 	case run.Outdated:

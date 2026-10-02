@@ -274,3 +274,18 @@ func TestKindsMatchConfig(t *testing.T) {
 		t.Errorf("config.NotifyEvents %q, want %q", names, want)
 	}
 }
+
+// A rejection notifies whoever's move it leaves: one for missing code-owner approval isn't
+// mine (Next follows the reviewers), and runRejected still fires.
+func TestRejectionNotifiesWhateverTheMove(t *testing.T) {
+	requested := model.PR{Number: 7, Title: "Example change", Section: model.SectionMine, Next: model.NextCI,
+		SafeMerge: model.Run{Kind: model.SafeMerge, State: model.RunRequested, Started: time.Unix(100, 0)}}
+	rejected := requested
+	rejected.Next = model.NextReviewers
+	rejected.SafeMerge = model.Run{Kind: model.SafeMerge, State: model.RunRejected, Started: time.Unix(100, 0),
+		Reason: "Missing code owners approval - verify the check 'Code Owners Approval' is green.", CommentURL: "https://example.org/pull/7#c2"}
+	events := Diff([]model.PR{requested}, []model.PR{rejected})
+	if got := kinds(events); !slices.Equal(got, []string{"runRejected #7"}) {
+		t.Errorf("events %v", got)
+	}
+}

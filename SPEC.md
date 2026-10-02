@@ -213,8 +213,17 @@ timeline (its last items, so after many commits it may be missing, and nothing i
 they're in the review requests now. It applies to rules 2, 3 and 4; the thread or comment still shows in the details.
 
 **Mine:** the first rule that matches sets `Next`. Every rule that matches is added to `Reasons`.
-1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected, or got no response
-   → "safe-merge failed 2h ago", "dry-run rejected: <reason>".
+1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected for a cause of mine, or got no
+   response → "safe-merge failed 2h ago", "dry-run rejected: <reason>". Whose a rejection is, by the bot's reason
+   (§3):
+
+   | Reason | Whose |
+   |---|---|
+   | "Missing code owners approval - verify the check 'Code Owners Approval' is green." | reviewers': not my move, the run stays in the history and the other rules decide (typically "waiting: …"; after an approval rule 6 says ready) |
+   | conflicts with the base branch, "not yet finished checking for conflicts", `fixup!`/`amend!`/`squash!` commits, orphaned fixups, a draft, "A Coordinator build is already in progress", any other or unknown reason | mine |
+
+   Matched by the reason's start (`classify.ReviewersToFix`). A run's notification (`runRejected`, §14) doesn't depend
+   on whose move it leaves.
 2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED, newer than my last push, and they weren't
    re-requested since (a re-request without a push says "I answered, your turn").
 2a. **Me:** a code owner is marked `🔄` (commented and needs a re-request) → "re-request review from alice_user"; one

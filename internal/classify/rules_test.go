@@ -95,8 +95,29 @@ func TestMineRule1RunFailed(t *testing.T) {
 		},
 		{
 			name: "a rejection survives a push",
-			pr:   readyPR().says(me, "/safe-merge", at(-20)).rejected("Missing code owners approval", at(-19)),
-			next: model.NextMe, reason: "safe-merge rejected: Missing code owners approval",
+			pr:   readyPR().says(me, "/safe-merge", at(-20)).rejected("Pull request has conflicts with the base branch that must be resolved before merging.", at(-19)),
+			next: model.NextMe, reason: "safe-merge rejected: Pull request has conflicts with the base branch that must be resolved before merging.",
+		},
+		{
+			// Not minimized: only reviewers resolve the cause, so the move follows the other
+			// rules; the run stays in the history.
+			name: "rejected for missing code-owner approval",
+			pr: newPR(me).ownersRed().request("bob_user").
+				says(me, "/dry-run", at(10), rocket).gate(model.DryRun, 100, "passed", at(12)).
+				says(me, "/safe-merge", at(61)).rejected("Missing code owners approval - verify the check 'Code Owners Approval' is green.", at(62)),
+			next: model.NextReviewers, reason: "waiting: bob_user",
+			absent: []string{"rejected"},
+		},
+		{
+			name: "rejected for a fixup! commit",
+			pr: readyPR().says(me, "/safe-merge", at(61)).
+				rejected("Commit 'fixup!' is currently [not supported by GitHub](https://example.org) - please try `/fixup` command or `/safe-squash-merge`", at(62)),
+			next: model.NextMe, reason: "safe-merge rejected: Commit 'fixup!' is currently [not supported by GitHub](https://example.org) - please try `/fixup` command or `/safe-squash-merge`",
+		},
+		{
+			name: "rejected for an unknown reason",
+			pr:   readyPR().says(me, "/safe-merge", at(61)).rejected("Something new.", at(62)),
+			next: model.NextMe, reason: "safe-merge rejected: Something new.",
 		},
 		{
 			name: "a newer command supersedes the rejection",
@@ -129,6 +150,15 @@ func TestMineMinimizedRejection(t *testing.T) {
 			absent: []string{"rejected"},
 		},
 	})
+}
+
+// A rejection only reviewers resolve stays in the runs, just not as my move.
+func TestReviewersRejectionStaysARun(t *testing.T) {
+	pr := newPR(me).ownersRed().request("bob_user").says(me, "/safe-merge", at(61)).
+		rejected("Missing code owners approval - verify the check 'Code Owners Approval' is green.", at(62)).mine()
+	if pr.SafeMerge.State != model.RunRejected || len(pr.Runs) != 1 || pr.Next != model.NextReviewers {
+		t.Errorf("safe-merge %+v, %d runs, next %s", pr.SafeMerge, len(pr.Runs), pr.Next)
+	}
 }
 
 func TestMineRule2ChangesRequested(t *testing.T) {
@@ -769,8 +799,8 @@ func TestReasonURLs(t *testing.T) {
 	}{
 		{"failed run → build", readyPR().says(me, "/dry-run", at(40), rocket).gate(model.DryRun, 100, "failed", at(42), edited(at(60))),
 			"dry-run failed 1h ago", "https://buildserver.labs.intellij.net/build/100"},
-		{"rejection → the bot's reply", readyPR().says(me, "/safe-merge", at(100)).rejected("Missing code owners approval", at(101)),
-			"safe-merge rejected: Missing code owners approval", pr + "#issuecomment-101"},
+		{"rejection → the bot's reply", readyPR().says(me, "/safe-merge", at(100)).rejected("Pull request has conflicts with the base branch that must be resolved before merging.", at(101)),
+			"safe-merge rejected: Pull request has conflicts with the base branch that must be resolved before merging.", pr + "#issuecomment-101"},
 		{"no response → the command", readyPR().says(me, "/safe-merge", at(100)),
 			"safe-merge requested 20m ago, no response", pr + "#issuecomment-100"},
 		{"running → build", readyPR().says(me, "/dry-run", at(100), rocket).gate(model.DryRun, 100, "", at(110)),

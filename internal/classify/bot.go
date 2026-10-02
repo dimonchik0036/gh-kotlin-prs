@@ -19,8 +19,11 @@ var (
 	// Runs started by a Safe-Merge in the ultimate repository rather than by a command on this PR.
 	gateExternal = "The quality gate was triggered by Safe-Merge of the"
 
-	commandRejected  = regexp.MustCompile(`(?s)^Command rejected:\s*(.+)$`)
-	codeOwnersMarker = "<!-- CODE_OWNERS_REVIEW_COMMENT -->"
+	commandRejected = regexp.MustCompile(`(?s)^Command rejected:\s*(.+)$`)
+	// Rejection reasons only reviewers resolve; any other one is the author's to fix:
+	// conflicts, fixup!/amend!/squash! commits, a draft, a coordinator build, the unknown.
+	reviewersRejections = []string{"Missing code owners approval"}
+	codeOwnersMarker    = "<!-- CODE_OWNERS_REVIEW_COMMENT -->"
 	// Replies of the code-owners bot that report success rather than a failure.
 	successReplies = []string{"Private aggregate run triggered at ", "Cherry-pick to `"}
 
@@ -133,6 +136,12 @@ func ParseRejection(body string) (string, bool) {
 		return "", false
 	}
 	return strings.TrimSpace(m[1]), true
+}
+
+// ReviewersToFix reports whether a rejection's reason is one only reviewers resolve, like
+// "Missing code owners approval - verify the check 'Code Owners Approval' is green.".
+func ReviewersToFix(reason string) bool {
+	return slices.ContainsFunc(reviewersRejections, func(prefix string) bool { return strings.HasPrefix(reason, prefix) })
 }
 
 // ParseFailure returns the reason of a reply that reports a command's failure: a
