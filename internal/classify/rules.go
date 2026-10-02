@@ -85,7 +85,8 @@ func mineRunFailed(f *facts) []model.Reason {
 	return nil
 }
 
-// 2. A reviewer's latest opinionated review is CHANGES_REQUESTED and newer than the last push.
+// 2. A reviewer's latest opinionated review is CHANGES_REQUESTED, newer than the last push
+// and than a pending re-request of them.
 func mineChangesRequested(f *facts) []model.Reason {
 	var logins []string
 	var url string // the first of those reviews
@@ -176,7 +177,8 @@ func (f *facts) requested(rule model.CodeOwnerRule) bool {
 	})
 }
 
-// 3. An unresolved, non-outdated thread whose last comment isn't mine.
+// 3. An unresolved, non-outdated thread whose last comment isn't mine, and whose author
+// wasn't re-requested since (still pending).
 func mineUnresolvedThreads(f *facts) []model.Reason {
 	var logins []string
 	var newest github.ThreadComment // the last comment of the newest such thread
@@ -196,7 +198,7 @@ func mineUnresolvedThreads(f *facts) []model.Reason {
 
 // 4. A non-bot comment from someone else after my last activity. Comments in threads
 // that rule 3 already reports don't count again, nor does a comment its author followed
-// with an approval: that approval is their last word.
+// with an approval (their last word) or that I answered with a re-request of them.
 func mineNewComment(f *facts) []model.Reason {
 	since := f.myLastActivity()
 	var latest event
@@ -206,7 +208,7 @@ func mineNewComment(f *facts) []model.Reason {
 				continue
 			}
 		}
-		if f.approvedSince(e.login, e.at) {
+		if f.approvedSince(e.login, e.at) || f.reRequestedSince(e.login, e.at) {
 			continue
 		}
 		if !sameLogin(e.login, f.me) && e.at.After(since) && e.at.After(latest.at) {
@@ -379,11 +381,19 @@ func (f *facts) awaitsMyReply(i int) (string, bool) {
 	if t.IsResolved || t.IsOutdated || len(t.Comments.Nodes) == 0 {
 		return "", false
 	}
-	last := t.Comments.Nodes[len(t.Comments.Nodes)-1].Author
-	if last == nil || f.c.isBot(last) || sameLogin(last.Login, f.me) {
+	last := t.Comments.Nodes[len(t.Comments.Nodes)-1]
+	if last.Author == nil || f.c.isBot(last.Author) || sameLogin(last.Author.Login, f.me) || f.reRequestedSince(last.Author.Login, last.CreatedAt) {
 		return "", false
 	}
-	return last.Login, true
+	return last.Author.Login, true
+}
+
+// reRequestedSince: a review request to login is pending and was made after t, so what
+// login did before it is answered: the move is theirs. The request's time comes from
+// the fetched timeline (its last items); without it, nothing is handed over.
+func (f *facts) reRequestedSince(login string, t time.Time) bool {
+	key := strings.ToLower(login)
+	return f.requestedUsers[key] && f.requestedAt[key].After(t)
 }
 
 func (f *facts) inProgress() bool {
@@ -398,9 +408,11 @@ func (f *facts) missingRules() []model.CodeOwnerRule {
 	return f.pr.CodeOwners.Missing()
 }
 
+// changesRequestedSincePush: login's latest opinion requests changes, newer than my last
+// push and than a pending re-request of them.
 func (f *facts) changesRequestedSincePush(login string) bool {
 	r, ok := f.opinions[strings.ToLower(login)]
-	return ok && r.State == "CHANGES_REQUESTED" && r.SubmittedAt.After(f.lastPush)
+	return ok && r.State == "CHANGES_REQUESTED" && r.SubmittedAt.After(f.lastPush) && !f.reRequestedSince(login, r.SubmittedAt)
 }
 
 func (f *facts) reviewed(login string) bool {

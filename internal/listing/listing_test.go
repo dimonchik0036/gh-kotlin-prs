@@ -165,12 +165,20 @@ func TestWithReviewRequests(t *testing.T) {
 		}
 		return out
 	}
-	with := d.WithReviewRequests(map[int][]string{90006: {"Erin_User", "bob_user"}, 1: {"bob_user"}})
+	with := d.WithReviewRequests(map[int]ReviewRequests{90006: {Logins: []string{"Erin_User", "bob_user"}, At: now}, 1: {Logins: []string{"bob_user"}}})
 	if got := requested(with.Classify(cfg, now)); !slices.Equal(got, []string{"erin_user", "bob_user"}) {
 		t.Errorf("requested %q", got)
 	}
 	if got := requested(d.Classify(cfg, now)); !slices.Equal(got, []string{"erin_user"}) {
 		t.Errorf("the data changed: %q", got)
+	}
+	// The request's time is in the timeline, for the rules that hand the move over.
+	events := with.prs[90006].TimelineItems.Nodes
+	if last := events[len(events)-1]; last.Typename != "ReviewRequestedEvent" || last.RequestedReviewer.Login != "bob_user" || !last.CreatedAt.Equal(now) {
+		t.Errorf("timeline %+v", last)
+	}
+	if len(d.prs[90006].TimelineItems.Nodes) != len(events)-2 {
+		t.Error("the data's timeline changed")
 	}
 	if d.WithReviewRequests(nil) != d {
 		t.Error("a copy for nothing")

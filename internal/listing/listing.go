@@ -113,28 +113,38 @@ func (d *Data) Classify(cfg config.Config, now time.Time) []model.PR {
 	return out
 }
 
+// ReviewRequests are review requests sent from the tool: who, and when.
+type ReviewRequests struct {
+	Logins []string
+	At     time.Time
+}
+
 // WithReviewRequests is the data as GitHub has it right after review requests of the
-// PRs went out (number → logins), before a refresh fetches them: those people requested
-// too. d stays as it is.
-func (d *Data) WithReviewRequests(requests map[int][]string) *Data {
+// PRs went out, before a refresh fetches them: those people requested too, at the time
+// they were sent. d stays as it is.
+func (d *Data) WithReviewRequests(requests map[int]ReviewRequests) *Data {
 	if len(requests) == 0 {
 		return d
 	}
 	out := *d
 	out.prs = maps.Clone(d.prs)
-	for n, logins := range requests {
+	for n, rq := range requests {
 		raw, ok := d.prs[n]
 		if !ok {
 			continue
 		}
 		pr := *raw
 		pr.ReviewRequests.Nodes = slices.Clone(raw.ReviewRequests.Nodes)
-		for _, login := range logins {
+		pr.TimelineItems.Nodes = slices.Clone(raw.TimelineItems.Nodes)
+		for _, login := range rq.Logins {
 			if !slices.ContainsFunc(pr.ReviewRequests.Nodes, func(rr github.ReviewRequest) bool {
 				return rr.RequestedReviewer != nil && strings.EqualFold(rr.RequestedReviewer.Login, login)
 			}) {
 				pr.ReviewRequests.Nodes = append(pr.ReviewRequests.Nodes, github.ReviewRequest{RequestedReviewer: &github.Reviewer{Typename: "User", Login: login}})
 			}
+			pr.TimelineItems.Nodes = append(pr.TimelineItems.Nodes, github.TimelineItem{
+				Typename: "ReviewRequestedEvent", CreatedAt: rq.At, RequestedReviewer: &github.Reviewer{Typename: "User", Login: login},
+			})
 		}
 		out.prs[n] = &pr
 	}

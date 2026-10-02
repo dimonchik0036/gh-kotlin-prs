@@ -411,10 +411,14 @@ func (m *Model) deliver(events []notify.Event) tea.Cmd {
 // reclassify classifies the data with the current clock and rebuilds the screen. The
 // runs posted since the data was fetched show as requested.
 func (m *Model) reclassify() {
-	requests := map[int][]string{}
+	requests := map[int]listing.ReviewRequests{}
 	for n, posts := range m.posts {
 		for _, p := range posts {
-			requests[n] = append(requests[n], p.reviewers...)
+			if p.reviewers != nil {
+				rq := requests[n]
+				rq.Logins, rq.At = append(rq.Logins, p.reviewers...), p.at
+				requests[n] = rq
+			}
 		}
 	}
 	m.prs = m.data.WithReviewRequests(requests).Classify(m.opts.Config, m.now)

@@ -202,11 +202,16 @@ Slash-command comments (`/dry-run`, `/safe-merge`, …) are nobody's "comment": 
 author's reply to a review.
 `myLastActivity` is the latest of: last push, my last comment, my last slash command, my last review, my last thread
 reply.
+A pending review request to someone, made after their activity, hands that activity's move to them: I answered
+(usually with a push), now it's their turn. "Made after" is the person's latest `ReviewRequestedEvent` in the fetched
+timeline (its last items, so after many commits it may be missing, and nothing is handed over); "pending" means
+they're in the review requests now. It applies to rules 2, 3 and 4; the thread or comment still shows in the details.
 
 **Mine:** the first rule that matches sets `Next`. Every rule that matches is added to `Reasons`.
 1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected, or got no response
    → "safe-merge failed 2h ago", "dry-run rejected: <reason>".
-2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED and newer than my last push.
+2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED, newer than my last push, and they weren't
+   re-requested since (a re-request without a push says "I answered, your turn").
 2a. **Me:** a code owner is marked `🔄` (commented and needs a re-request) → "re-request review from alice_user"; one
     reason lists every such owner: "re-request review from alice_user, bob_user".
 2b. **Me:** a missing code-owner rule where every listed owner who hasn't reviewed is `⏳` → "all owners for /analysis/ unavailable".
@@ -214,11 +219,13 @@ reply.
     and none of them, nor a team of it, is requested now (the table lags behind a request, so the live requests
     decide) → "assign reviewers for /analysis/"; one reason lists every such rule's first path. A rule without owners
     (`#NO_OWNERS`) isn't one: any reviewer's decision covers it.
-3. **Me:** an unresolved, non-outdated thread whose last comment isn't mine.
+3. **Me:** an unresolved, non-outdated thread whose last comment isn't mine, and whose author wasn't re-requested
+   since that comment.
 4. **Me:** a non-bot comment from someone else after `myLastActivity`. One event gives one reason: comments in threads
    that rule 3 reports, and reviews that consist of thread comments, don't count again. A comment, commenting review
    or thread comment whose author submitted an APPROVED review at the same time or later doesn't count: the approval
-   is their last word (an unresolved thread awaiting my reply is still rule 3).
+   is their last word (an unresolved thread awaiting my reply is still rule 3). Nor does one whose author was
+   re-requested since.
 5. **CI:** a run is requested or running.
 6. **Me (ready):** `Code Owners Approval` is green, there's at least one approval, and no run is requested or running → "ready to /safe-merge".
    A missing or outdated green dry-run doesn't block this (CI isn't a gate), but it's added as a hint: "no fresh dry-run".

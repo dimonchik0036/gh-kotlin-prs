@@ -137,6 +137,66 @@ func TestMineRule2ChangesRequested(t *testing.T) {
 	})
 }
 
+// A pending review request to X made after X's activity hands that activity's move to X:
+// I answered (often with a push), now it's their turn.
+func TestMineReRequestHandsTheMove(t *testing.T) {
+	// An unresolved thread from bob_user, a force-push, then a re-request still pending.
+	thread := func() *prBuilder {
+		return newPR(me).thread(false, false, by("bob_user", at(-120))).forcePush(at(50))
+	}
+	runRuleCases(t, model.SectionMine, []ruleCase{
+		{
+			name: "a thread, a push, then a re-request",
+			pr:   thread().request("bob_user").requestEvent("bob_user", at(60)),
+			next: model.NextReviewers, reason: "waiting: bob_user",
+			absent: []string{"unresolved thread", "new thread comment"},
+		},
+		{
+			name: "the request is older than the thread's last comment",
+			pr:   newPR(me).thread(false, false, by("bob_user", at(70))).request("bob_user").requestEvent("bob_user", at(60)),
+			next: model.NextMe, reason: "1 unresolved thread from bob_user",
+		},
+		{
+			name: "the request was removed",
+			pr:   thread().requestEvent("bob_user", at(60)),
+			next: model.NextMe, reason: "1 unresolved thread from bob_user",
+		},
+		{
+			name: "someone else's re-request",
+			pr:   thread().request("carol_user").requestEvent("carol_user", at(60)),
+			next: model.NextMe, reason: "1 unresolved thread from bob_user",
+		},
+		{
+			name: "a new comment, then a re-request",
+			pr:   newPR(me).says("bob_user", "Is this ready?", at(30)).request("bob_user").requestEvent("bob_user", at(40)),
+			next: model.NextReviewers, reason: "waiting: bob_user",
+			absent: []string{"new comment"},
+		},
+		{
+			name: "a new comment after the re-request",
+			pr:   newPR(me).says("bob_user", "One more thing", at(50)).request("bob_user").requestEvent("bob_user", at(40)),
+			next: model.NextMe, reason: "new comment from bob_user 1h ago",
+		},
+		{
+			name: "changes requested, then a re-request without a push",
+			pr: newPR(me).ownersRed().reviewed("bob_user", "CHANGES_REQUESTED", at(30)).
+				request("bob_user").requestEvent("bob_user", at(40)),
+			next: model.NextReviewers, reason: "waiting: bob_user",
+			absent: []string{"changes requested"},
+		},
+		{
+			name: "changes requested after the re-request",
+			pr: newPR(me).ownersRed().reviewed("bob_user", "CHANGES_REQUESTED", at(50)).
+				request("bob_user").requestEvent("bob_user", at(40)),
+			next: model.NextMe, reason: "changes requested by bob_user",
+		},
+	})
+	// The thread still shows in the details.
+	if pr := thread().request("bob_user").requestEvent("bob_user", at(60)).mine(); pr.UnresolvedThreads != 1 || len(pr.Threads) != 1 {
+		t.Errorf("threads %d, %+v", pr.UnresolvedThreads, pr.Threads)
+	}
+}
+
 func TestMineRule2aReRequest(t *testing.T) {
 	commented := ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"dave_user", "erin_user"}, mark: "🔄", assignees: []string{"dave_user"}}
 	runRuleCases(t, model.SectionMine, []ruleCase{

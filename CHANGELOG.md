@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Re-requesting a review hands the move to the reviewer: an unresolved thread, a new comment or requested changes from
+  someone you re-requested since no longer make a PR of yours your move; it's "waiting: <them>" (#3).
 - A command posted from `run` or the interactive view drops the PR's cached details, so the menu-bar plugin's next
   run fetches what the bot made of it.
 - `gh kotlin-prs run <number> request-review [login...]` requests a review of a PR of yours from its code owners, in
