@@ -49,15 +49,20 @@ type Options struct {
 	// Post posts a command's text as a comment on the PR and returns the comment's URL;
 	// nil never posts (demo mode).
 	Post func(ctx context.Context, number int, text string) (url string, err error)
+	// RequestReview requests a review of the PR from the logins, in one request; nil
+	// never does (demo mode).
+	RequestReview func(ctx context.Context, number int, logins []string) error
 	// Copy puts text on the system clipboard. When it fails, or is nil, the text goes
 	// through the terminal (OSC 52) instead.
 	Copy func(text string) error
 	// Notifier delivers what changed between two live refreshes; nil for none.
 	Notifier *notify.Notifier
 	// Start opens this PR's details once it's in the data, 0 for the list. StartCommand
-	// then asks to post that command on it, once a live refresh shows the PR's state.
+	// then asks to post that command on it, or StartReview opens the review picker on
+	// it, once a live refresh shows the PR's state.
 	Start        int
 	StartCommand *actions.Command
+	StartReview  bool
 }
 
 // Run shows the TUI until the user quits or ctx is done.
@@ -108,15 +113,19 @@ type Model struct {
 	live   []model.PR
 	liveAt time.Time
 
-	// started: Start's details were opened (or given up on); startCommand waits to be asked.
+	// started: Start's details were opened (or given up on); startCommand waits to be
+	// asked, startReview for the picker to open.
 	started      bool
 	startCommand *actions.Command
+	startReview  bool
 
 	// posts are the commands posted since the refresh that started last, per PR.
 	posts map[int][]post
-	// menu lists the commands for a PR (the actions key); confirm waits for y.
+	// menu lists the commands for a PR (the actions key); confirm waits for y; picker
+	// picks the code owners to request a review from (the requestReview key).
 	menu    *menu
 	confirm *confirmation
+	picker  *picker
 
 	refreshing   bool
 	fetchStarted time.Time // when the running or last refresh started
@@ -169,6 +178,7 @@ func New(ctx context.Context, opts Options) *Model {
 		bindings:     bindings,
 		posts:        map[int][]post{},
 		startCommand: opts.StartCommand,
+		startReview:  opts.StartReview,
 		ctx:          ctx,
 		schedule:     tea.Tick,
 		diff:         notify.Diff,
@@ -220,7 +230,7 @@ func (m *Model) openStart(live bool) tea.Cmd {
 			m.started = true
 			cmd = m.openDetail(n)
 		} else if live {
-			m.started, m.startCommand = true, nil
+			m.started, m.startCommand, m.startReview = true, nil, false
 			m.setNote(fmt.Sprintf("#%d isn't in the list", n))
 		}
 	}
@@ -228,6 +238,12 @@ func (m *Model) openStart(live bool) tea.Cmd {
 		m.startCommand = nil
 		if m.screen == screenDetail && m.detail == m.opts.Start {
 			m.ask(*c)
+		}
+	}
+	if m.startReview && live && m.started {
+		m.startReview = false
+		if m.screen == screenDetail && m.detail == m.opts.Start {
+			m.openPicker()
 		}
 	}
 	return cmd
@@ -300,6 +316,9 @@ func (m *Model) update(msg tea.Msg) tea.Cmd {
 		return nil
 	case postedMsg:
 		m.onPosted(msg)
+		return nil
+	case reviewRequestedMsg:
+		m.onReviewRequested(msg)
 		return nil
 	case copyMsg:
 		m.setNote("copied " + msg.text)
@@ -392,10 +411,18 @@ func (m *Model) deliver(events []notify.Event) tea.Cmd {
 // reclassify classifies the data with the current clock and rebuilds the screen. The
 // runs posted since the data was fetched show as requested.
 func (m *Model) reclassify() {
-	m.prs = m.data.Classify(m.opts.Config, m.now)
+	requests := map[int][]string{}
+	for n, posts := range m.posts {
+		for _, p := range posts {
+			requests[n] = append(requests[n], p.reviewers...)
+		}
+	}
+	m.prs = m.data.WithReviewRequests(requests).Classify(m.opts.Config, m.now)
 	for i, pr := range m.prs {
 		for _, p := range m.posts[pr.Number] {
-			m.prs[i] = actions.Requested(p.cmd, m.prs[i], p.url, p.at)
+			if p.reviewers == nil {
+				m.prs[i] = actions.Requested(p.cmd, m.prs[i], p.url, p.at)
+			}
 		}
 	}
 	m.classifiedAt = m.now
@@ -506,6 +533,8 @@ func (m *Model) onKey(msg tea.KeyPressMsg) tea.Cmd {
 		return m.onConfirmKey(key)
 	case m.menu != nil:
 		return m.onMenuKey(key)
+	case m.picker != nil:
+		return m.onPickerKey(key)
 	}
 	action := m.bindings[key]
 	if c, ok := commandOf(action); ok && m.screen != screenHelp {
@@ -513,6 +542,11 @@ func (m *Model) onKey(msg tea.KeyPressMsg) tea.Cmd {
 		return nil
 	}
 	switch action {
+	case "requestReview":
+		if m.screen != screenHelp {
+			m.openPicker()
+		}
+		return nil
 	case "actions":
 		if m.screen != screenHelp {
 			m.openMenu()

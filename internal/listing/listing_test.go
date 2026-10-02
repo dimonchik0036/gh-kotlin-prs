@@ -149,3 +149,30 @@ func TestCached(t *testing.T) {
 		t.Errorf("any age: %v", ok)
 	}
 }
+
+// WithReviewRequests classifies as if the requests were in: a request of erin_user, the
+// assignee of #90006's /analysis/, is there already, bob_user's is new; d isn't touched.
+func TestWithReviewRequests(t *testing.T) {
+	d, now := fetch(t, allSections)
+	cfg := config.Default()
+	requested := func(prs []model.PR) []string {
+		i := slices.IndexFunc(prs, func(pr model.PR) bool { return pr.Number == 90006 })
+		var out []string
+		for _, r := range prs[i].Reviewers {
+			if r.Requested {
+				out = append(out, r.Login)
+			}
+		}
+		return out
+	}
+	with := d.WithReviewRequests(map[int][]string{90006: {"Erin_User", "bob_user"}, 1: {"bob_user"}})
+	if got := requested(with.Classify(cfg, now)); !slices.Equal(got, []string{"erin_user", "bob_user"}) {
+		t.Errorf("requested %q", got)
+	}
+	if got := requested(d.Classify(cfg, now)); !slices.Equal(got, []string{"erin_user"}) {
+		t.Errorf("the data changed: %q", got)
+	}
+	if d.WithReviewRequests(nil) != d {
+		t.Error("a copy for nothing")
+	}
+}

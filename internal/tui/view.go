@@ -45,6 +45,8 @@ func (m *Model) content() string {
 	}
 	var body []string
 	switch {
+	case m.picker != nil:
+		body = m.pickerLines()
 	case m.screen == screenHelp, m.screen == screenDetail:
 		body = strings.Split(m.viewport.View(), "\n")
 	case m.data == nil:
@@ -285,6 +287,8 @@ func (m *Model) statusBar() string {
 	}
 	hints := hint("help", "quit")
 	switch {
+	case m.picker != nil:
+		return strings.Join(left, sep) // the picker's title has its keys
 	case m.screen == screenDetail:
 		hints = hint("back", "actions", "open", "build", "help", "quit")
 	case m.screen == screenList && m.data != nil:

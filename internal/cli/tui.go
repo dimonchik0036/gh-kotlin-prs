@@ -57,8 +57,19 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions, 
 		}
 		return url, err
 	}
+	requestReview := func(ctx context.Context, number int, logins []string) error {
+		rest, err := e.newREST()
+		if err != nil {
+			return err
+		}
+		if err := github.RequestReviewers(ctx, rest, cfg.Repo, number, logins); err != nil {
+			return err
+		}
+		github.ForgetPR(client, cfg.Owner(), cfg.Name(), number)
+		return nil
+	}
 	if e.demo {
-		post = nil
+		post, requestReview = nil, nil
 	}
 	return e.runTUI(ctx, tui.Options{
 		Config:      cfg,
@@ -72,21 +83,25 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions, 
 		FetchPR: func(ctx context.Context, number int) (*github.PRResponse, error) {
 			return github.FetchPR(ctx, client, cfg.Owner(), cfg.Name(), number)
 		},
-		Now:          e.now,
-		Open:         browser.New("", io.Discard, io.Discard).Browse,
-		Post:         post,
-		Copy:         clipboard.WriteAll,
-		Notifier:     notify.New(cfg.Notify, os.Environ(), nil),
-		Start:        start.number,
-		StartCommand: start.command,
+		Now:           e.now,
+		Open:          browser.New("", io.Discard, io.Discard).Browse,
+		Post:          post,
+		RequestReview: requestReview,
+		Copy:          clipboard.WriteAll,
+		Notifier:      notify.New(cfg.Notify, os.Environ(), nil),
+		Start:         start.number,
+		StartCommand:  start.command,
+		StartReview:   start.review,
 	})
 }
 
-// tuiStart is where the interactive view opens: --pr's details, and --post's question.
+// tuiStart is where the interactive view opens: --pr's details, and --post's question
+// (or the review picker for request-review).
 type tuiStart struct {
 	number  int
 	post    string
 	command *actions.Command
+	review  bool
 }
 
 // check validates --pr and --post: they open the interactive view, so they need a terminal.
@@ -98,11 +113,11 @@ func (s *tuiStart) check(e env) error {
 		if s.number == 0 {
 			return usageError{errors.New("--post needs --pr")}
 		}
-		c, ok := actions.Find(s.post)
-		if !ok {
-			return usageError{fmt.Errorf("unknown command %q for --post, want one of %s", s.post, actions.Names())}
+		if c, ok := actions.Find(s.post); ok {
+			s.command = &c
+		} else if s.review = s.post == actions.RequestReview; !s.review {
+			return usageError{fmt.Errorf("unknown command %q for --post, want one of %s, %s", s.post, actions.Names(), actions.RequestReview)}
 		}
-		s.command = &c
 	}
 	if !e.interactive() {
 		return usageError{errors.New("the interactive view needs a terminal")}

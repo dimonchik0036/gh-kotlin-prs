@@ -41,6 +41,7 @@ var Actions = []Action{
 	{"cancelCoordinator", "post /cancel-coordinator, after asking", []string{"C"}},
 	{"fixup", "post /fixup, after asking", []string{"F"}},
 	{"codeowners", "post /codeowners, after asking", []string{"O"}},
+	{"requestReview", "pick code owners to request a review from, then send", []string{"A"}},
 	{"refresh", "refresh now", []string{"r"}},
 	{"help", "this help", []string{"?"}},
 	{"quit", "quit (ctrl+c always quits)", []string{"q"}},

@@ -261,7 +261,8 @@ func newRoot(e env) *cobra.Command {
 	root.PersistentFlags().StringVar(&global.hyperlinks, "hyperlinks", "", "terminal links: auto (on a terminal), always or never (default: the `hyperlinks` config key, else auto)")
 	addListFlags(root, &opts)
 	root.Flags().IntVar(&start.number, "pr", 0, "open the interactive view on this PR's details")
-	root.Flags().StringVar(&start.post, "post", "", "with --pr: also ask to post this command on it ("+actions.Names()+"); only y posts")
+	root.Flags().StringVar(&start.post, "post", "", "with --pr: also ask to post this command on it ("+actions.Names()+
+		"); only y posts. "+actions.RequestReview+" opens the review picker on it")
 
 	var listOpts listOptions
 	list := &cobra.Command{

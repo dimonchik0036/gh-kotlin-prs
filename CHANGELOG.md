@@ -12,6 +12,9 @@ breaking JSON changes and noted here.
   one request: the logins given, or by default the ones to re-request (they commented and weren't re-requested, or
   requested changes before your last push). Only people of the bot's code-owners table, never a team; without logins
   to go on, it lists them per rule (#1, #2).
+- In the interactive view, `A` (config `requestReview`) opens a tree of the PR's code-owner rules to pick the people
+  to request a review from, the rules that need you open; `enter` sends one request for everyone picked.
+  `--pr <number> --post request-review` opens it on that PR (#1, #2).
 - A PR of yours with a code-owner rule nobody was asked to review (the bot's `UNASSIGNED`) is your move: "assign
   reviewers for /analysis/", instead of "waiting: owners of /analysis/". A review request the bot's table doesn't
   show yet counts (#2).

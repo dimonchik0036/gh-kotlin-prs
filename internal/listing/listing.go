@@ -5,6 +5,7 @@ package listing
 
 import (
 	"context"
+	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -110,6 +111,34 @@ func (d *Data) Classify(cfg config.Config, now time.Time) []model.PR {
 		}
 	}
 	return out
+}
+
+// WithReviewRequests is the data as GitHub has it right after review requests of the
+// PRs went out (number → logins), before a refresh fetches them: those people requested
+// too. d stays as it is.
+func (d *Data) WithReviewRequests(requests map[int][]string) *Data {
+	if len(requests) == 0 {
+		return d
+	}
+	out := *d
+	out.prs = maps.Clone(d.prs)
+	for n, logins := range requests {
+		raw, ok := d.prs[n]
+		if !ok {
+			continue
+		}
+		pr := *raw
+		pr.ReviewRequests.Nodes = slices.Clone(raw.ReviewRequests.Nodes)
+		for _, login := range logins {
+			if !slices.ContainsFunc(pr.ReviewRequests.Nodes, func(rr github.ReviewRequest) bool {
+				return rr.RequestedReviewer != nil && strings.EqualFold(rr.RequestedReviewer.Login, login)
+			}) {
+				pr.ReviewRequests.Nodes = append(pr.ReviewRequests.Nodes, github.ReviewRequest{RequestedReviewer: &github.Reviewer{Typename: "User", Login: login}})
+			}
+		}
+		out.prs[n] = &pr
+	}
+	return &out
 }
 
 // Show builds the detail of a fetched PR, as `show` would; false when it wasn't fetched

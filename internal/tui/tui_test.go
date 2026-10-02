@@ -36,7 +36,8 @@ type harness struct {
 	rate     github.RateLimit
 	opened   []string
 	copied   []string
-	// posted are the comments posted, "#number text"; postErr fails the posts.
+	// posted are the comments posted, "#number text", and the review requests, "#number
+	// review login, login"; postErr fails them.
 	posted  []string
 	postErr error
 	quit    bool
@@ -79,6 +80,13 @@ func newHarness(t *testing.T, configure func(h *harness, opts *Options)) *harnes
 			h.posted = append(h.posted, fmt.Sprintf("#%d %s", number, text))
 			return fmt.Sprintf("https://github.com/JetBrains/kotlin/pull/%d#issuecomment-%d", number, len(h.posted)), nil
 		},
+		RequestReview: func(_ context.Context, number int, logins []string) error {
+			if h.postErr != nil {
+				return h.postErr
+			}
+			h.posted = append(h.posted, fmt.Sprintf("#%d review %s", number, strings.Join(logins, ", ")))
+			return nil
+		},
 	}
 	if configure != nil {
 		configure(h, &opts)
@@ -119,7 +127,7 @@ func (h *harness) run(cmd tea.Cmd) {
 		h.quit = true
 	case tea.RawMsg:
 		h.raw = append(h.raw, msg.Msg.(string))
-	case fetchedMsg, detailMsg, noteMsg, copyMsg, postedMsg:
+	case fetchedMsg, detailMsg, noteMsg, copyMsg, postedMsg, reviewRequestedMsg:
 		h.send(msg)
 	}
 }
@@ -128,7 +136,7 @@ func (h *harness) start() { h.run(h.m.Init()) }
 
 var keyCodes = map[string]rune{
 	"enter": tea.KeyEnter, "esc": tea.KeyEscape, "tab": tea.KeyTab, "up": tea.KeyUp, "down": tea.KeyDown,
-	"backspace": tea.KeyBackspace,
+	"backspace": tea.KeyBackspace, "space": tea.KeySpace, "left": tea.KeyLeft, "right": tea.KeyRight,
 }
 
 func (h *harness) keys(keys ...string) {

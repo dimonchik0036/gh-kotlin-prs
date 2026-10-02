@@ -147,9 +147,13 @@ func TestTUIPosts(t *testing.T) {
 	if err != nil || url == "" || len(rest.posts) != 1 || rest.posts[0] != `POST repos/JetBrains/kotlin/issues/90006/comments {"body":"/fixup"}` {
 		t.Errorf("post: %q, %v, %q", url, err, rest.posts)
 	}
+	if err := opts.RequestReview(context.Background(), 90006, []string{"bob_user"}); err != nil || len(rest.posts) != 2 ||
+		rest.posts[1] != `POST repos/JetBrains/kotlin/pulls/90006/requested_reviewers {"reviewers":["bob_user"]}` {
+		t.Errorf("review request: %v, %q", err, rest.posts)
+	}
 	e.demo = true
-	if got := run(context.Background(), nil, e); got != exitOK || opts.Post != nil {
-		t.Errorf("demo mode: exit %d, post %v", got, opts.Post != nil)
+	if got := run(context.Background(), nil, e); got != exitOK || opts.Post != nil || opts.RequestReview != nil {
+		t.Errorf("demo mode: exit %d, post %v, review %v", got, opts.Post != nil, opts.RequestReview != nil)
 	}
 }
 
@@ -161,13 +165,19 @@ func TestStartFlags(t *testing.T) {
 		opts.Start != 90006 || opts.StartCommand == nil || opts.StartCommand.Text != "/dry-run --retry" {
 		t.Errorf("exit %d, stderr %q, start %d %+v", got, errOut.String(), opts.Start, opts.StartCommand)
 	}
+	if got := run(context.Background(), []string{"--pr", "90006", "--post", "request-review"}, e); got != exitOK ||
+		opts.Start != 90006 || opts.StartCommand != nil || !opts.StartReview {
+		t.Errorf("request-review: exit %d, stderr %q, start %d %+v %v", got, errOut.String(), opts.Start, opts.StartCommand, opts.StartReview)
+	}
 	for _, tt := range []struct {
 		args     []string
 		terminal bool
 		stderr   string
 	}{
 		{[]string{"--post", "fixup"}, true, "--post needs --pr"},
-		{[]string{"--pr", "90006", "--post", "safe-squash-merge"}, true, `unknown command "safe-squash-merge" for --post`},
+		{[]string{"--post", "request-review"}, true, "--post needs --pr"},
+		{[]string{"--pr", "90006", "--post", "safe-squash-merge"}, true, `unknown command "safe-squash-merge" for --post, want one of dry-run, ` +
+			`dry-run-retry, safe-merge, cancel-coordinator, fixup, codeowners, request-review`},
 		{[]string{"--pr", "90006"}, false, "the interactive view needs a terminal"},
 		{[]string{"--pr", "-3"}, true, "not a PR number: -3"},
 	} {

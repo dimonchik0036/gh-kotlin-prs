@@ -70,10 +70,16 @@ j/k, up/down  select            enter  details (esc: back)     o  open the PR   
 tab           next section      /      filter                  b  open its build    ?  help and symbols
 a             toggle --all      g/G    first / last            y  copy its URL      q  quit
 x             commands for it: D dry-run, R dry-run --retry, M safe-merge, C cancel-coordinator, F fixup, O codeowners
+A             request a review from code owners
 ```
 
+`A` opens a tree of the PR's code-owner rules with the people who may be asked: the rules that need you (nobody asked
+yet, or someone to re-request) open, the others collapsed with who approved or was asked. `space` picks a person, in
+every rule they own; `←`/`→` collapse and expand a rule; `enter` requests a review from everyone picked, in one request,
+even if some rules stay uncovered; `esc` cancels. A re-request starts with the people to re-request picked.
+
 `gh kotlin-prs --pr 90006` opens it on that PR's details, and `--pr 90006 --post dry-run` also asks to post that
-command there, once the PR's state is fresh. A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested
+command there, once the PR's state is fresh (`--post request-review` opens the review tree). A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested
 until the next refresh shows what the bot made of it.
 
 `keys` in the config rebinds them by action (`keys: {copy: c, refresh: [r, F5]}`; `?` and `config` list the actions);

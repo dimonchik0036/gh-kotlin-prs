@@ -10,12 +10,14 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 )
 
-// post is a command posted from the TUI: until a refresh that started after it, its
-// run shows as requested, and it isn't posted twice.
+// post is a command posted from the TUI, or a review requested from reviewers: until a
+// refresh that started after it, its run (or the reviewers) show as requested, and it
+// isn't posted twice.
 type post struct {
-	cmd actions.Command
-	url string
-	at  time.Time
+	cmd       actions.Command
+	url       string
+	reviewers []string
+	at        time.Time
 }
 
 // menu lists the commands that can be posted on a PR now.

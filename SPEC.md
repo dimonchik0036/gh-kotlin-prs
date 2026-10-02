@@ -294,9 +294,10 @@ gh kotlin-prs open <number>        # browser
   the cells' text; `enter` keeps it, `esc` clears it), `tab`/`shift+tab` next/previous section, `a` toggle `--all`,
   `?` help with the symbol legend (scrollable), `q` quit; `ctrl+c` always quits. The commands of §8, in the list and
   in the details: `D` dry-run, `R` dry-run --retry, `M` safe-merge, `C` cancel-coordinator, `F` fixup, `O` codeowners,
-  and `x` for a menu of the ones that can be posted now. Config `keys` rebinds them by action (`config.Actions`: up,
-  down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all, open, build, copy,
-  actions, dryRun, dryRunRetry, safeMerge, cancelCoordinator, fixup, codeowners, refresh, help, quit): a key or a list
+  and `x` for a menu of the ones that can be posted now; `A` requests a review (§8). Config `keys` rebinds them by action
+  (`config.Actions`: up, down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all,
+  open, build, copy, actions, dryRun, dryRunRetry, safeMerge, cancelCoordinator, fixup, codeowners, requestReview,
+  refresh, help, quit): a key or a list
   replaces that action's keys. An unknown action, an action without keys, or a key bound twice is a config error.
   Inside the filter, enter and esc are fixed.
 - **Refresh:** in the background every `refresh` (3m) and on `r`. The UI never blocks while a fetch runs; a spinner
@@ -371,6 +372,15 @@ assignment of a rule nobody was asked for (§5, 2a and 2c):
   (`Request this review? [y/N]`, `--yes`). Without logins and without default picks, or with a login the table doesn't
   have, it refuses with the candidates per row. After the request it drops the PR's cached details, so the next run
   fetches them.
+- TUI: `A` (`requestReview`), in the list and the details, or `--pr N --post request-review` after a live refresh,
+  opens a modal tree on the PR: a node per row, `▾ /path/ +N` with its status on the right, then `[ ]`/`[x]` per
+  person with their marks (`(QA)`, `⏳`, dimmed) and hints. The rows that need me are open, the others closed; a row
+  with a pick shows `→ login` instead of its status. `space` picks or unpicks (in every row of that person; on a row,
+  it opens or closes it), `←`/`→` close and open, `enter` sends everyone picked, even with rows left uncovered, `esc`
+  cancels. The footer: `3 of 4 subsystems covered ∙ will request: judy_user`. Like a command (above): checked first, not
+  twice before a refresh that started after it, the people shown as requested until then (the data classified as if
+  GitHub had the request, so 2a and 2c no longer fire), no notification of my own doing; a failure shows in the
+  status bar. The PR's cached details are dropped after, as in the CLI.
 
 ## 9. Config
 
