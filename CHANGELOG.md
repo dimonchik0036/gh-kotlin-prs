@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.6.1 — 2026-10-02
+
+A fix for the interactive view. The JSON output is unchanged (`"version": 1`).
+
 - The selected row of the interactive view keeps its links: its PR number, issue IDs, DR / SM cells and reason
   are clickable like the other rows'.
 
