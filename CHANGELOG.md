@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.5.2 — 2026-10-02
+
+A fix for when a PR of yours counts as your move. The JSON output is unchanged (`"version": 1`).
+
 - A PR of yours no longer shows "new comment from …" as your move for a comment its author followed with an
   approval, or one you already answered with a bot command such as `/dry-run`: those count as their last word and as
   your activity. A running dry-run then shows as waiting on CI.
