@@ -273,3 +273,38 @@ func TestRunsFromFixtures(t *testing.T) {
 		}
 	})
 }
+
+// A minimized command issues no run, and the bot's reply to it goes with it; a minimized
+// rejection drops the rejected run. The bot's own minimizing of superseded gate comments
+// is TestRunLifecycle's.
+func TestMinimizedCommands(t *testing.T) {
+	for _, tt := range []struct {
+		name      string
+		pr        *prBuilder
+		dryRun    model.RunState
+		safeMerge model.RunState
+	}{
+		{"a minimized command", newPR(me).says(me, "/safe-merge", at(100), minimized), model.RunNone, model.RunNone},
+		{"the reply to a minimized command doesn't answer an earlier one",
+			newPR(me).says(me, "/dry-run", at(100)).says(me, "/safe-merge", at(101), minimized).rejected("Missing code owners approval", at(102)),
+			model.RunRequested, model.RunNone},
+		{"a minimized reply to a minimized command",
+			newPR(me).says(me, "/safe-merge", at(100), minimized).rejected("Missing code owners approval", at(102), minimized),
+			model.RunNone, model.RunNone},
+		{"a minimized rejection of a visible command",
+			newPR(me).says(me, "/safe-merge", at(100)).rejected("Missing code owners approval", at(102), minimized),
+			model.RunNone, model.RunNone},
+		{"a visible rejection still counts", newPR(me).says(me, "/safe-merge", at(100)).rejected("Missing code owners approval", at(102)),
+			model.RunNone, model.RunRejected},
+		{"a minimized dispatched cancel cancels nothing",
+			newPR(me).says(me, "/dry-run", at(10), rocket).gate(model.DryRun, 100, "", at(12)).says(me, "/cancel-coordinator", at(20), rocket, minimized),
+			model.RunRunning, model.RunNone},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			pr := tt.pr.mine()
+			if pr.DryRun.State != tt.dryRun || pr.SafeMerge.State != tt.safeMerge {
+				t.Errorf("dry-run %s, safe-merge %s; want %s, %s (runs %+v)", pr.DryRun.State, pr.SafeMerge.State, tt.dryRun, tt.safeMerge, pr.Runs)
+			}
+		})
+	}
+}

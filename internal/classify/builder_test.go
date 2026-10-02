@@ -112,13 +112,13 @@ func gateBody(kind model.RunKind, build int, result string) string {
 	return s.String()
 }
 
-func (b *prBuilder) rejected(reason string, t time.Time) *prBuilder {
-	return b.botReply("Command rejected: "+reason, t)
+func (b *prBuilder) rejected(reason string, t time.Time, opts ...commentOpt) *prBuilder {
+	return b.botReply("Command rejected: "+reason, t, opts...)
 }
 
 // botReply posts any reply of the code-owners bot.
-func (b *prBuilder) botReply(text string, t time.Time) *prBuilder {
-	return b.comment(botActor("kotlin-safemerge"), text, t)
+func (b *prBuilder) botReply(text string, t time.Time, opts ...commentOpt) *prBuilder {
+	return b.comment(botActor("kotlin-safemerge"), text, t, opts...)
 }
 
 func (b *prBuilder) request(logins ...string) *prBuilder {

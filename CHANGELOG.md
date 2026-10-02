@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A command you minimized on the PR (resolved, e.g. with the PR Helper extension) no longer counts as a run, nor does
+  the bot's reply to it; a minimized rejection of a visible command drops that rejected run.
 - Re-requesting a review hands the move to the reviewer: an unresolved thread, a new comment or requested changes from
   someone you re-requested since no longer make a PR of yours your move; it's "waiting: <them>" (#3).
 - A command posted from `run` or the interactive view drops the PR's cached details, so the menu-bar plugin's next

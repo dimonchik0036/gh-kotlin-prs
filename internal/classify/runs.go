@@ -15,6 +15,9 @@ type pendingCommand struct {
 	at       time.Time
 	accepted bool
 	url      string
+	// dismissed: the author minimized the command, which issues no run; it still waits,
+	// so that the bot's reply to it goes with it.
+	dismissed bool
 }
 
 // runs reconstructs the dry-run and safe-merge history from the PR comments, newest first.
@@ -29,6 +32,9 @@ type pendingCommand struct {
 // A gate comment without a result is running only while it is the newest one, isn't
 // minimized (the bot hides older gate comments when it starts a new build) and no
 // dispatched `/cancel-coordinator` came after it.
+//
+// A command its author minimized issues nothing, and the bot's reply to it goes with it;
+// a minimized rejection drops the rejected run: the author dismissed it.
 func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model.Run {
 	comments = slices.Clone(comments)
 	slices.SortStableFunc(comments, func(a, b github.Comment) int { return a.CreatedAt.Compare(b.CreatedAt) })
@@ -68,14 +74,13 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model
 			}
 			cmd := pending[i]
 			pending = slices.Delete(pending, i, i+1)
-			if cmd.kind != "" {
+			if cmd.kind != "" && !cmd.dismissed && !cm.IsMinimized {
 				runs = append(runs, model.Run{
 					Kind:       cmd.kind,
 					State:      model.RunRejected,
 					Reason:     reason,
 					Started:    cmd.at,
 					Updated:    cm.CreatedAt,
-					Minimized:  cm.IsMinimized,
 					CommentURL: cm.URL,
 				})
 			}
@@ -93,10 +98,13 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model
 			if cmd == CmdReview {
 				continue
 			}
-			p := pendingCommand{cmd: cmd, at: cm.CreatedAt, accepted: c.hasBotRocket(cm), url: cm.URL}
+			p := pendingCommand{cmd: cmd, at: cm.CreatedAt, accepted: c.hasBotRocket(cm), url: cm.URL, dismissed: cm.IsMinimized}
 			p.kind, _ = cmd.RunKind()
 			if cmd == CmdCancel && p.accepted {
-				pending, runs = cancel(pending, runs, cm.CreatedAt)
+				// Dispatched, so no reply comes; a minimized one cancels nothing.
+				if !p.dismissed {
+					pending, runs = cancel(pending, runs, cm.CreatedAt)
+				}
 				continue
 			}
 			pending = append(pending, p)
@@ -123,7 +131,7 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model
 	}
 
 	for _, p := range pending {
-		if p.kind == "" {
+		if p.kind == "" || p.dismissed {
 			continue
 		}
 		run := model.Run{Kind: p.kind, State: model.RunRequested, Started: p.at, Updated: p.at, CommentURL: p.url}

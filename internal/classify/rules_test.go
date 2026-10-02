@@ -115,6 +115,22 @@ func TestMineRule1RunFailed(t *testing.T) {
 	})
 }
 
+// A passed dry-run, then /cancel-coordinator, /safe-merge and the bot's rejection, all three
+// minimized by the author: no rejected run, the reviewers' move.
+func TestMineMinimizedRejection(t *testing.T) {
+	runRuleCases(t, model.SectionMine, []ruleCase{
+		{
+			name: "minimized commands and their rejection",
+			pr: newPR(me).ownersRed().request("bob_user").
+				says(me, "/dry-run", at(10), rocket).gate(model.DryRun, 100, "passed", at(12)).
+				says(me, "/cancel-coordinator", at(60), rocket, minimized).says(me, "/safe-merge", at(61), minimized).
+				rejected("Missing code owners approval - verify the check 'Code Owners Approval' is green.", at(62), minimized),
+			next: model.NextReviewers, reason: "waiting: bob_user",
+			absent: []string{"rejected"},
+		},
+	})
+}
+
 func TestMineRule2ChangesRequested(t *testing.T) {
 	runRuleCases(t, model.SectionMine, []ruleCase{
 		{

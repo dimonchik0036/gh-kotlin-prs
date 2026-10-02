@@ -117,6 +117,11 @@ Our states:
   `/cancel-coordinator` came after it; otherwise **cancelled**. A dispatched `/cancel-coordinator` also cancels an accepted run.
 - Gate comments saying "The quality gate was triggered by Safe-Merge of the [corresponding Merge-Request] in ultimate"
   belong to an ultimate Merge-Request, not to this PR's commands, and are ignored.
+- A command comment its author minimized issues nothing: no run, no state, no reason, no "my last command" activity,
+  and a dispatched minimized `/cancel-coordinator` cancels nothing. The bot's reply to it is ignored with it (it still
+  answers that command, never an earlier one). A minimized rejection under a visible command drops that rejected
+  run: the author dismissed it. The bot's own minimizing of superseded gate comments (above) is a different thing:
+  those aren't command comments and still read as cancelled.
 
 Checks:
 - `Code Owners Approval` (CheckRun): SUCCESS or FAILURE, with the table in its summary.
