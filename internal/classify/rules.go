@@ -1,6 +1,7 @@
 package classify
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
@@ -48,6 +49,7 @@ func applyRules(f *facts, rules []rule) {
 
 var mineRules = []rule{
 	{name: "run failed", next: model.NextMe, match: mineRunFailed},
+	{name: "conflicts", next: model.NextMe, match: mineConflicts},
 	{name: "changes requested", next: model.NextMe, match: mineChangesRequested},
 	{name: "re-request", next: model.NextMe, match: mineReRequest, afterRuns: true},
 	{name: "owners unavailable", next: model.NextMe, match: mineOwnersUnavailable},
@@ -100,6 +102,18 @@ func mineRunFailed(f *facts) []model.Reason {
 		return linked(reason, run.BuildURL)
 	}
 	return nil
+}
+
+// 1a. GitHub found conflicts with the base branch, unless rule 1 already says so: a run
+// rejected or failed for them.
+func mineConflicts(f *facts) []model.Reason {
+	if !f.pr.Conflicts {
+		return nil
+	}
+	if run := latest(f.pr.Runs); len(mineRunFailed(f)) > 0 && ForConflicts(cmp.Or(run.Error, run.Reason)) {
+		return nil
+	}
+	return linked("conflicts with "+cmp.Or(f.pr.Base, "the base branch")+", rebase", f.pr.URL)
 }
 
 // 2. A reviewer's latest opinionated review is CHANGES_REQUESTED, newer than the last push

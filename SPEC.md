@@ -34,7 +34,10 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
 - Two GraphQL requests per refresh. The first runs every section's `search(type: ISSUE, query: …, first: 50)` and returns
   only PR numbers: search connections are charged by page size, so inlining the details would cost ~50 points per search.
   The second fetches the unique PRs by alias (`pr90005: pullRequest(number: 90005) { ...PR }`), ~1 point per PR. Per PR:
-  - `number title url isDraft author headRefName headRefOid createdAt updatedAt`
+  - `number title url isDraft author headRefName headRefOid baseRefName mergeable createdAt updatedAt`. `mergeable` is
+    `MERGEABLE`, `CONFLICTING` or `UNKNOWN` (GitHub computes it lazily, so the first ask after a push often gets
+    `UNKNOWN`); a fixture without it reads as `UNKNOWN`. Neither field changes the cost (4 points for a batch of 3
+    PRs before and after).
   - `reviewRequests(first: 20) { requestedReviewer { ... on User { login } ... on Team { slug } } }`
   - `latestOpinionatedReviews(first: 20)` and `reviews(last: 30) { author state submittedAt comments { totalCount } }`
   - `reviewThreads(last: 50) { isResolved isOutdated path firstComment: comments(first: 1) { author body createdAt url } comments(last: 5) { author createdAt } }`
@@ -238,6 +241,9 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
 
    Matched by the reason's start (`classify.ReviewersToFix`). A run's notification (`runRejected`, §14) doesn't depend
    on whose move it leaves.
+1a. **Me:** GitHub reports conflicts with the base branch (`mergeable: CONFLICTING`; `UNKNOWN` means it's still
+    computing and is ignored) → "conflicts with master, rebase". Not when rule 1 already says it: a rejection or a gate
+    error for the conflicts ("has conflicts with the base branch", "has merge conflicts"; `classify.ForConflicts`).
 2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED, newer than my last push, and they weren't
    re-requested since (a re-request without a push says "I answered, your turn").
 2a. **Me** (after a run going on): a code owner is marked `🔄` (commented and needs a re-request) → "re-request review from alice_user"; one
@@ -368,11 +374,14 @@ gh kotlin-prs open <number>        # browser
   - a dry-run or safe-merge only while no dry-run or safe-merge is requested or running: the bot runs one
     coordinator build per PR and rejects a second one ("A Coordinator build is already in progress"). A request the bot
     never answered ("no response") doesn't count, so it can be posted again;
+  - a dry-run or safe-merge only on a PR without conflicts (`mergeable` isn't `CONFLICTING`): the bot rejects it,
+    so it's refused locally ("#N has conflicts with the base branch; rebase first"). `UNKNOWN` (still computing)
+    doesn't refuse;
   - `/safe-merge` only on a PR that isn't a draft and is approved: at least one approval and a green
     `Code Owners Approval`. A draft takes every other command;
   - `/cancel-coordinator` only while a dry-run or safe-merge is requested or running;
   - `/codeowners` only while its check is missing or failing.
-  The bot still has the last word (conflicts, stacked PRs, `amend!` / `squash!` commits); its rejection shows as the
+  The bot still has the last word (conflicts GitHub hasn't computed yet, stacked PRs, `amend!` / `squash!` commits); its rejection shows as the
   run's state.
 - CLI: `run <number> <command>` fetches the PR live, checks the command, prints the PR's number and title and the exact
   comment, and asks `Post this comment? [y/N]`: only `y` or `yes` posts. `--yes` skips the question; without a terminal

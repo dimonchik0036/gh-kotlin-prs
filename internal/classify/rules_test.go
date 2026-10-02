@@ -142,6 +142,71 @@ func TestMineRule1RunFailed(t *testing.T) {
 	})
 }
 
+func TestMineRule1aConflicts(t *testing.T) {
+	runRuleCases(t, model.SectionMine, []ruleCase{
+		{
+			name: "conflicting",
+			pr:   readyPR().mergeable("CONFLICTING"),
+			next: model.NextMe, reason: "conflicts with master, rebase",
+		},
+		{
+			name: "conflicting, base unknown",
+			pr: func() *prBuilder {
+				b := readyPR().mergeable("CONFLICTING")
+				b.pr.BaseRefName = ""
+				return b
+			}(),
+			next: model.NextMe, reason: "conflicts with the base branch, rebase",
+		},
+		{
+			name: "mergeable",
+			pr:   readyPR().mergeable("MERGEABLE"),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"conflicts"},
+		},
+		{
+			name: "GitHub still checking",
+			pr:   readyPR().mergeable("UNKNOWN"),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"conflicts"},
+		},
+		{
+			name: "no mergeable field (older fixtures)",
+			pr:   readyPR(),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"conflicts"},
+		},
+		{
+			name: "outranks a running dry-run and requested changes",
+			pr: readyPR().mergeable("CONFLICTING").reviewed("bob_user", "CHANGES_REQUESTED", at(35)).
+				says(me, "/dry-run", at(100), rocket).gate(model.DryRun, 100, "", at(101)),
+			next: model.NextMe, reason: "conflicts with master, rebase",
+			extra: []string{"dry-run running 19m ago"},
+		},
+		{
+			name: "a rejection for the conflicts says it once",
+			pr: readyPR().mergeable("CONFLICTING").says(me, "/safe-merge", at(100)).
+				rejected("Pull request has conflicts with the base branch that must be resolved before merging.", at(101)),
+			next: model.NextMe, reason: "safe-merge rejected: Pull request has conflicts with the base branch that must be resolved before merging.",
+			absent: []string{"conflicts with master"},
+		},
+		{
+			name: "a failed merge for the conflicts says it once",
+			pr: readyPR().mergeable("CONFLICTING").says(me, "/safe-merge", at(90), rocket).
+				gate(model.SafeMerge, 100, "merge failed", at(91), edited(at(110))),
+			next: model.NextMe, reason: "safe-merge failed: rebase-merge failed: Pull Request has merge conflicts",
+			absent: []string{"conflicts with master"},
+		},
+		{
+			name: "a rejection for another cause keeps both",
+			pr: readyPR().mergeable("CONFLICTING").says(me, "/safe-merge", at(100)).
+				rejected("GitHub has not yet finished checking for conflicts with the base branch.", at(101)),
+			next: model.NextMe, reason: "safe-merge rejected: GitHub has not yet finished checking for conflicts with the base branch.",
+			extra: []string{"conflicts with master, rebase"},
+		},
+	})
+}
+
 // A passed dry-run, then /cancel-coordinator, /safe-merge and the bot's rejection, all three
 // minimized by the author: no rejected run, the reviewers' move.
 func TestMineMinimizedRejection(t *testing.T) {

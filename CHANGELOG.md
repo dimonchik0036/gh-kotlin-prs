@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A PR of yours that GitHub reports as conflicting with its base branch is your move: "conflicts with master,
+  rebase", right after a failed run, and said once when the bot rejected a command for it. `/dry-run` and
+  `/safe-merge` are refused locally on it ("has conflicts with the base branch; rebase first"). The JSON PR has
+  `base` and `conflicts`.
 - A safe-merge whose quality gate passed but whose merge failed (the bot's `Error:` line, e.g. "rebase-merge failed:
   Pull Request has merge conflicts") showed as passed and "ready to /safe-merge". Any `Error:` after the gate's result
   now fails the run: your move, "safe-merge failed: <error>", notified as a failure with the error. The JSON run has

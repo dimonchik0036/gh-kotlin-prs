@@ -101,17 +101,21 @@ type PullRequestCommit struct {
 }
 
 type PullRequest struct {
-	Number                   int                      `json:"number"`
-	Title                    string                   `json:"title"`
-	URL                      string                   `json:"url"`
-	IsDraft                  bool                     `json:"isDraft"`
-	State                    string                   `json:"state"`
-	CreatedAt                time.Time                `json:"createdAt"`
-	UpdatedAt                time.Time                `json:"updatedAt"`
-	MergedAt                 *time.Time               `json:"mergedAt"`
-	Author                   *Actor                   `json:"author"`
-	HeadRefName              string                   `json:"headRefName"`
-	HeadRefOid               string                   `json:"headRefOid"`
+	Number      int        `json:"number"`
+	Title       string     `json:"title"`
+	URL         string     `json:"url"`
+	IsDraft     bool       `json:"isDraft"`
+	State       string     `json:"state"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	MergedAt    *time.Time `json:"mergedAt"`
+	Author      *Actor     `json:"author"`
+	HeadRefName string     `json:"headRefName"`
+	HeadRefOid  string     `json:"headRefOid"`
+	BaseRefName string     `json:"baseRefName,omitempty"`
+	// Mergeable is MERGEABLE, CONFLICTING or UNKNOWN (GitHub still computing it; also
+	// when missing, in fixtures older than the field).
+	Mergeable                string                   `json:"mergeable,omitempty"`
 	ReviewRequests           Nodes[ReviewRequest]     `json:"reviewRequests"`
 	LatestOpinionatedReviews Nodes[Review]            `json:"latestOpinionatedReviews"`
 	Reviews                  Nodes[Review]            `json:"reviews"`

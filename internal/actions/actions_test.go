@@ -59,6 +59,8 @@ func TestCheck(t *testing.T) {
 			pr.CodeOwners = model.CodeOwnersStatus{State: model.CodeOwnersMissing, Check: "FAILURE"}
 		},
 			[]string{"dry-run", "dry-run-retry", "fixup", "codeowners"}, "#7 isn't approved: code owners missing"},
+		{"conflicts", func(pr *model.PR) { pr.Conflicts = true },
+			[]string{"fixup"}, "#7 has conflicts with the base branch; rebase first"},
 		{"no code-owners check", func(pr *model.PR) { pr.CodeOwners = model.CodeOwnersStatus{State: model.CodeOwnersUnknown} },
 			[]string{"dry-run", "dry-run-retry", "fixup", "codeowners"}, "#7 isn't approved: code owners missing"},
 	}

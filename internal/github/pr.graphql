@@ -10,6 +10,8 @@ fragment PR on PullRequest {
   author { __typename login }
   headRefName
   headRefOid
+  baseRefName
+  mergeable
   reviewRequests(first: 20) {
     nodes { requestedReviewer { __typename ... on User { login } ... on Team { slug } } }
   }

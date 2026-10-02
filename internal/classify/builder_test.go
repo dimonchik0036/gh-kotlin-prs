@@ -35,6 +35,7 @@ func newPR(author string) *prBuilder {
 		State:       "OPEN",
 		Author:      user(author),
 		HeadRefName: author + "/KT-1.test",
+		BaseRefName: "master",
 		UpdatedAt:   t0,
 	}}
 	b.pr.Commits.Nodes = []github.PullRequestCommit{{Commit: github.Commit{CommittedDate: t0}}}
@@ -57,6 +58,11 @@ func (b *prBuilder) mine() model.PR { return testClassifier().PR(b.build(), mode
 
 func (b *prBuilder) draft() *prBuilder {
 	b.pr.IsDraft = true
+	return b
+}
+
+func (b *prBuilder) mergeable(state string) *prBuilder {
+	b.pr.Mergeable = state
 	return b
 }
 

@@ -27,7 +27,10 @@ var (
 	// Rejection reasons only reviewers resolve; any other one is the author's to fix:
 	// conflicts, fixup!/amend!/squash! commits, a draft, a coordinator build, the unknown.
 	reviewersRejections = []string{"Missing code owners approval"}
-	codeOwnersMarker    = "<!-- CODE_OWNERS_REVIEW_COMMENT -->"
+	// Rejections and errors for conflicts with the base branch: "Pull request has conflicts
+	// with the base branch …", "rebase-merge failed: Pull Request has merge conflicts".
+	conflictsReason  = regexp.MustCompile(`(?i)\bhas (?:merge )?conflicts\b`)
+	codeOwnersMarker = "<!-- CODE_OWNERS_REVIEW_COMMENT -->"
 	// Replies of the code-owners bot that report success rather than a failure.
 	successReplies = []string{"Private aggregate run triggered at ", "Cherry-pick to `"}
 
@@ -151,6 +154,12 @@ func ParseRejection(body string) (string, bool) {
 // "Missing code owners approval - verify the check 'Code Owners Approval' is green.".
 func ReviewersToFix(reason string) bool {
 	return slices.ContainsFunc(reviewersRejections, func(prefix string) bool { return strings.HasPrefix(reason, prefix) })
+}
+
+// ForConflicts reports whether a rejection's reason or a gate's error is the PR's
+// conflicts with the base branch, which rule 1a reports anyway.
+func ForConflicts(reason string) bool {
+	return conflictsReason.MatchString(reason)
 }
 
 // ParseFailure returns the reason of a reply that reports a command's failure: a

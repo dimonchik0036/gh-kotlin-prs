@@ -97,6 +97,8 @@ func Check(c Command, pr model.PR, viewer string) error {
 			return refuse("a %s is already %s on #%d", running.Kind, running.State, pr.Number)
 		}
 		switch {
+		case pr.Conflicts:
+			return refuse("#%d has conflicts with the base branch; rebase first", pr.Number)
 		case c != SafeMerge:
 		case pr.Draft:
 			return refuse("#%d is a draft", pr.Number)

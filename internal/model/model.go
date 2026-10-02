@@ -231,13 +231,17 @@ const (
 )
 
 type PR struct {
-	Number  int     `json:"number"`
-	Title   string  `json:"title"`
-	URL     string  `json:"url"`
-	Author  string  `json:"author"`
-	Branch  string  `json:"branch"`
-	Draft   bool    `json:"draft,omitempty"`
-	Section Section `json:"section"`
+	Number int    `json:"number"`
+	Title  string `json:"title"`
+	URL    string `json:"url"`
+	Author string `json:"author"`
+	Branch string `json:"branch"`
+	// Base is the branch the PR merges into.
+	Base  string `json:"base,omitempty"`
+	Draft bool   `json:"draft,omitempty"`
+	// Conflicts: GitHub found conflicts with the base branch. Not while it's still checking.
+	Conflicts bool    `json:"conflicts,omitempty"`
+	Section   Section `json:"section"`
 	// Issues are the referenced issues, the primary one first.
 	Issues   []Issue   `json:"issues"`
 	Updated  time.Time `json:"updated,omitzero"`

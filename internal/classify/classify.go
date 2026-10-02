@@ -68,14 +68,16 @@ func (c *Classifier) Merged(raw *github.PullRequest) model.PR {
 
 func (c *Classifier) basics(raw *github.PullRequest, section model.Section) model.PR {
 	pr := model.PR{
-		Number:  raw.Number,
-		Title:   raw.Title,
-		URL:     raw.URL,
-		Author:  raw.Author.LoginOrEmpty(),
-		Branch:  raw.HeadRefName,
-		Draft:   raw.IsDraft,
-		Section: section,
-		Updated: raw.UpdatedAt,
+		Number:    raw.Number,
+		Title:     raw.Title,
+		URL:       raw.URL,
+		Author:    raw.Author.LoginOrEmpty(),
+		Branch:    raw.HeadRefName,
+		Base:      raw.BaseRefName,
+		Draft:     raw.IsDraft,
+		Conflicts: raw.Mergeable == "CONFLICTING",
+		Section:   section,
+		Updated:   raw.UpdatedAt,
 	}
 	if pr.URL == "" {
 		pr.URL = github.PRURL(c.Config.Repo, raw.Number)
