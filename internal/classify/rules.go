@@ -160,7 +160,8 @@ func mineUnresolvedThreads(f *facts) []model.Reason {
 }
 
 // 4. A non-bot comment from someone else after my last activity. Comments in threads
-// that rule 3 already reports don't count again.
+// that rule 3 already reports don't count again, nor does a comment its author followed
+// with an approval: that approval is their last word.
 func mineNewComment(f *facts) []model.Reason {
 	since := f.myLastActivity()
 	var latest event
@@ -169,6 +170,9 @@ func mineNewComment(f *facts) []model.Reason {
 			if _, reported := f.awaitsMyReply(e.thread); reported {
 				continue
 			}
+		}
+		if f.approvedSince(e.login, e.at) {
+			continue
 		}
 		if !sameLogin(e.login, f.me) && e.at.After(since) && e.at.After(latest.at) {
 			latest = e
@@ -388,6 +392,16 @@ func (f *facts) myLastActivity() time.Time {
 		}
 	}
 	return t
+}
+
+// approvedSince reports whether login submitted an APPROVED review at t or later.
+func (f *facts) approvedSince(login string, t time.Time) bool {
+	for _, r := range f.reviews {
+		if r.State == "APPROVED" && sameLogin(r.Author.LoginOrEmpty(), login) && !r.SubmittedAt.Before(t) {
+			return true
+		}
+	}
+	return false
 }
 
 func (f *facts) myLastReview() time.Time {

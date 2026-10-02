@@ -8,7 +8,6 @@ Mine (3) | font=Menlo-Bold size=12
 --Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 terminal=true
 --Your move | color=gray
 --  dry-run failed 7h ago | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/1076982024
---  new comment from trent_user 7h ago | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/90006#issuecomment-1763978352
 --  waiting: erin_user | trim=false emojize=false symbolize=false
 -----
 --Runs | color=gray

@@ -212,7 +212,9 @@ reply.
 2b. **Me:** a missing code-owner rule where every listed owner who hasn't reviewed is `⏳` → "all owners for /analysis/ unavailable".
 3. **Me:** an unresolved, non-outdated thread whose last comment isn't mine.
 4. **Me:** a non-bot comment from someone else after `myLastActivity`. One event gives one reason: comments in threads
-   that rule 3 reports, and reviews that consist of thread comments, don't count again.
+   that rule 3 reports, and reviews that consist of thread comments, don't count again. A comment, commenting review
+   or thread comment whose author submitted an APPROVED review at the same time or later doesn't count: the approval
+   is their last word (an unresolved thread awaiting my reply is still rule 3).
 5. **CI:** a run is requested or running.
 6. **Me (ready):** `Code Owners Approval` is green, there's at least one approval, and no run is requested or running → "ready to /safe-merge".
    A missing or outdated green dry-run doesn't block this (CI isn't a gate), but it's added as a hint: "no fresh dry-run".

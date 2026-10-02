@@ -4,6 +4,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 )
@@ -255,6 +256,49 @@ func TestMineRule4NewComment(t *testing.T) {
 			pr: readyPR().says("bob_user", "Is this ready?", at(60)).
 				says("carol_user", "/dry-run", at(70), rocket).gate(model.DryRun, 100, "passed", at(80)),
 			next: model.NextMe, reason: "new comment from bob_user 1h ago",
+		},
+		{
+			name: "the commenter approved after the comment",
+			pr:   readyPR().says("bob_user", "One nit, otherwise fine", at(60)).reviewed("bob_user", "APPROVED", at(61)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"new comment"},
+		},
+		{
+			name: "the reviewer approved after a commenting review",
+			pr:   readyPR().reviewed("carol_user", "COMMENTED", at(60)).reviewed("carol_user", "APPROVED", at(61)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"new review"},
+		},
+		{
+			name: "the reviewer approved after a comment in a resolved thread",
+			pr:   readyPR().thread(true, false, by("bob_user", at(60))).reviewed("bob_user", "APPROVED", at(61)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"new thread comment"},
+		},
+		{
+			name: "an approval doesn't hide a later comment",
+			pr:   readyPR().reviewed("bob_user", "APPROVED", at(50)).says("bob_user", "One more thing", at(60)),
+			next: model.NextMe, reason: "new comment from bob_user 1h ago",
+		},
+		{
+			name: "someone else's approval doesn't hide it",
+			pr:   readyPR().says("bob_user", "Is this ready?", at(60)).reviewed("carol_user", "APPROVED", at(61)),
+			next: model.NextMe, reason: "new comment from bob_user 1h ago",
+		},
+		{
+			name: "an approval doesn't hide an unresolved thread",
+			pr:   readyPR().thread(false, false, by("bob_user", at(60))).reviewed("bob_user", "APPROVED", at(61)),
+			next: model.NextMe, reason: "1 unresolved thread from bob_user",
+		},
+		{
+			// JetBrains/kotlin#8563: "one test failed but it's unrelated", an approval 20s
+			// later, then my /dry-run, still running.
+			name: "a comment, its approval, then my running dry-run",
+			pr: readyPR().says("bob_user", "One test failed but it's definitely unrelated", at(60)).
+				reviewed("bob_user", "APPROVED", at(60).Add(20*time.Second)).
+				says(me, "/dry-run", at(100), rocket).gate(model.DryRun, 100, "", at(101)),
+			next: model.NextCI, reason: "dry-run running 19m ago",
+			absent: []string{"new comment"},
 		},
 	})
 }
