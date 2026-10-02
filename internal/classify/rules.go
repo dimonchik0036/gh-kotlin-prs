@@ -41,6 +41,7 @@ var mineRules = []rule{
 	{name: "changes requested", next: model.NextMe, match: mineChangesRequested},
 	{name: "re-request", next: model.NextMe, match: mineReRequest},
 	{name: "owners unavailable", next: model.NextMe, match: mineOwnersUnavailable},
+	{name: "assign reviewers", next: model.NextMe, match: mineAssignReviewers},
 	{name: "unresolved thread", next: model.NextMe, match: mineUnresolvedThreads},
 	{name: "new comment", next: model.NextMe, match: mineNewComment},
 	{name: "run in progress", next: model.NextCI, match: mineRunInProgress},
@@ -141,6 +142,40 @@ func mineOwnersUnavailable(f *facts) []model.Reason {
 	return reasons
 }
 
+// 2c. A missing code-owner rule nobody was asked for: the bot shows UNASSIGNED, it has
+// owners besides me, and none of them, nor a team of it, is requested now (the table
+// lags behind a request).
+func mineAssignReviewers(f *facts) []model.Reason {
+	var paths []string
+	for _, rule := range f.missingRules() {
+		if len(rule.Assignees) > 0 || rule.Mark == model.MarkReRequest || !f.ownedByOthers(rule) || f.requested(rule) {
+			continue
+		}
+		paths = appendUnique(paths, rulePath(rule))
+	}
+	if len(paths) == 0 {
+		return nil
+	}
+	return linked("assign reviewers for "+strings.Join(paths, ", "), f.pr.URL)
+}
+
+// ownedByOthers: the rule has an owner who isn't the author.
+func (f *facts) ownedByOthers(rule model.CodeOwnerRule) bool {
+	return slices.ContainsFunc(rule.Owners, func(o model.Owner) bool { return !sameLogin(o.Login, f.author) })
+}
+
+// requested: an owner of the rule, or a team of it, is requested now.
+func (f *facts) requested(rule model.CodeOwnerRule) bool {
+	for _, o := range rule.Owners {
+		if f.requestedUsers[strings.ToLower(o.Login)] {
+			return true
+		}
+	}
+	return slices.ContainsFunc(rule.Teams, func(team string) bool {
+		return slices.ContainsFunc(f.requestedTeams, func(t string) bool { return strings.EqualFold(t, team) })
+	})
+}
+
 // 3. An unresolved, non-outdated thread whose last comment isn't mine.
 func mineUnresolvedThreads(f *facts) []model.Reason {
 	var logins []string
@@ -228,16 +263,14 @@ func mineWaiting(f *facts) []model.Reason {
 		if rule.Mark == model.MarkReRequest {
 			continue // the move is mine, see 2a
 		}
-		if len(rule.Assignees) == 0 {
-			names = appendUnique(names, "owners of "+rulePath(rule))
-		}
+		// UNASSIGNED rules are mine (2c), or wait on a request listed above.
 		for _, a := range rule.Assignees {
 			if !f.changesRequestedSincePush(a.Login) { // the move is mine, see 2
 				names = appendUnique(names, a.Login)
 			}
 		}
 	}
-	if len(names) == 0 && f.pr.CodeOwners.State == model.CodeOwnersMissing {
+	if len(names) == 0 && f.pr.CodeOwners.State == model.CodeOwnersMissing && mineAssignReviewers(f) == nil {
 		names = append(names, "code owners")
 	}
 	if len(names) == 0 {

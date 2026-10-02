@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A PR of yours with a code-owner rule nobody was asked to review (the bot's `UNASSIGNED`) is your move: "assign
+  reviewers for /analysis/", instead of "waiting: owners of /analysis/". A review request the bot's table doesn't
+  show yet counts (#2).
+
 ## v0.5.2 — 2026-10-02
 
 A fix for when a PR of yours counts as your move. The JSON output is unchanged (`"version": 1`).

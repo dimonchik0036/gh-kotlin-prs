@@ -161,6 +161,51 @@ func TestMineRule2aReRequest(t *testing.T) {
 	})
 }
 
+func TestMineRule2cAssignReviewers(t *testing.T) {
+	unassigned := ownerRow{path: "/analysis/", team: "kotlin-analysis-api", members: []string{"alice_user", "carol_user"}, mark: "❌"}
+	runRuleCases(t, model.SectionMine, []ruleCase{
+		{
+			name: "nobody was asked for a rule",
+			pr:   newPR(me).ownersRed().owners(unassigned),
+			next: model.NextMe, reason: "assign reviewers for /analysis/",
+			absent: []string{"waiting"},
+		},
+		{
+			name: "one reason for every such rule",
+			pr: newPR(me).ownersRed().owners(unassigned,
+				ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"dave_user"}, mark: "❌", assignees: []string{"dave_user"}},
+				ownerRow{path: "/core/descriptors.runtime/", team: "kotlin-libraries", members: []string{"erin_user ⏳", "frank_user (QA)"}, mark: "❌"}).
+				request("dave_user"),
+			next: model.NextMe, reason: "assign reviewers for /analysis/, /core/descriptors.runtime/",
+			extra: []string{"waiting: dave_user"},
+		},
+		{
+			name: "the table lags behind a request of an owner",
+			pr:   newPR(me).ownersRed().owners(unassigned).request("carol_user"),
+			next: model.NextReviewers, reason: "waiting: carol_user",
+			absent: []string{"assign reviewers"},
+		},
+		{
+			name: "a team of the rule is requested",
+			pr:   newPR(me).ownersRed().owners(unassigned).requestTeam("kotlin-analysis-api"),
+			next: model.NextReviewers, reason: "waiting: kotlin-analysis-api",
+			absent: []string{"assign reviewers"},
+		},
+		{
+			name: "only I own it",
+			pr:   newPR(me).ownersRed().owners(ownerRow{path: "/analysis/", team: "kotlin-analysis-api", members: []string{me}, mark: "❌"}),
+			next: model.NextReviewers, reason: "waiting: code owners",
+			absent: []string{"assign reviewers"},
+		},
+		{
+			name: "a rule without owners",
+			pr:   newPR(me).ownersRed().owners(ownerRow{path: "/plugins/parcelize/", mark: "❌"}),
+			next: model.NextReviewers, reason: "waiting: code owners",
+			absent: []string{"assign reviewers"},
+		},
+	})
+}
+
 func TestMineRule2bOwnersUnavailable(t *testing.T) {
 	runRuleCases(t, model.SectionMine, []ruleCase{
 		{
@@ -177,7 +222,8 @@ func TestMineRule2bOwnersUnavailable(t *testing.T) {
 				path: "/analysis/", team: "kotlin-analysis-api",
 				members: []string{"alice_user ⏳", "carol_user"}, mark: "❌",
 			}),
-			next: model.NextReviewers, reason: "waiting: owners of /analysis/",
+			next: model.NextMe, reason: "assign reviewers for /analysis/",
+			absent: []string{"unavailable"},
 		},
 	})
 }
@@ -378,7 +424,7 @@ func TestMineRule7Waiting(t *testing.T) {
 				ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"bob_user"}, mark: "❌", assignees: []string{"bob_user"}},
 				ownerRow{path: "/plugins/parcelize/", mark: "❌"},
 			),
-			next: model.NextReviewers, reason: "waiting: bob_user, owners of /plugins/parcelize/",
+			next: model.NextReviewers, reason: "waiting: bob_user",
 		},
 		{
 			name: "a failing check without details",
