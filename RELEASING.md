@@ -3,14 +3,22 @@
 1. If the output changed since the last release, re-record the README demo with `scripts/screenshots.sh`
    and commit it.
 2. On `main`, make a `Release vX.Y.Z` commit that renames `## Unreleased` in [CHANGELOG.md](CHANGELOG.md) to
-   `## vX.Y.Z — YYYY-MM-DD` and adds a new empty `## Unreleased` above it.
+   `## vX.Y.Z — YYYY-MM-DD` and adds a new empty `## Unreleased` above it. That section becomes the GitHub release's
+   notes as it is (step 4), so make it final before tagging: `scripts/release-notes.sh vX.Y.Z` prints them.
 3. Tag that commit with an annotated tag and push both:
    ```sh
    git tag -a vX.Y.Z -m vX.Y.Z
    git push origin main vX.Y.Z
    ```
 4. The tag triggers `.github/workflows/release.yml` (`cli/gh-extension-precompile`): it builds the binaries with
-   `-X main.tag=vX.Y.Z`, so `gh kotlin-prs --version` prints the tag, and creates the GitHub release with generated notes.
+   `-X main.tag=vX.Y.Z`, so `gh kotlin-prs --version` prints the tag, and creates the GitHub release as a draft with
+   the binaries and their attestations. A last step sets its notes, the version's CHANGELOG.md section
+   (`scripts/release-notes.sh`) with a "Full Changelog" compare link to the version below it, and publishes it in the
+   same call. A tag without a section, or with an empty one, fails before anything is built or created.
+   - A failed run leaves at most a draft, which can still change: fix the cause and re-run the job; it uploads the
+     binaries to the existing draft again and publishes it.
+   - A published release is final (with immutable releases on, its binaries and tag can't change): a broken one gets
+     a new patch version, never a re-tag.
 5. Once the release exists, install it from GitHub and check it:
    ```sh
    gh extension remove kotlin-prs                    # if a development install exists

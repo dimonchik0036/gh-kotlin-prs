@@ -11,12 +11,25 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Only tag pushes run it (the trigger above); the guard keeps it so if that changes.
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Before anything is built: a tag without its CHANGELOG.md section fails here.
+      - name: Release notes from CHANGELOG.md
+        run: scripts/release-notes.sh --repo "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
       - uses: cli/gh-extension-precompile@76961aa3bd1123d0a6fd42d0a41aca0696937c39 # v2.2.0
         with:
+          # A draft until the notes are in: a published release may be immutable.
+          draft_release: true
           generate_attestations: true
           go_version_file: go.mod
           # The action builds with `go build -trimpath -ldflags="-s -w" … "$GO_BUILD_OPTIONS"`, passing
           # this as a single argument; a later -ldflags replaces the earlier one, so keep -s -w here.
           go_build_options: "-ldflags=-s -w -X main.tag=${{ github.ref_name }}"
+      # The action leaves a draft with the binaries and generated notes: one call sets the
+      # changelog's notes and publishes it, after which nothing changes it.
+      - name: Publish the release with its notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" --draft=false

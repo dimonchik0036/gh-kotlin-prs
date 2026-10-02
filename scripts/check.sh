@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Runs every check a commit must pass, failing fast: formatting, vet, staticcheck,
-# govulncheck, and the tests as CI runs them (no gh login, no config, no network).
+# govulncheck, the release notes of CHANGELOG.md, and the tests as CI runs them (no gh
+# login, no config, no network).
 # The tool versions are pinned as tool dependencies in go.mod.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -22,6 +23,9 @@ go tool staticcheck ./...
 
 step govulncheck
 go tool govulncheck ./...
+
+step release notes
+scripts/release-notes_test.sh
 
 # go-gh also asks `gh auth token`, which reads the system keyring: GH_PATH points it at
 # `false`. Any network access fails fast through the dead proxy, and a stray cache write
