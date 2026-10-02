@@ -127,6 +127,28 @@ func (c *Client) DoWithContext(ctx context.Context, query string, variables map[
 	return nil
 }
 
+// Forget removes the entries of the operation with the variables, whatever their query
+// text, so that the next such query fetches: all of them, or with match only those whose
+// data it matches. A write changes what they hold. Failures are debug notes only.
+func (c *Client) Forget(op string, variables map[string]any, match func(data []byte) bool) {
+	scope := c.scope(op, variables)
+	if scope == "" {
+		return
+	}
+	paths, _ := filepath.Glob(filepath.Join(c.Dir, op+"-"+scope+"-*.json"))
+	for _, path := range paths {
+		if match != nil {
+			data, err := os.ReadFile(path)
+			if err != nil || !match(data) {
+				continue
+			}
+		}
+		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+			c.debugf("cache: not forgotten: %v\n", err)
+		}
+	}
+}
+
 // ErrMiss is the error of Offline when the cache has no usable entry for a query.
 var ErrMiss = errors.New("not in the cache")
 

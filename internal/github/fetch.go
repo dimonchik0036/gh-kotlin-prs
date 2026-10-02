@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -183,6 +184,19 @@ func FetchPR(ctx context.Context, client Client, owner, name string, number int)
 		return nil, fmt.Errorf("fetch #%d: not found", number)
 	}
 	return &resp, nil
+}
+
+// Forgetter drops cached responses of an operation (cache.Client.Forget).
+type Forgetter interface {
+	Forget(op string, variables map[string]any, match func(data []byte) bool)
+}
+
+// ForgetPR drops what f holds of the PR: its own query (FetchPR) and every details query
+// that fetched it (FetchPRs), so the next ones fetch it anew.
+func ForgetPR(f Forgetter, owner, name string, number int) {
+	alias := []byte(fmt.Sprintf(`"pr%d"`, number))
+	f.Forget("PullRequests", map[string]any{"owner": owner, "name": name}, func(data []byte) bool { return bytes.Contains(data, alias) })
+	f.Forget("PullRequest", map[string]any{"owner": owner, "name": name, "number": number}, nil)
 }
 
 // writef is fmt.Fprintf into a strings.Builder, whose writes never fail.

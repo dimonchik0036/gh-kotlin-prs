@@ -389,3 +389,34 @@ func TestOfflineFallback(t *testing.T) {
 		t.Errorf("another account: %v", err)
 	}
 }
+
+// Forget drops an operation's entries for the variables: every query text, or the ones
+// whose data matches. Other operations and variables stay.
+func TestForget(t *testing.T) {
+	f := newFixture(t, time.Hour)
+	other := map[string]any{"q": "other"}
+	f.query(vars)
+	var resp response
+	if err := f.client.DoWithContext(context.Background(), "query Sections($q: String!) { viewer { name } }", vars, &resp); err != nil {
+		t.Fatal(err)
+	}
+	f.query(other)
+	if n := len(f.entries()); n != 3 {
+		t.Fatalf("%d entries", n)
+	}
+	f.client.Forget("Sections", vars, func(data []byte) bool { return strings.Contains(string(data), "bob_user") })
+	if n := len(f.entries()); n != 3 {
+		t.Errorf("a match on nothing forgot: %d entries", n)
+	}
+	f.client.Forget("Sections", vars, nil)
+	if names := f.entries(); len(names) != 1 || names[0] != filepath.Base(f.client.path("Sections", query, other)) {
+		t.Errorf("left %q", names)
+	}
+	calls := f.github.calls
+	f.query(vars)
+	if f.github.calls != calls+1 {
+		t.Error("the forgotten query came from the cache")
+	}
+	f.client.Forget("Other", vars, nil)
+	(&Client{}).Forget("Sections", vars, nil) // no cache
+}
