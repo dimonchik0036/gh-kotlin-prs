@@ -59,9 +59,9 @@ type codeOwnersRow struct {
 	approvals []string // "login", "login 🔒"
 }
 
-// assignmentTable is shaped like a PR touching four subsystems: one owner commented and
-// waits for a re-request (🔄), one row is approved (✅ 🔒), two were never assigned, and
-// judy_user owns both of those.
+// assignmentTable is shaped like a PR touching five subsystems: one owner commented and
+// waits for a re-request (🔄), one row is approved (✅ 🔒), three were never assigned:
+// judy_user owns two of those, the third shares nobody.
 var assignmentTable = []codeOwnersRow{
 	{paths: []string{"/analysis/"}, team: "kotlin-analysis-api", mark: "🔄", approvals: []string{"dave_user"},
 		owners: []string{"bob_user", "carol_user", "dave_user", "dimonchik0036", "erin_user"}},
@@ -71,6 +71,8 @@ var assignmentTable = []codeOwnersRow{
 	{paths: []string{"/compiler/testData/codegen/asmLike/"}, team: "kotlin-jvm", mark: "❌",
 		owners: []string{"judy_user", "kevin_user ⏳", "laura_user", "mallory_user (QA)", "dimonchik0036"}},
 	{paths: []string{"/core/descriptors.runtime/"}, mark: "❌", owners: []string{"niaj_user", "judy_user", "olivia_user ⏳"}},
+	{paths: []string{"/plugins/parcelize/"}, team: "kotlin-parcelize", mark: "❌",
+		owners: []string{"peggy_user", "heidi_user (QA)", "ivan_user ⏳"}},
 }
 
 // codeOwnersHTML is the table in the bot's HTML: zero-width spaces after "/", ".", "_"
@@ -183,8 +185,8 @@ func deriveAssignment(raw []byte) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-// With testdata/demo next to testdata/raw, #90010 is a PR of mine to assign: two rows
-// nobody was asked for, sharing judy_user, and dave_user to re-request.
+// With testdata/demo next to testdata/raw, #90010 is a PR of mine to assign: three rows
+// nobody was asked for, two sharing judy_user, and dave_user to re-request.
 func TestDemoAssignment(t *testing.T) {
 	c, err := Load("../../testdata/raw" + string(filepath.ListSeparator) + "../../testdata/demo")
 	if err != nil {
@@ -200,7 +202,7 @@ func TestDemoAssignment(t *testing.T) {
 		t.Fatalf("#90010: %v, %q, %d runs", ok, pr.Texts(), len(pr.Runs))
 	}
 	texts := strings.Join(pr.Texts(), "; ")
-	for _, want := range []string{"re-request review from dave_user", "assign reviewers for /compiler/testData/codegen/asmLike/, /core/descriptors.runtime/"} {
+	for _, want := range []string{"re-request review from dave_user", "assign reviewers for /compiler/testData/codegen/asmLike/, /core/descriptors.runtime/, /plugins/parcelize/"} {
 		if !strings.Contains(texts, want) {
 			t.Errorf("reasons %q lack %q", texts, want)
 		}
@@ -218,6 +220,7 @@ func TestDemoAssignment(t *testing.T) {
 		"/compiler/fir/ +3 ✓ trent_user: quinn_user rupert_user sybil_user trent_user ursula_user victor_user",
 		"/compiler/testData/codegen/asmLike/ +0 unassigned: judy_user laura_user mallory_user kevin_user",
 		"/core/descriptors.runtime/ +0 unassigned: niaj_user judy_user olivia_user",
+		"/plugins/parcelize/ +0 unassigned: peggy_user heidi_user ivan_user",
 	}
 	if strings.Join(rows, "\n") != strings.Join(want, "\n") {
 		t.Errorf("rows\n%s\nwant\n%s", strings.Join(rows, "\n"), strings.Join(want, "\n"))

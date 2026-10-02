@@ -22,6 +22,8 @@ type picker struct {
 	picked []string // in picking order
 	cursor int      // into items()
 	offset int      // the first item on screen
+	// confirming: enter asked to send the picks; y sends, anything else goes back.
+	confirming bool
 }
 
 type pickerRow struct {
@@ -152,11 +154,19 @@ type reviewRequestedMsg struct {
 	err    error
 }
 
-// onPickerKey moves, picks, opens and closes rows; enter sends what's picked, esc closes.
+// onPickerKey moves, picks, opens and closes rows; enter asks to send what's picked, the
+// back action closes. While it asks, y sends and any other key goes back to the picks.
 func (m *Model) onPickerKey(key string) tea.Cmd {
 	p := m.picker
+	if p.confirming {
+		p.confirming = false
+		if key == "y" {
+			return m.sendReviewRequest()
+		}
+		return nil
+	}
 	switch action := m.bindings[key]; {
-	case key == "esc":
+	case action == "back":
 		m.picker = nil
 		m.setNote("no review requested")
 	case key == "enter":
@@ -164,15 +174,7 @@ func (m *Model) onPickerKey(key string) tea.Cmd {
 			m.setNote(err.Error())
 			return nil
 		}
-		m.picker = nil
-		request, ctx, number, logins := m.opts.RequestReview, m.ctx, p.pr.Number, slices.Clone(p.picked)
-		if m.opts.Demo {
-			return func() tea.Msg { return reviewRequestedMsg{number: number, logins: logins, at: m.opts.Now()} }
-		}
-		return func() tea.Msg {
-			err := request(ctx, number, logins)
-			return reviewRequestedMsg{number: number, logins: logins, at: m.opts.Now(), err: err}
-		}
+		p.confirming = true
 	case key == "space":
 		p.toggle()
 	case key == "left":
@@ -189,6 +191,25 @@ func (m *Model) onPickerKey(key string) tea.Cmd {
 		p.move(m.bodyHeight())
 	}
 	return nil
+}
+
+// sendReviewRequest closes the picker and requests the review from its picks.
+func (m *Model) sendReviewRequest() tea.Cmd {
+	p := m.picker
+	m.picker = nil
+	request, ctx, number, logins := m.opts.RequestReview, m.ctx, p.pr.Number, slices.Clone(p.picked)
+	if m.opts.Demo {
+		return func() tea.Msg { return reviewRequestedMsg{number: number, logins: logins, at: m.opts.Now()} }
+	}
+	return func() tea.Msg {
+		err := request(ctx, number, logins)
+		return reviewRequestedMsg{number: number, logins: logins, at: m.opts.Now(), err: err}
+	}
+}
+
+// reviewPrompt is the question enter asks in the picker.
+func (p *picker) reviewPrompt() string {
+	return fmt.Sprintf("Request a review of #%d from %s? [y/N]", p.pr.Number, strings.Join(p.picked, ", "))
 }
 
 // onReviewRequested shows the people as requested until the next refresh, or the failure.
@@ -211,7 +232,7 @@ func (m *Model) pickerLines() []string {
 	icons := m.opts.Render.Icons
 	sep := " " + icons.Separator + " "
 	title := styleTitle.Render(fmt.Sprintf("Request review on #%d", p.pr.Number)) + "  " +
-		styleFaint.Render(strings.Join([]string{"↑↓ move", "space pick", "←→ collapse/expand", "enter send", "esc cancel"}, sep))
+		styleFaint.Render(strings.Join([]string{"↑↓ move", "space pick", "←→ collapse/expand", "enter send", m.key("back") + " cancel"}, sep))
 	var tree []string
 	pathWidth := 0
 	for _, r := range p.rows {

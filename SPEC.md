@@ -410,8 +410,12 @@ assignment of a rule nobody was asked for (§5, 2a and 2c):
   opens a modal tree on the PR: a node per row, `▾ /path/ +N` with its status on the right, then `[ ]`/`[x]` per
   person with their marks (`(QA)`, `⏳`, dimmed) and hints. The rows that need me are open, the others closed; a row
   with a pick shows `→ login` instead of its status. `space` picks or unpicks (in every row of that person; on a row,
-  it opens or closes it), `←`/`→` close and open, `enter` sends everyone picked, even with rows left uncovered, `esc`
-  cancels. The footer: `3 of 4 subsystems covered ∙ will request: judy_user`. Like a command (above): checked first, not
+  it opens or closes it), `←`/`→` close and open, `enter` asks in the status bar, like a command,
+  `Request a review of #N from a, b? [y/N]`: `y` sends everyone picked, even with rows left uncovered, any other key
+  goes back to the picker with the picks kept. The `back` action (`esc`, `backspace`, rebindable) cancels. On the
+  selected PR with a 2a or 2c reason the status bar hints `A re-request`, `A assign reviewers`, or with both
+  `A request review` (none otherwise; the hints that don't fit are dropped from the end), and the `x` menu ends with
+  "request review…" on my open PRs, which opens the picker. The footer: `3 of 4 subsystems covered ∙ will request: judy_user`. Like a command (above): checked first, not
   twice before a refresh that started after it, the people shown as requested until then (the data classified as if
   GitHub had the request, so 2a and 2c no longer fire), no notification of my own doing; a failure shows in the
   status bar. The PR's cached details are dropped after, as in the CLI.
@@ -510,7 +514,8 @@ scripts/fetch-fixtures.sh
   ago)`; after a failure the data stays on screen with `✗ refresh failed: <error> (updated 14m ago) ∙ r to retry`.
   The rate limit shows only when less than a tenth of it is left (`! API budget 312/5000, resets 18:00`), or as the
   error when a request was refused for it, and only from live responses, never the cache. Notes such as `copied <url>`
-  stay for 4s; key hints are on the right. Single-width symbols only, as in the CLI: `⟳ ✗ !` rather than emoji.
+  stay for 4s, in place of `next refresh in`; key hints are on the right, the last ones dropped when they don't fit.
+  Single-width symbols only, as in the CLI: `⟳ ✗ !` rather than emoji.
 - One rendering source: the TUI list rows and the `list` table come from the same row and cell code (same columns,
   symbols and reasons), and the TUI detail pane reuses the `show` renderer. The TUI only adds selection, the detail
   pane, the filter, the status bar and refresh. In `internal/render`: `Blocks` are the sections (title, sorted rows,

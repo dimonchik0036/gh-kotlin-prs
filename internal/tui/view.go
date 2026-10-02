@@ -174,9 +174,21 @@ func (m *Model) menuLines() []string {
 	for _, c := range mn.items {
 		width = max(width, ansi.StringWidth(c.Text))
 	}
+	const review = "request review…"
+	if mn.review {
+		width = max(width, ansi.StringWidth(review))
+	}
 	for i, c := range mn.items {
 		line := fmt.Sprintf("  %-3s %-*s  %s", m.key(c.Action), width, c.Text, c.Doc)
 		if i == mn.cursor {
+			line = styleSelected.Render(line + strings.Repeat(" ", max(0, m.width-ansi.StringWidth(line))))
+		}
+		lines = append(lines, line)
+	}
+	if mn.review {
+		line := fmt.Sprintf("  %-3s %s  %s", m.key("requestReview"), review+strings.Repeat(" ", width-ansi.StringWidth(review)),
+			"pick code owners to request a review from")
+		if mn.cursor == len(mn.items) {
 			line = styleSelected.Render(line + strings.Repeat(" ", max(0, m.width-ansi.StringWidth(line))))
 		}
 		lines = append(lines, line)
@@ -249,6 +261,9 @@ func (m *Model) updateDetail() {
 
 // statusBar is the state of the data on the left, key hints on the right.
 func (m *Model) statusBar() string {
+	if p := m.picker; p != nil && p.confirming {
+		return styleFocused.Render(p.reviewPrompt())
+	}
 	if c := m.confirm; c != nil {
 		prompt := func(title string) string {
 			return fmt.Sprintf("Post %s to #%d (%s)? [y/N]", c.cmd.Text, c.pr.Number, title)
@@ -269,6 +284,8 @@ func (m *Model) statusBar() string {
 			why = "API rate limit reached" + m.resets()
 		}
 		left = append(left, styleError.Render(icons.RunFailed+" refresh failed: "+why+" ("+m.dataAge()+")"), m.key("refresh")+" to retry")
+	case m.note != "": // room for the note: it's gone in seconds
+		left = append(left, m.dataAge())
 	default:
 		left = append(left, m.dataAge(), "next refresh in "+until(m.now, m.nextRefresh))
 	}
@@ -278,28 +295,55 @@ func (m *Model) statusBar() string {
 	if m.note != "" {
 		left = append(left, m.note)
 	}
-	hint := func(names ...string) string {
+	hint := func(names ...string) []string {
 		parts := make([]string, len(names))
 		for i, a := range names {
 			parts[i] = m.key(a) + " " + a
 		}
-		return strings.Join(parts, sep)
+		return parts
 	}
 	hints := hint("help", "quit")
 	switch {
 	case m.picker != nil:
 		return strings.Join(left, sep) // the picker's title has its keys
 	case m.screen == screenDetail:
-		hints = hint("back", "actions", "open", "build", "help", "quit")
+		hints = append(m.reviewHint(), hint("back", "actions", "open", "build", "help", "quit")...)
 	case m.screen == screenList && m.data != nil:
-		hints = hint("details", "actions", "filter", "refresh", "help", "quit")
+		hints = append(m.reviewHint(), hint("details", "actions", "filter", "refresh", "help", "quit")...)
 	}
+	// The hints that fit, the last ones dropped first.
 	l := strings.Join(left, sep)
-	gap := m.width - ansi.StringWidth(l) - ansi.StringWidth(hints)
-	if gap < 2 {
-		return l
+	for ; len(hints) > 0; hints = hints[:len(hints)-1] {
+		if gap := m.width - ansi.StringWidth(l) - ansi.StringWidth(strings.Join(hints, sep)); gap >= 2 {
+			return l + strings.Repeat(" ", gap) + styleFaint.Render(strings.Join(hints, sep))
+		}
 	}
-	return l + strings.Repeat(" ", gap) + styleFaint.Render(hints)
+	return l
+}
+
+// reviewHint is the requestReview key's hint while the current PR has someone to
+// re-request (rule 2a) or a rule to assign (2c); none otherwise.
+func (m *Model) reviewHint() []string {
+	pr, ok := m.current()
+	if !ok {
+		return nil
+	}
+	var reRequest, assign bool
+	for _, r := range pr.Reasons {
+		reRequest = reRequest || strings.HasPrefix(r.Text, "re-request review from ")
+		assign = assign || strings.HasPrefix(r.Text, "assign reviewers for ")
+	}
+	what := "request review"
+	switch {
+	case reRequest && assign:
+	case reRequest:
+		what = "re-request"
+	case assign:
+		what = "assign reviewers"
+	default:
+		return nil
+	}
+	return []string{m.key("requestReview") + " " + what}
 }
 
 // dataAge is "updated 2m ago", or "cached 12m ago" for the snapshot from the cache.

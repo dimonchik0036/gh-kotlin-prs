@@ -140,7 +140,7 @@ func TestFailedPost(t *testing.T) {
 
 // Without a way to post (and not in demo mode), nothing asks.
 func TestNoPoster(t *testing.T) {
-	h := newHarness(t, func(_ *harness, opts *Options) { opts.Post = nil })
+	h := newHarness(t, func(_ *harness, opts *Options) { opts.Post, opts.RequestReview = nil, nil })
 	h.start()
 	h.keys("D")
 	if h.m.confirm != nil || !strings.Contains(h.statusBar(), "not posted: nothing to post with") {
@@ -165,7 +165,7 @@ func TestDemoPretends(t *testing.T) {
 	if pr, _ := h.m.current(); pr.DryRun.State != model.RunRequested || !strings.Contains(h.statusBar(), "demo: not sent: posted /dry-run to #90006") {
 		t.Errorf("dry-run %+v, status bar %q", pr.DryRun, h.statusBar())
 	}
-	h.keys("A", "right", "down", "space", "enter")
+	h.keys("A", "right", "down", "space", "enter", "y")
 	pr, _ := h.m.current()
 	if !slices.ContainsFunc(pr.Reviewers, func(r model.Reviewer) bool { return r.Login == "bob_user" && r.Requested }) ||
 		!strings.Contains(h.statusBar(), "demo: not sent: requested a review of #90006 from bob_user") {

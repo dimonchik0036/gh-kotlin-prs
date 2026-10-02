@@ -11,6 +11,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/actions"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 )
 
@@ -138,6 +139,19 @@ func TestRequestReview(t *testing.T) {
 		t.Errorf("enter with nothing picked: %q", h.statusBar())
 	}
 	h.keys("right", "down", "space", "enter")
+	if len(h.posted) != 0 || h.statusBar() != "Request a review of #90006 from bob_user? [y/N]" {
+		t.Fatalf("enter didn't ask: posted %q, status bar %q", h.posted, h.statusBar())
+	}
+	// Anything but y goes back to the picks, the back action included.
+	h.keys("n")
+	if h.m.picker == nil || h.m.picker.confirming || !slices.Equal(h.m.picker.picked, []string{"bob_user"}) {
+		t.Fatalf("n: picker %+v", h.m.picker)
+	}
+	h.keys("enter", "backspace")
+	if h.m.picker == nil || len(h.posted) != 0 {
+		t.Fatal("backspace at the question closed the picker or sent")
+	}
+	h.keys("enter", "y")
 	if want := []string{"#90006 review bob_user"}; !slices.Equal(h.posted, want) || h.m.picker != nil {
 		t.Fatalf("posted %q", h.posted)
 	}
@@ -160,6 +174,10 @@ func TestRequestReview(t *testing.T) {
 	if h.m.picker != nil || !strings.Contains(h.statusBar(), "no review requested") {
 		t.Errorf("esc: %q", h.statusBar())
 	}
+	h.keys("A", "backspace")
+	if h.m.picker != nil {
+		t.Error("backspace, the other back key, didn't close the picker")
+	}
 }
 
 // A first assignment shown as requested: rule 2c no longer says it's my move.
@@ -179,7 +197,7 @@ func TestRequestReviewRefusals(t *testing.T) {
 	h := newHarness(t, nil)
 	h.start()
 	h.postErr = errors.New("request a review of #90006 from bob_user: HTTP 422: reviews may only be requested from collaborators")
-	h.keys("A", "right", "down", "space", "enter")
+	h.keys("A", "right", "down", "space", "enter", "y")
 	if !strings.Contains(h.statusBar(), "✗ couldn't request a review of #90006 from bob_user: request a review") {
 		t.Errorf("failed request: %q", h.statusBar())
 	}
@@ -215,6 +233,135 @@ func TestStartReview(t *testing.T) {
 	}
 }
 
+// docs/request-review.tape's keys on the fixtures plus the derived #90010, in demo mode:
+// what the recording shows.
+func TestRequestReviewRecording(t *testing.T) {
+	h := newHarnessOn(t, "../../testdata/raw"+string(filepath.ListSeparator)+"../../testdata/demo", func(_ *harness, opts *Options) {
+		opts.Demo, opts.Post, opts.RequestReview = true, nil, nil
+	})
+	h.start()
+	if pr, _ := h.m.current(); pr.Number != 90010 || pr.Primary() != "re-request review from dave_user" {
+		t.Fatalf("the first row is #%d: %q", pr.Number, pr.Primary())
+	}
+	if !strings.Contains(h.statusBar(), "A request review ∙ enter details") {
+		t.Errorf("no review hint: %q", h.statusBar())
+	}
+	h.keys("A")
+	h.contains("▾ /analysis/                           → dave_user", "    [x] dave_user          commented", "▸ /compiler/fir/ +3", "✓ trent_user",
+		"▾ /compiler/testData/codegen/asmLike/  unassigned", "▾ /core/descriptors.runtime/           unassigned",
+		"▾ /plugins/parcelize/                  unassigned", "2 of 5 subsystems covered ∙ will request: dave_user")
+	// judy_user covers two rows; the third unassigned one stays open.
+	for range 7 {
+		h.keys("down")
+	}
+	h.keys("space")
+	h.contains("4 of 5 subsystems covered ∙ will request: dave_user, judy_user", "▾ /plugins/parcelize/                  unassigned")
+	if strings.Count(h.screen(), "→ judy_user") != 2 {
+		t.Errorf("judy_user isn't picked in both rows:\n%s", h.screen())
+	}
+	h.keys("left")
+	h.lacks("    [ ] laura_user")
+	h.keys("right")
+	h.contains("    [ ] laura_user")
+	for range 10 {
+		h.keys("down")
+	}
+	h.keys("space")
+	h.contains("▾ /plugins/parcelize/                  → peggy_user", "5 of 5 subsystems covered ∙ will request: dave_user, judy_user, peggy_user")
+	h.keys("enter")
+	if got := h.statusBar(); got != "Request a review of #90010 from dave_user, judy_user, peggy_user? [y/N]" {
+		t.Errorf("the question: %q", got)
+	}
+	h.keys("y")
+	h.contains("demo: not sent: requested a review of #90010 from dave_user, judy_user, peggy_user")
+	if pr, _ := h.m.current(); pr.Primary() != "waiting: dave_user, judy_user, peggy_user" {
+		t.Errorf("after the request: %q", pr.Texts())
+	}
+	if strings.Contains(h.statusBar(), "A request review") {
+		t.Errorf("the hint stays: %q", h.statusBar())
+	}
+	h.keys("enter")
+	h.contains("#90010 KT-990011: Example change")
+}
+
+// The status bar hints the review key only on a PR with someone to re-request (2a) or a
+// rule to assign (2c), naming which.
+func TestReviewHint(t *testing.T) {
+	h := newHarness(t, nil)
+	h.start()
+	if bar := h.statusBar(); strings.Contains(bar, "A ") || !strings.Contains(bar, "enter details") {
+		t.Errorf("#90006 has neither: %q", bar)
+	}
+	i := slices.IndexFunc(h.m.prs, func(pr model.PR) bool { return pr.Number == h.m.selected })
+	for reasons, want := range map[string]string{
+		"re-request review from bob_user":                                 "A re-request ∙ enter details",
+		"assign reviewers for /analysis/":                                 "A assign reviewers ∙ enter details",
+		"re-request review from bob_user|assign reviewers for /analysis/": "A request review ∙ enter details",
+		// While a run goes on, the reasons come after it: the hint still shows.
+		"dry-run running 10m ago|assign reviewers for /analysis/": "A assign reviewers ∙ enter details",
+	} {
+		h.m.prs[i].Reasons = nil
+		for _, r := range strings.Split(reasons, "|") {
+			h.m.prs[i].Reasons = append(h.m.prs[i].Reasons, model.Reason{Text: r})
+		}
+		h.m.rebuild()
+		if bar := h.statusBar(); !strings.Contains(bar, want) {
+			t.Errorf("%q: status bar %q, want %q", reasons, bar, want)
+		}
+		h.keys("enter")
+		if bar := h.statusBar(); !strings.Contains(bar, strings.Replace(want, "enter details", "esc back", 1)) {
+			t.Errorf("%q in the details: status bar %q", reasons, bar)
+		}
+		h.keys("esc")
+	}
+}
+
+// "request review…" ends the commands menu on my open PRs: its key or enter opens the
+// picker; someone else's PR doesn't list it.
+func TestMenuRequestReview(t *testing.T) {
+	h := newHarness(t, nil)
+	h.start()
+	h.keys("x")
+	h.contains("O   /codeowners       re-run", "A   request review…   pick code owners to request a review from")
+	h.keys("A")
+	if h.m.menu != nil || h.m.picker == nil {
+		t.Fatalf("A in the menu: menu %v, picker %v", h.m.menu != nil, h.m.picker != nil)
+	}
+	h.keys("esc", "x")
+	for range h.m.menu.size() {
+		h.keys("down")
+	}
+	h.keys("enter")
+	if h.m.picker == nil {
+		t.Error("enter on the last line didn't open the picker")
+	}
+	h.keys("esc", "a", "tab", "x") // Review: #90001, someone else's
+	if h.m.menu != nil || strings.Contains(h.screen(), "request review…") {
+		t.Errorf("someone else's PR: %q", h.statusBar())
+	}
+}
+
+// The picker and its question follow the back action's keys, not a fixed esc.
+func TestPickerBackRebound(t *testing.T) {
+	h := newHarness(t, func(_ *harness, opts *Options) {
+		cfg, err := config.Parse([]byte("keys: {back: Z}\n"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		opts.Config = cfg
+	})
+	h.start()
+	h.keys("A", "esc")
+	if h.m.picker == nil {
+		t.Fatal("esc closed the picker with back rebound to Z")
+	}
+	h.contains("Z cancel")
+	h.keys("Z")
+	if h.m.picker != nil {
+		t.Error("Z, the back key, didn't close the picker")
+	}
+}
+
 // A display name from the bot's table shows after the login.
 func TestCandidateName(t *testing.T) {
 	for _, tt := range []struct {
@@ -228,39 +375,4 @@ func TestCandidateName(t *testing.T) {
 			t.Errorf("%+v: %q, want %q", tt.c, got, tt.want)
 		}
 	}
-}
-
-// docs/request-review.tape's keys on the fixtures plus the derived #90010, in demo mode:
-// what the recording shows.
-func TestRequestReviewRecording(t *testing.T) {
-	h := newHarnessOn(t, "../../testdata/raw"+string(filepath.ListSeparator)+"../../testdata/demo", func(_ *harness, opts *Options) {
-		opts.Demo, opts.Post, opts.RequestReview = true, nil, nil
-	})
-	h.start()
-	if pr, _ := h.m.current(); pr.Number != 90010 || pr.Primary() != "re-request review from dave_user" {
-		t.Fatalf("the first row is #%d: %q", pr.Number, pr.Primary())
-	}
-	h.keys("A")
-	h.contains("▾ /analysis/                           → dave_user", "    [x] dave_user          commented", "▸ /compiler/fir/ +3", "✓ trent_user",
-		"▾ /compiler/testData/codegen/asmLike/  unassigned", "▾ /core/descriptors.runtime/           unassigned",
-		"2 of 4 subsystems covered ∙ will request: dave_user")
-	for range 7 {
-		h.keys("down")
-	}
-	h.keys("space")
-	h.contains("→ judy_user", "    [x] judy_user", "4 of 4 subsystems covered ∙ will request: dave_user, judy_user")
-	if strings.Count(h.screen(), "→ judy_user") != 2 {
-		t.Errorf("judy_user isn't picked in both rows:\n%s", h.screen())
-	}
-	h.keys("left")
-	h.lacks("    [ ] laura_user")
-	h.keys("right")
-	h.contains("    [ ] laura_user")
-	h.keys("enter")
-	h.contains("demo: not sent: requested a review of #90010 from dave_user, judy_user")
-	if pr, _ := h.m.current(); pr.Primary() != "waiting: dave_user, judy_user" {
-		t.Errorf("after the request: %q", pr.Texts())
-	}
-	h.keys("enter")
-	h.contains("#90010 KT-990011: Example change")
 }

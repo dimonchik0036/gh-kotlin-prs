@@ -76,11 +76,14 @@ A             request a review from code owners
 
 `A` opens a tree of the PR's code-owner rules with the people who may be asked: the rules that need you (nobody asked
 yet, or someone to re-request) open, the others collapsed with who approved or was asked. `space` picks a person, in
-every rule they own; `←`/`→` collapse and expand a rule; `enter` requests a review from everyone picked, in one request,
-even if some rules stay uncovered; `esc` cancels. A re-request starts with the people to re-request picked.
+every rule they own; `←`/`→` collapse and expand a rule; `enter` asks `Request a review of #90006 from … ? [y/N]`, and
+`y` requests it from everyone picked, in one request, even if some rules stay uncovered (any other key goes back to the
+picks); `esc` (the `back` keys) cancels. A re-request starts with the people to re-request picked. The status bar
+hints `A re-request` or `A assign reviewers` on a PR that needs it, and `x` lists "request review…" on your open PRs.
 
-![Requesting a review: the tree of a PR's code-owner rules with the unassigned ones open and a re-request picked, a
-person picked in the two rules they own, a rule collapsed and expanded, then the PR waiting on them](docs/images/request-review.gif)
+![Requesting a review: the status bar hints the key; the tree of a PR's code-owner rules with the unassigned ones open
+and a re-request picked; a person picked in the two rules they own, a rule collapsed and expanded, someone of the third
+rule; the y/N question, then the PR waiting on them](docs/images/request-review.gif)
 
 `gh kotlin-prs --pr 90006` opens it on that PR's details, and `--pr 90006 --post dry-run` also asks to post that
 command there, once the PR's state is fresh (`--post request-review` opens the review tree). A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested

@@ -28,22 +28,23 @@ Enter
 Sleep 300ms
 Show
 
-# #90010 is the first row: a re-request and two rules nobody was asked for.
+# #90010 is the first row: a re-request and three rules nobody was asked for; the
+# status bar hints the review key.
 Type "gh kotlin-prs"
 Sleep 400ms
 Enter
-Sleep 2s
+Sleep 2.5s
 
 # The tree: /analysis/ open with dave_user picked (to re-request), the approved rule
-# closed, the two unassigned ones open.
+# closed, the three unassigned ones open.
 Type "A"
 Sleep 2.5s
 
-# judy_user owns both unassigned rules: one pick covers them.
+# judy_user owns two of the unassigned rules: one pick covers both; the third stays open.
 Down 7
 Sleep 800ms
 Space
-Sleep 1.8s
+Sleep 2s
 
 # Collapse that rule and open it again.
 Left
@@ -51,8 +52,16 @@ Sleep 1s
 Right
 Sleep 1.2s
 
-# Send: the PR waits on them now (demo mode: nothing sent).
+# Someone of the third rule.
+Down 10
+Sleep 800ms
+Space
+Sleep 1.8s
+
+# Enter asks; y sends: the PR waits on them now (demo mode: nothing sent).
 Enter
+Sleep 2s
+Type "y"
 Sleep 2.2s
 Enter
 Sleep 1.5s

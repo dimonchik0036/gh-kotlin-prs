@@ -20,11 +20,21 @@ type post struct {
 	at        time.Time
 }
 
-// menu lists the commands that can be posted on a PR now.
+// menu lists the commands that can be posted on a PR now, then, on my open PRs, the
+// review request (review).
 type menu struct {
 	pr     model.PR
 	items  []actions.Command
+	review bool
 	cursor int
+}
+
+// size is the number of the menu's lines to pick from.
+func (mn *menu) size() int {
+	if mn.review {
+		return len(mn.items) + 1
+	}
+	return len(mn.items)
 }
 
 // confirmation waits for y to post cmd on pr.
@@ -99,11 +109,12 @@ func (m *Model) openMenu() {
 			items = append(items, c)
 		}
 	}
-	if len(items) == 0 {
+	review := actions.CheckOwnOpen(pr, m.data.Viewer) == nil && (m.opts.RequestReview != nil || m.opts.Demo)
+	if len(items) == 0 && !review {
 		m.setNote(fmt.Sprintf("nothing to post on #%d now (%v)", pr.Number, why))
 		return
 	}
-	m.menu = &menu{pr: pr, items: items}
+	m.menu = &menu{pr: pr, items: items, review: review}
 }
 
 // onMenuKey picks a command by its key, or moves and picks with enter; anything else
@@ -117,10 +128,16 @@ func (m *Model) onMenuKey(key string) tea.Cmd {
 		return nil
 	}
 	switch {
+	case action == "requestReview" && mn.review:
+		m.menu = nil
+		m.openPicker()
 	case action == "up":
 		mn.cursor = max(0, mn.cursor-1)
 	case action == "down":
-		mn.cursor = min(len(mn.items)-1, mn.cursor+1)
+		mn.cursor = min(mn.size()-1, mn.cursor+1)
+	case key == "enter" && mn.cursor == len(mn.items):
+		m.menu = nil
+		m.openPicker()
 	case key == "enter":
 		m.menu = nil
 		m.ask(mn.items[mn.cursor])

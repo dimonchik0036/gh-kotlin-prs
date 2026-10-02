@@ -39,8 +39,9 @@ breaking JSON changes and noted here.
   requested changes before your last push). Only people of the bot's code-owners table, never a team; without logins
   to go on, it lists them per rule (#1, #2).
 - In the interactive view, `A` (config `requestReview`) opens a tree of the PR's code-owner rules to pick the people
-  to request a review from, the rules that need you open; `enter` sends one request for everyone picked.
-  `--pr <number> --post request-review` opens it on that PR (#1, #2).
+  to request a review from, the rules that need you open; `enter` asks y/N, then sends one request for everyone
+  picked. The status bar hints `A re-request` / `A assign reviewers` on a PR that needs it, the `x` menu lists it,
+  and `--pr <number> --post request-review` opens it on that PR (#1, #2).
 - The menu-bar plugin offers "Re-request review from …" on a PR of yours with people to re-request, and "Assign
   reviewers…" on one with a code-owner rule nobody was asked for; both ask in the terminal first (#1, #2).
 - A PR of yours with a code-owner rule nobody was asked to review (the bot's `UNASSIGNED`) is your move: "assign
