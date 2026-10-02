@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.6.2 — 2026-10-02
+
+Fixes for long lines in the menu-bar plugin. The JSON output is unchanged (`"version": 1`).
+
 - In the menu-bar plugin, a missing code-owner rule with many paths no longer runs off the screen and hides its
   owners: its paths are cut to `⋯ (+N)` after the last one that fits, and the tooltip lists them all.
 - A PR's submenu in the menu-bar plugin no longer opens to the left over everything for a long title or a long
