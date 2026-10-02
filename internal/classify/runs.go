@@ -54,6 +54,7 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model
 				Kind:       gate.Kind,
 				State:      gate.State,
 				Reason:     gate.Reason,
+				Error:      gate.Error,
 				BuildURL:   gate.BuildURL,
 				Started:    cm.CreatedAt,
 				Updated:    cm.UpdatedAt,

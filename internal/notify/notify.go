@@ -100,7 +100,10 @@ func runEvents(old, run model.Run, pr model.PR) []Event {
 	}
 	title := fmt.Sprintf("#%d %s %s", pr.Number, run.Kind, run.State)
 	body := pr.Title
-	if run.State == model.RunRejected && run.Reason != "" {
+	switch {
+	case run.Error != "":
+		body = run.Error
+	case run.State == model.RunRejected && run.Reason != "":
 		body = run.Reason
 	}
 	return []Event{event(kind, pr, title, body, cmpOr(run.Link(), pr.URL))}

@@ -182,7 +182,11 @@ func DetailView(pr model.PR, now time.Time, opts Options, width int) string {
 		if run.NoResponse {
 			state += " (no response)"
 		}
-		rows = append(rows, []string{"  " + string(run.Kind), state, model.Ago(now, run.Started), runURL(links, run.BuildURL), run.Reason})
+		reason := run.Reason
+		if run.Error != "" {
+			reason = strings.TrimPrefix(reason+", "+run.Error, ", ")
+		}
+		rows = append(rows, []string{"  " + string(run.Kind), state, model.Ago(now, run.Started), runURL(links, run.BuildURL), reason})
 	}
 	writeGrid(&b, rows)
 

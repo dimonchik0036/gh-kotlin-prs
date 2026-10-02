@@ -53,10 +53,12 @@ func (s RunState) InProgress() bool {
 }
 
 type Run struct {
-	Kind     RunKind  `json:"kind"`
-	State    RunState `json:"state"`
-	Reason   string   `json:"reason,omitempty"`
-	BuildURL string   `json:"buildUrl,omitempty"`
+	Kind   RunKind  `json:"kind"`
+	State  RunState `json:"state"`
+	Reason string   `json:"reason,omitempty"`
+	// Error is what the bot reported it couldn't do after the gate, like the merge.
+	Error    string `json:"error,omitempty"`
+	BuildURL string `json:"buildUrl,omitempty"`
 	// Started is when the gate reported the run, or when the command was posted if it hasn't yet.
 	Started time.Time `json:"started,omitzero"`
 	Updated time.Time `json:"updated,omitzero"`

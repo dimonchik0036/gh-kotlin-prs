@@ -65,6 +65,12 @@ func TestMineRule1RunFailed(t *testing.T) {
 			extra: []string{"ready to /safe-merge", "no fresh dry-run"},
 		},
 		{
+			name: "a passed safe-merge that failed to merge",
+			pr:   readyPR().says(me, "/safe-merge", at(90), rocket).gate(model.SafeMerge, 100, "merge failed", at(91), edited(at(110))),
+			next: model.NextMe, reason: "safe-merge failed: rebase-merge failed: Pull Request has merge conflicts",
+			extra: []string{"ready to /safe-merge", "no fresh dry-run"},
+		},
+		{
 			name: "rejected safe-merge",
 			pr:   readyPR().says(me, "/safe-merge", at(100)).rejected("GitHub has not yet finished checking for conflicts with the base branch.", at(101)),
 			next: model.NextMe, reason: "safe-merge rejected: GitHub has not yet finished checking for conflicts with the base branch.",

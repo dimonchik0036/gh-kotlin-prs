@@ -108,9 +108,14 @@ func gateBody(kind model.RunKind, build int, result string) string {
 		s.WriteString("\n---\n\nQuality gate finished successfully.")
 	case "failed":
 		writef(&s, "\n---\n\nQuality gate failed. See https://buildserver.labs.intellij.net/build/%d to get full insight.", build)
+	case "merge failed":
+		// The gate passed, the merge didn't.
+		s.WriteString("\n---\n\nQuality gate finished successfully.\n\n---\n\n" + mergeError)
 	}
 	return s.String()
 }
+
+const mergeError = "Error: Failed to merge PR #1: rebase-merge failed: Pull Request has merge conflicts"
 
 func (b *prBuilder) rejected(reason string, t time.Time, opts ...commentOpt) *prBuilder {
 	return b.botReply("Command rejected: "+reason, t, opts...)

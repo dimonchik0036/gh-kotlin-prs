@@ -290,6 +290,25 @@ func TestRejectionNotifiesWhateverTheMove(t *testing.T) {
 	}
 }
 
+// A safe-merge whose gate passed but whose merge failed notifies the failure with the
+// error, not the pass.
+func TestMergeErrorNotifiesFailure(t *testing.T) {
+	running := model.PR{Number: 7, Title: "Example change", Section: model.SectionMine, Next: model.NextCI,
+		SafeMerge: model.Run{Kind: model.SafeMerge, State: model.RunRunning, Started: time.Unix(100, 0), BuildURL: "https://ci.example.org/build/1"}}
+	failed := running
+	failed.Next = model.NextMe
+	failed.SafeMerge.State = model.RunFailed
+	failed.SafeMerge.Error = "rebase-merge failed: Pull Request has merge conflicts"
+	failed.Reasons = []model.Reason{{Text: "safe-merge failed: rebase-merge failed: Pull Request has merge conflicts"}}
+	events := Diff([]model.PR{running}, []model.PR{failed})
+	if got := kinds(events); !slices.Equal(got, []string{"runFailed #7"}) {
+		t.Fatalf("events %v", got)
+	}
+	if events[0].Body != "rebase-merge failed: Pull Request has merge conflicts" {
+		t.Errorf("body %q", events[0].Body)
+	}
+}
+
 // A run passing and the PR becoming my move for its reviewers (rule 2c, which waits for
 // runs) notifies both, deliberately: the pass, then "your move — assign reviewers".
 func TestPassThenAssignReviewers(t *testing.T) {

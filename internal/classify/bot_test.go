@@ -61,6 +61,37 @@ func TestParseGate(t *testing.T) {
 	}
 }
 
+// The bot appends an error to a passed gate's comment when it can't act on the result,
+// like a safe-merge whose gate passed but whose merge failed.
+func TestParseGateError(t *testing.T) {
+	const mergeConflicts = "\n\n---\n\nError: Failed to merge PR #90004: rebase-merge failed: Pull Request has merge conflicts"
+	tests := []struct {
+		name, body string
+		want       GateReport
+	}{
+		{
+			name: "safe-merge passed, then failed to merge",
+			body: commentBody(t, "90004", "KotlinBuild", "build/1076441911") + mergeConflicts,
+			want: GateReport{Kind: model.SafeMerge, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076441911",
+				Error: "rebase-merge failed: Pull Request has merge conflicts"},
+		},
+		{
+			name: "dry-run passed with an error",
+			body: commentBody(t, "90005", "KotlinBuild", "build/1076451184") + "\n\n---\n\nError: Something new.\n",
+			want: GateReport{Kind: model.DryRun, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076451184",
+				Error: "Something new."},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := ParseGate(tt.body)
+			if !ok || got != tt.want {
+				t.Errorf("got %+v, %v\nwant %+v", got, ok, tt.want)
+			}
+		})
+	}
+}
+
 func TestParseGateRunningRetry(t *testing.T) {
 	// A retry in flight: the failed-run comment of 90004 before the bot appended the result.
 	body := commentBody(t, "90004", "KotlinBuild", "build/1076214625")

@@ -74,7 +74,8 @@ var teamRules = []rule{
 
 // Mine.
 
-// 1. The latest run failed and isn't outdated, a command was rejected for a cause of
+// 1. The latest run failed and isn't outdated (an error after the gate, like a failed
+// merge, fails it whatever the gate's result), a command was rejected for a cause of
 // mine, or a command got no response. A rejection is the outcome of its command, so it
 // stays until a newer command or run supersedes it, even if the build it collided with
 // finished later. One only reviewers resolve (missing code-owner approval) isn't my move:
@@ -89,6 +90,8 @@ func mineRunFailed(f *facts) []model.Reason {
 		return linked(fmt.Sprintf("%s rejected: %s", run.Kind, run.Reason), run.CommentURL)
 	case run.Outdated:
 		return nil
+	case run.Error != "":
+		return linked(fmt.Sprintf("%s failed: %s", run.Kind, run.Error), run.CommentURL)
 	case run.State == model.RunFailed:
 		reason := fmt.Sprintf("%s failed %s", run.Kind, model.Ago(f.c.Now, run.Updated))
 		if run.Reason != "" {

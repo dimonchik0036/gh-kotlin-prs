@@ -16,6 +16,10 @@ var (
 	gatePassed   = "Quality gate finished successfully."
 	gateFailed   = regexp.MustCompile(`Quality gate failed\.(?: See (\S+))?`)
 	gateRetry    = regexp.MustCompile(`Triggered a \[retry attempt]\((\S+?)\) №(\d+) out of (\d+)`)
+	// An error after the result: the bot couldn't finish the run's job, like the merge.
+	gateError = regexp.MustCompile(`(?m)^Error:[ \t]*(\S.*?)\s*$`)
+	// The PR an error names says nothing on the PR's own page.
+	gateErrorPR = regexp.MustCompile(`^Failed to merge PR #\d+: `)
 	// Runs started by a Safe-Merge in the ultimate repository rather than by a command on this PR.
 	gateExternal = "The quality gate was triggered by Safe-Merge of the"
 
@@ -97,6 +101,8 @@ type GateReport struct {
 	State    model.RunState // Running, Passed or Failed
 	BuildURL string
 	Reason   string
+	// Error is the gate's `Error:` line, which fails even a passed run.
+	Error string
 	// External: triggered from an ultimate Merge-Request, not by this PR.
 	External bool
 }
@@ -124,6 +130,9 @@ func ParseGate(body string) (GateReport, bool) {
 		r.State = model.RunPassed
 	case gateFailed.MatchString(body):
 		r.State = model.RunFailed
+	}
+	if m := gateError.FindStringSubmatch(body); m != nil {
+		r.State, r.Error = model.RunFailed, gateErrorPR.ReplaceAllString(m[1], "")
 	}
 	return r, true
 }

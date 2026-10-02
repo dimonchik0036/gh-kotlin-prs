@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A safe-merge whose quality gate passed but whose merge failed (the bot's `Error:` line, e.g. "rebase-merge failed:
+  Pull Request has merge conflicts") showed as passed and "ready to /safe-merge". Any `Error:` after the gate's result
+  now fails the run: your move, "safe-merge failed: <error>", notified as a failure with the error. The JSON run has
+  it as `error`.
 - Demo mode (`GH_KOTLIN_PRS_DEMO`) takes a list of fixture directories, and its interactive view pretends a post or a
   review request instead of refusing it. The README shows requesting a review in a recording.
 - A GitHub release's notes are its version's section of this changelog, with a link comparing it to the previous one.

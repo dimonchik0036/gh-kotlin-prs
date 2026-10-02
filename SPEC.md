@@ -59,6 +59,9 @@ KotlinBuild posts one comment per quality-gate run and **edits it** when the run
   - `Quality gate finished successfully.` → passed;
   - `Quality gate failed. See <url> …` → failed;
   - neither → running.
+- An `Error:` section after the result, like `Error: Failed to merge PR #N: rebase-merge failed: Pull Request has merge
+  conflicts` under a passed safe-merge, means the bot couldn't act on the result: the run failed, whatever the result
+  line says. Any `Error:` line counts; its text (`Run.Error`, without `Failed to merge PR #N: `) is the reason.
 
 kotlin-safemerge posts the code-owners table and answers commands.
 
@@ -225,7 +228,7 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
 "re-request…" or "assign reviewers…" as secondary lines; once the run passed, they make it mine (and the TUI hints
 `A` either way). A failed run is rule 1's.
 1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected for a cause of mine, or got no
-   response → "safe-merge failed 2h ago", "dry-run rejected: <reason>". Whose a rejection is, by the bot's reason
+   response → "safe-merge failed 2h ago", "safe-merge failed: <error>" (§3), "dry-run rejected: <reason>". Whose a rejection is, by the bot's reason
    (§3):
 
    | Reason | Whose |
