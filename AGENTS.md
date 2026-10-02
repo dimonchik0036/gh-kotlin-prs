@@ -30,7 +30,11 @@ Only through `scripts/fetch-fixtures.sh`, which anonymizes everything it writes.
 real logins (other than the repo owner's and the bots'), PR titles or human comment text.
 `TestCommittedFixturesAreAnonymized` guards this.
 PR and KT numbers, commit SHAs and thread paths are fake as well. The real → fake map is
-`testdata/.fixture-map.json`, local and gitignored: never commit it, and never write real numbers into tests or docs.
+`testdata/.fixture-map.json`, local and gitignored: never commit it, and never write real numbers into tests or docs,
+nor in commit messages (no real PR or issue to cite a test case by: describe its shape instead).
+`TestNoRealPRReferences` fails on a `JetBrains/kotlin#N` or `…/kotlin/pull/N` outside the fixtures unless N is a
+fixture's 900xx or a made-up number under 1000; `TestNoRealFixtureNumbers`, when the local map is there, on any of
+its real PR or issue numbers anywhere. Real logins have no guard: a list of them would have to be committed.
 Synthetic test data uses pseudonyms (alice_user, bob_user, …).
 The tool relies only on what is publicly visible on JetBrains/kotlin PRs; don't add links to non-public pages.
 
