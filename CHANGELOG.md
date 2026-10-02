@@ -6,44 +6,14 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
-- Review rows show the PR's author after the title (cut at 12 characters), in `list`, the interactive view and the
-  menu-bar plugin, whose Review submenus start with "by <login> · pushed 2h ago".
-- A PR of yours that GitHub reports as conflicting with its base branch is your move: "conflicts with master,
-  rebase", right after a failed run, and said once when the bot rejected a command for it. `/dry-run` and
-  `/safe-merge` are refused locally on it ("has conflicts with the base branch; rebase first"). The JSON PR has
-  `base` and `conflicts`.
-- A safe-merge whose quality gate passed but whose merge failed (the bot's `Error:` line, e.g. "rebase-merge failed:
-  Pull Request has merge conflicts") showed as passed and "ready to /safe-merge". Any `Error:` after the gate's result
-  now fails the run: your move, "safe-merge failed: <error>", notified as a failure with the error. The JSON run has
-  it as `error`.
-- Demo mode (`GH_KOTLIN_PRS_DEMO`) takes a list of fixture directories, and its interactive view pretends a post or a
-  review request instead of refusing it. The README shows requesting a review in a recording.
-- A GitHub release's notes are its version's section of this changelog, with a link comparing it to the previous one.
-- `Y` (config `copyBranch`) copies the selected PR's branch name in the interactive view, and the menu-bar plugin's
-  PR submenu has "Copy branch" after "Copy link".
-- The menu-bar plugin runs every 30s and fetches every 3m: `swiftbar install` and `swiftbar script` take
-  `--interval` (how often SwiftBar runs it, 30s) and `--max-age` (how old cached data a run takes, 3m) instead of one
-  interval of 3m. A run picks up within 30s what the interactive view fetched or a command changed. Existing plugins
-  move to it through the menu's update item or `gh kotlin-prs swiftbar update`.
-- The menu-bar plugin notifies of what changed whenever it gets newer data, also from the cache the interactive view
-  wrote, not only on its own live fetches; nothing is lost or told twice.
-- The plugin script drops its version line, which went stale with every upgrade. `gh kotlin-prs swiftbar update`
-  rewrites the installed plugin with this version's script, keeping its settings; a plugin of v0.5.2 or older moves
-  to the new timing, its old interval becoming the max-age. The menu offers it ("Update the plugin script") while the
-  installed script is older.
-- While a dry-run or safe-merge of yours is requested or running, "re-request review…" and "assign reviewers…" wait
-  for it: the PR is CI's, with them as secondary lines, and your move once the run passed.
-- The code-owners table is read by its links: a person is whoever the profile link names, so full names the bot may
-  add next to logins don't break it, and the review picker shows them (`judy_user (Judy Doe)`).
-- A safe-merge or dry-run rejected for missing code-owner approval no longer makes a PR of yours your move: only
-  reviewers resolve that, so it's "waiting: …" like before the command. The rejection still notifies and shows in
-  the run history; rejections you can fix (conflicts, `fixup!` commits, a draft, …) stay your move.
-- A command you minimized on the PR (resolved, e.g. with the PR Helper extension) no longer counts as a run, nor does
-  the bot's reply to it; a minimized rejection of a visible command drops that rejected run.
-- Re-requesting a review hands the move to the reviewer: an unresolved thread, a new comment or requested changes from
-  someone you re-requested since no longer make a PR of yours your move; it's "waiting: <them>" (#3).
-- A command posted from `run` or the interactive view drops the PR's cached details, so the menu-bar plugin's next
-  run fetches what the bot made of it.
+## v0.6.0 — 2026-10-02
+
+Requesting reviews from code owners, fixes to whose move a PR is, and a faster menu-bar plugin. The JSON output only
+gains fields, so it stays `"version": 1`. After upgrading, update the menu-bar plugin through its menu's "Update the
+plugin script" item, or with `gh kotlin-prs swiftbar update`.
+
+### Review requests
+
 - `gh kotlin-prs run <number> request-review [login...]` requests a review of a PR of yours from its code owners, in
   one request: the logins given, or by default the ones to re-request (they commented and weren't re-requested, or
   requested changes before your last push). Only people of the bot's code-owners table, never a team; without logins
@@ -54,9 +24,55 @@ breaking JSON changes and noted here.
   and `--pr <number> --post request-review` opens it on that PR (#1, #2).
 - The menu-bar plugin offers "Re-request review from …" on a PR of yours with people to re-request, and "Assign
   reviewers…" on one with a code-owner rule nobody was asked for; both ask in the terminal first (#1, #2).
+- The code-owners table is read by its links: a person is whoever the profile link names, so full names the bot may
+  add next to logins don't break it, and the review picker shows them (`judy_user (Judy Doe)`).
+
+### Whose move it is
+
 - A PR of yours with a code-owner rule nobody was asked to review (the bot's `UNASSIGNED`) is your move: "assign
   reviewers for /analysis/", instead of "waiting: owners of /analysis/". A review request the bot's table doesn't
   show yet counts (#2).
+- While a dry-run or safe-merge of yours is requested or running, "re-request review…" and "assign reviewers…" wait
+  for it: the PR is CI's, with them as secondary lines, and your move once the run passed.
+- Re-requesting a review hands the move to the reviewer: an unresolved thread, a new comment or requested changes from
+  someone you re-requested since no longer make a PR of yours your move; it's "waiting: <them>" (#3).
+- A safe-merge whose quality gate passed but whose merge failed (the bot's `Error:` line, e.g. "rebase-merge failed:
+  Pull Request has merge conflicts") showed as passed and "ready to /safe-merge". Any `Error:` after the gate's result
+  now fails the run: your move, "safe-merge failed: <error>", notified as a failure with the error. The JSON run has
+  it as `error`.
+- A PR of yours that GitHub reports as conflicting with its base branch is your move: "conflicts with master,
+  rebase", right after a failed run, and said once when the bot rejected a command for it. `/dry-run` and
+  `/safe-merge` are refused locally on it ("has conflicts with the base branch; rebase first"). The JSON PR has
+  `base` and `conflicts`.
+- A safe-merge or dry-run rejected for missing code-owner approval no longer makes a PR of yours your move: only
+  reviewers resolve that, so it's "waiting: …" like before the command. The rejection still notifies and shows in
+  the run history; rejections you can fix (conflicts, `fixup!` commits, a draft, …) stay your move.
+- A command you minimized on the PR (resolved, e.g. with the PR Helper extension) no longer counts as a run, nor does
+  the bot's reply to it; a minimized rejection of a visible command drops that rejected run.
+
+### Menu-bar plugin
+
+- The plugin runs every 30s and fetches every 3m: `swiftbar install` and `swiftbar script` take `--interval` (how
+  often SwiftBar runs it, 30s) and `--max-age` (how old cached data a run takes, 3m) instead of one interval of 3m. A
+  run picks up within 30s what the interactive view fetched or a command changed.
+- A command posted from `run` or the interactive view drops the PR's cached details, so the plugin's next run fetches
+  what the bot made of it.
+- The plugin notifies of what changed whenever it gets newer data, also from the cache the interactive view wrote,
+  not only on its own live fetches; nothing is lost or told twice.
+- The plugin script drops its version line, which went stale with every upgrade. `gh kotlin-prs swiftbar update`
+  rewrites the installed plugin with this version's script, keeping its settings; a plugin of v0.5.2 or older moves
+  to the new timing, its old interval becoming the max-age. The menu offers it ("Update the plugin script") while the
+  installed script is older.
+
+### Other
+
+- Review rows show the PR's author after the title (cut at 12 characters), in `list`, the interactive view and the
+  menu-bar plugin, whose Review submenus start with "by <login> · pushed 2h ago".
+- `Y` (config `copyBranch`) copies the selected PR's branch name in the interactive view, and the menu-bar plugin's
+  PR submenu has "Copy branch" after "Copy link".
+- Demo mode (`GH_KOTLIN_PRS_DEMO`) takes a list of fixture directories, and its interactive view pretends a post or a
+  review request instead of refusing it. The README shows requesting a review in a recording.
+- A GitHub release's notes are its version's section of this changelog, with a link comparing it to the previous one.
 
 ## v0.5.2 — 2026-10-02
 
