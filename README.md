@@ -79,6 +79,9 @@ yet, or someone to re-request) open, the others collapsed with who approved or w
 every rule they own; `←`/`→` collapse and expand a rule; `enter` requests a review from everyone picked, in one request,
 even if some rules stay uncovered; `esc` cancels. A re-request starts with the people to re-request picked.
 
+![Requesting a review: the tree of a PR's code-owner rules with the unassigned ones open and a re-request picked, a
+person picked in the two rules they own, a rule collapsed and expanded, then the PR waiting on them](docs/images/request-review.gif)
+
 `gh kotlin-prs --pr 90006` opens it on that PR's details, and `--pr 90006 --post dry-run` also asks to post that
 command there, once the PR's state is fresh (`--post request-review` opens the review tree). A command asks `Post /dry-run to #90006 (…)? [y/N]` first; only `y` posts. The row then shows the run as requested
 until the next refresh shows what the bot made of it.
@@ -275,8 +278,12 @@ scripts/fetch-fixtures.sh <pr-number>                    # refresh testdata/raw,
 ```
 
 `GH_KOTLIN_PRS_DEMO=testdata/raw gh kotlin-prs list` (or `show <fixture number>`) serves the fixtures instead of
-GitHub, with the fixtures' clock and viewer: no login, no network. The README's recording comes from it:
-`scripts/screenshots.sh` plays `docs/demo.tape` with [VHS](https://github.com/charmbracelet/vhs).
+GitHub, with the fixtures' clock and viewer: no login, no network. It takes a list of directories like `$PATH`:
+`testdata/raw:testdata/demo` adds #90010, a PR of yours with code-owner rules nobody was asked for, derived from #90006
+by `go test ./internal/demo -run TestDemoFixture -update` (no real PR has that state for long). In demo mode the
+interactive view sends nothing: a command or a review request shows as sent ("demo: not sent: …") until the next
+refresh. The README's recordings come from it: `scripts/screenshots.sh` plays `docs/demo.tape` and
+`docs/request-review.tape` with [VHS](https://github.com/charmbracelet/vhs).
 
 `testdata/raw` holds GraphQL responses, `testdata/golden` the model JSON
 and table text they produce. `scripts/fetch-fixtures.sh` refetches every fixture and passes the batch through

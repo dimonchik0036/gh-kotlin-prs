@@ -138,16 +138,43 @@ func TestFailedPost(t *testing.T) {
 	}
 }
 
-func TestDemoNeverPosts(t *testing.T) {
+// Without a way to post (and not in demo mode), nothing asks.
+func TestNoPoster(t *testing.T) {
 	h := newHarness(t, func(_ *harness, opts *Options) { opts.Post = nil })
 	h.start()
 	h.keys("D")
-	if h.m.confirm != nil || !strings.Contains(h.statusBar(), "not posted: demo mode never posts") {
+	if h.m.confirm != nil || !strings.Contains(h.statusBar(), "not posted: nothing to post with") {
 		t.Errorf("status bar %q", h.statusBar())
 	}
 	h.keys("x")
-	if h.m.menu != nil || !strings.Contains(h.statusBar(), "demo mode never posts") {
+	if h.m.menu != nil || !strings.Contains(h.statusBar(), "nothing to post with") {
 		t.Errorf("menu: status bar %q", h.statusBar())
+	}
+}
+
+// Demo mode pretends a send: nothing is called, the note says so, and the PR shows the
+// command or the review as requested until the next refresh.
+func TestDemoPretends(t *testing.T) {
+	h := newHarness(t, func(h *harness, opts *Options) {
+		opts.Demo = true
+		opts.Post = func(context.Context, int, string) (string, error) { t.Error("demo mode posted"); return "", nil }
+		opts.RequestReview = func(context.Context, int, []string) error { t.Error("demo mode requested a review"); return nil }
+	})
+	h.start()
+	h.keys("D", "y")
+	if pr, _ := h.m.current(); pr.DryRun.State != model.RunRequested || !strings.Contains(h.statusBar(), "demo: not sent: posted /dry-run to #90006") {
+		t.Errorf("dry-run %+v, status bar %q", pr.DryRun, h.statusBar())
+	}
+	h.keys("A", "right", "down", "space", "enter")
+	pr, _ := h.m.current()
+	if !slices.ContainsFunc(pr.Reviewers, func(r model.Reviewer) bool { return r.Login == "bob_user" && r.Requested }) ||
+		!strings.Contains(h.statusBar(), "demo: not sent: requested a review of #90006 from bob_user") {
+		t.Errorf("reviewers %+v, status bar %q", pr.Reviewers, h.statusBar())
+	}
+	h.clock = h.clock.Add(refreshCooldown)
+	h.keys("r")
+	if pr, _ := h.m.current(); pr.DryRun.State != model.RunFailed || slices.ContainsFunc(pr.Reviewers, func(r model.Reviewer) bool { return r.Login == "bob_user" }) {
+		t.Errorf("after the refresh: %+v, %+v", pr.DryRun, pr.Reviewers)
 	}
 }
 

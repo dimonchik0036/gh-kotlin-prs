@@ -2,6 +2,7 @@ package tui
 
 import (
 	"errors"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -186,11 +187,11 @@ func TestRequestReviewRefusals(t *testing.T) {
 	if h.m.picker != nil || !strings.Contains(h.statusBar(), "not posted: #90001 isn't yours (by alice_user)") {
 		t.Errorf("someone else's PR: %q", h.statusBar())
 	}
-	demo := newHarness(t, func(_ *harness, opts *Options) { opts.RequestReview = nil })
-	demo.start()
-	demo.keys("A", "right", "down", "space", "enter")
-	if !strings.Contains(demo.statusBar(), "not posted: demo mode never posts") || len(demo.posted) != 0 {
-		t.Errorf("demo mode: %q", demo.statusBar())
+	none := newHarness(t, func(_ *harness, opts *Options) { opts.RequestReview = nil })
+	none.start()
+	none.keys("A", "right", "down", "space", "enter")
+	if !strings.Contains(none.statusBar(), "not posted: nothing to request reviews with") || len(none.posted) != 0 {
+		t.Errorf("no way to request: %q", none.statusBar())
 	}
 }
 
@@ -227,4 +228,39 @@ func TestCandidateName(t *testing.T) {
 			t.Errorf("%+v: %q, want %q", tt.c, got, tt.want)
 		}
 	}
+}
+
+// docs/request-review.tape's keys on the fixtures plus the derived #90010, in demo mode:
+// what the recording shows.
+func TestRequestReviewRecording(t *testing.T) {
+	h := newHarnessOn(t, "../../testdata/raw"+string(filepath.ListSeparator)+"../../testdata/demo", func(_ *harness, opts *Options) {
+		opts.Demo, opts.Post, opts.RequestReview = true, nil, nil
+	})
+	h.start()
+	if pr, _ := h.m.current(); pr.Number != 90010 || pr.Primary() != "re-request review from dave_user" {
+		t.Fatalf("the first row is #%d: %q", pr.Number, pr.Primary())
+	}
+	h.keys("A")
+	h.contains("▾ /analysis/                           → dave_user", "    [x] dave_user          commented", "▸ /compiler/fir/ +3", "✓ trent_user",
+		"▾ /compiler/testData/codegen/asmLike/  unassigned", "▾ /core/descriptors.runtime/           unassigned",
+		"2 of 4 subsystems covered ∙ will request: dave_user")
+	for range 7 {
+		h.keys("down")
+	}
+	h.keys("space")
+	h.contains("→ judy_user", "    [x] judy_user", "4 of 4 subsystems covered ∙ will request: dave_user, judy_user")
+	if strings.Count(h.screen(), "→ judy_user") != 2 {
+		t.Errorf("judy_user isn't picked in both rows:\n%s", h.screen())
+	}
+	h.keys("left")
+	h.lacks("    [ ] laura_user")
+	h.keys("right")
+	h.contains("    [ ] laura_user")
+	h.keys("enter")
+	h.contains("demo: not sent: requested a review of #90010 from dave_user, judy_user")
+	if pr, _ := h.m.current(); pr.Primary() != "waiting: dave_user, judy_user" {
+		t.Errorf("after the request: %q", pr.Texts())
+	}
+	h.keys("enter")
+	h.contains("#90010 KT-990011: Example change")
 }

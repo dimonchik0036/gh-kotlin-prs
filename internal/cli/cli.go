@@ -79,7 +79,8 @@ const configEnv = "GH_KOTLIN_PRS_CONFIG"
 // be missing.
 const defaultLocation = "default location"
 
-// demoEnv names a directory of fixtures to serve instead of GitHub (see internal/demo).
+// demoEnv names the directories of fixtures to serve instead of GitHub, a list like
+// $PATH (see internal/demo).
 const demoEnv = "GH_KOTLIN_PRS_DEMO"
 
 // Execute runs the CLI and returns the process exit code. version is what --version prints.

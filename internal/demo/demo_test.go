@@ -2,6 +2,8 @@ package demo
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +23,9 @@ func TestLoad(t *testing.T) {
 	}
 	if _, err := Load(t.TempDir()); err == nil {
 		t.Error("an empty directory loads")
+	}
+	if _, err := Load("../../testdata/raw" + string(filepath.ListSeparator) + "../../testdata/raw"); err == nil || !strings.Contains(err.Error(), "in another fixture too") {
+		t.Errorf("the same PR twice: %v", err)
 	}
 }
 

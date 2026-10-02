@@ -68,6 +68,7 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions, 
 		github.ForgetPR(client, cfg.Owner(), cfg.Name(), number)
 		return nil
 	}
+	// Demo mode sends nothing: the TUI only shows what a send would.
 	if e.demo {
 		post, requestReview = nil, nil
 	}
@@ -87,6 +88,7 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions, 
 		Open:          browser.New("", io.Discard, io.Discard).Browse,
 		Post:          post,
 		RequestReview: requestReview,
+		Demo:          e.demo,
 		Copy:          clipboard.WriteAll,
 		Notifier:      notify.New(cfg.Notify, os.Environ(), nil),
 		Start:         start.number,

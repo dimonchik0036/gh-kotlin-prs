@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Demo mode (`GH_KOTLIN_PRS_DEMO`) takes a list of fixture directories, and its interactive view pretends a post or a
+  review request instead of refusing it. The README shows requesting a review in a recording.
 - A GitHub release's notes are its version's section of this changelog, with a link comparing it to the previous one.
 - `Y` (config `copyBranch`) copies the selected PR's branch name in the interactive view, and the menu-bar plugin's
   PR submenu has "Copy branch" after "Copy link".

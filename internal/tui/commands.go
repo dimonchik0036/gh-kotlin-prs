@@ -58,8 +58,8 @@ func (m *Model) refusal(c actions.Command, pr model.PR) error {
 	if err := actions.Check(c, pr, m.data.Viewer); err != nil {
 		return err
 	}
-	if m.opts.Post == nil {
-		return fmt.Errorf("%w: demo mode never posts", actions.ErrNotPosted)
+	if m.opts.Post == nil && !m.opts.Demo {
+		return fmt.Errorf("%w: nothing to post with", actions.ErrNotPosted)
 	}
 	for _, p := range m.posts[pr.Number] {
 		if p.cmd == c {
@@ -138,6 +138,9 @@ func (m *Model) onConfirmKey(key string) tea.Cmd {
 		m.setNote("not posted")
 		return nil
 	}
+	if m.opts.Demo {
+		return func() tea.Msg { return postedMsg{number: c.pr.Number, cmd: c.cmd, at: m.opts.Now()} }
+	}
 	post, ctx := m.opts.Post, m.ctx
 	return func() tea.Msg {
 		url, err := post(ctx, c.pr.Number, c.cmd.Text)
@@ -152,10 +155,18 @@ func (m *Model) onPosted(msg postedMsg) {
 		return
 	}
 	m.posts[msg.number] = append(m.posts[msg.number], post{cmd: msg.cmd, url: msg.url, at: msg.at})
-	m.setNote(fmt.Sprintf("posted %s to #%d", msg.cmd.Text, msg.number))
+	m.setNote(m.demoNote() + fmt.Sprintf("posted %s to #%d", msg.cmd.Text, msg.number))
 	if m.data != nil {
 		m.reclassify()
 	}
+}
+
+// demoNote starts the note of a pretended send.
+func (m *Model) demoNote() string {
+	if m.opts.Demo {
+		return "demo: not sent: "
+	}
+	return ""
 }
 
 // postedSince is the PRs posted on at or after t.

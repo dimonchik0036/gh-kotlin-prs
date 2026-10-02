@@ -47,11 +47,14 @@ type Options struct {
 	// Open opens a URL in the browser.
 	Open func(url string) error
 	// Post posts a command's text as a comment on the PR and returns the comment's URL;
-	// nil never posts (demo mode).
+	// nil never posts.
 	Post func(ctx context.Context, number int, text string) (url string, err error)
 	// RequestReview requests a review of the PR from the logins, in one request; nil
-	// never does (demo mode).
+	// never does.
 	RequestReview func(ctx context.Context, number int, logins []string) error
+	// Demo pretends posts and review requests: nothing is sent (Post and RequestReview
+	// aren't called), and the PR shows them as a real send would until the next refresh.
+	Demo bool
 	// Copy puts text on the system clipboard. When it fails, or is nil, the text goes
 	// through the terminal (OSC 52) instead.
 	Copy func(text string) error

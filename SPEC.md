@@ -383,7 +383,8 @@ gh kotlin-prs open <number>        # browser
 - After a post, from `run` or the TUI, the PR's cached details are dropped (`github.ForgetPR`: its own entry and
   every details batch holding it), so the next fetch of it, the menu-bar plugin's next run say, is live and shows
   what the bot made of it. A refusal, a declined question or a failed post keeps them.
-- Demo mode never posts.
+- Demo mode never posts: `run` refuses, and the TUI pretends a post or a review request (nothing is called; the
+  note starts with "demo: not sent:"), showing it as a real send would until the next refresh, for the recordings.
 
 **Review requests** (`request-review`, `internal/actions`), for a re-request after a round of review and for the first
 assignment of a rule nobody was asked for (§5, 2a and 2c):

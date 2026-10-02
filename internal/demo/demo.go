@@ -28,14 +28,22 @@ type Client struct {
 	now time.Time
 }
 
-// Load reads every pr-*.json in dir.
-func Load(dir string) (*Client, error) {
-	files, err := filepath.Glob(filepath.Join(dir, "pr-*.json"))
-	if err != nil {
-		return nil, err
+// Load reads every pr-*.json in dirs, a list of directories like $PATH
+// ("testdata/raw:testdata/demo"). A PR number in two of them is an error.
+func Load(dirs string) (*Client, error) {
+	var files []string
+	for _, dir := range filepath.SplitList(dirs) {
+		found, err := filepath.Glob(filepath.Join(dir, "pr-*.json"))
+		if err != nil {
+			return nil, err
+		}
+		if len(found) == 0 {
+			return nil, fmt.Errorf("demo: no pr-*.json fixtures in %s", dir)
+		}
+		files = append(files, found...)
 	}
 	if len(files) == 0 {
-		return nil, fmt.Errorf("demo: no pr-*.json fixtures in %s", dir)
+		return nil, fmt.Errorf("demo: no fixtures in %q", dirs)
 	}
 	c := &Client{prs: map[int]json.RawMessage{}, raw: map[int]*github.PullRequest{}}
 	var newest time.Time
@@ -58,6 +66,9 @@ func Load(dir string) (*Client, error) {
 		var pr github.PullRequest
 		if err := json.Unmarshal(envelope.Data.Repository.PullRequest, &pr); err != nil {
 			return nil, fmt.Errorf("demo: %s: %w", f, err)
+		}
+		if _, dup := c.prs[pr.Number]; dup {
+			return nil, fmt.Errorf("demo: %s: #%d is in another fixture too", f, pr.Number)
 		}
 		c.viewer = envelope.Data.Viewer.Login
 		c.prs[pr.Number] = envelope.Data.Repository.PullRequest

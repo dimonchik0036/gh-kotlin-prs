@@ -136,8 +136,8 @@ func (m *Model) reviewRefusal(pr model.PR, logins []string) error {
 	if err := actions.CheckReviewRequest(pr, m.data.Viewer, logins); err != nil {
 		return err
 	}
-	if m.opts.RequestReview == nil {
-		return fmt.Errorf("%w: demo mode never posts", actions.ErrNotPosted)
+	if m.opts.RequestReview == nil && !m.opts.Demo {
+		return fmt.Errorf("%w: nothing to request reviews with", actions.ErrNotPosted)
 	}
 	if slices.ContainsFunc(m.posts[pr.Number], func(p post) bool { return p.reviewers != nil }) {
 		return fmt.Errorf("%w: a review of #%d was just requested; the next refresh shows it", actions.ErrNotPosted, pr.Number)
@@ -166,6 +166,9 @@ func (m *Model) onPickerKey(key string) tea.Cmd {
 		}
 		m.picker = nil
 		request, ctx, number, logins := m.opts.RequestReview, m.ctx, p.pr.Number, slices.Clone(p.picked)
+		if m.opts.Demo {
+			return func() tea.Msg { return reviewRequestedMsg{number: number, logins: logins, at: m.opts.Now()} }
+		}
 		return func() tea.Msg {
 			err := request(ctx, number, logins)
 			return reviewRequestedMsg{number: number, logins: logins, at: m.opts.Now(), err: err}
@@ -196,7 +199,7 @@ func (m *Model) onReviewRequested(msg reviewRequestedMsg) {
 		return
 	}
 	m.posts[msg.number] = append(m.posts[msg.number], post{reviewers: msg.logins, at: msg.at})
-	m.setNote(fmt.Sprintf("requested a review of #%d from %s", msg.number, who))
+	m.setNote(m.demoNote() + fmt.Sprintf("requested a review of #%d from %s", msg.number, who))
 	if m.data != nil {
 		m.reclassify()
 	}

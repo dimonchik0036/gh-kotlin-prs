@@ -144,7 +144,7 @@ func TestPseudonymsWrapAround(t *testing.T) {
 // Every committed fixture went through the anonymizer: logins are pseudonyms, the
 // viewer or bots, and human text is filler or a bare command.
 func TestCommittedFixturesAreAnonymized(t *testing.T) {
-	files, err := filepath.Glob("../../testdata/raw/*.json")
+	files, err := committedFixtures()
 	if err != nil || len(files) == 0 {
 		t.Fatalf("no fixtures: %v", err)
 	}
@@ -181,9 +181,19 @@ func TestCommittedFixturesAreAnonymized(t *testing.T) {
 	}
 }
 
+// committedFixtures are the fetched fixtures and the derived demo one (testdata/demo).
+func committedFixtures() ([]string, error) {
+	raw, err := filepath.Glob("../../testdata/raw/*.json")
+	if err != nil {
+		return nil, err
+	}
+	derived, err := filepath.Glob("../../testdata/demo/*.json")
+	return append(raw, derived...), err
+}
+
 // Every committed fixture has fake PR and issue numbers (see remap.go), for every project.
 func TestCommittedFixturesHaveFakeNumbers(t *testing.T) {
-	files, err := filepath.Glob("../../testdata/raw/*.json")
+	files, err := committedFixtures()
 	if err != nil || len(files) == 0 {
 		t.Fatalf("no fixtures: %v", err)
 	}

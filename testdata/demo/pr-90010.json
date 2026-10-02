@@ -1,0 +1,284 @@
+{
+  "data": {
+    "rateLimit": {
+      "cost": 1,
+      "remaining": 4217,
+      "resetAt": "2026-10-01T15:36:05Z"
+    },
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "__typename": "User",
+          "login": "dimonchik0036"
+        },
+        "comments": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "Bot",
+                "login": "kotlin-safemerge"
+              },
+              "authorAssociation": "NONE",
+              "body": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​analysis/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-analysis-api\">kotlin-analysis-api</a></summary><ul><li><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></li><li><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a></li><li><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li><li><a href=\"https://github.com/erin_user\"><b><code>erin_user</code></b></a></li></ul></details></td><td align=\"center\">🔄<br><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></td></tr><tr><td><code>/​compiler/​fir/​</code>, <code>/​compiler/​frontend.​common.​jvm/​</code>, <code>/​core/​descriptors.​jvm/​</code>, <code>/​core/​deserialization.​common.​jvm/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a> (QA)</li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​compiler/​testData/​codegen/​asmLike/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a> ⏳</li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a> (QA)</li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li></ul></details></td><td align=\"center\">❌<br><b><code>UNASSIGNED</code></b></td></tr><tr><td><code>/​core/​descriptors.​runtime/​</code></td><td><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a>, <a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a>, <a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a> ⏳</td><td align=\"center\">❌<br><b><code>UNASSIGNED</code></b></td></tr></table>\n\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+              "createdAt": "2026-09-30T12:42:36Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T08:07:46Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#issuecomment-1487656468"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "authorAssociation": "MEMBER",
+              "body": "Comment text.",
+              "createdAt": "2026-10-01T08:07:22Z",
+              "isMinimized": false,
+              "reactions": {
+                "nodes": []
+              },
+              "updatedAt": "2026-10-01T08:07:22Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#issuecomment-1763978352"
+            }
+          ]
+        },
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "committedDate": "2026-10-01T06:35:23Z",
+                "statusCheckRollup": {
+                  "contexts": {
+                    "nodes": [
+                      {
+                        "__typename": "CheckRun",
+                        "conclusion": "FAILURE",
+                        "detailsUrl": "https://kotlinlang.org/",
+                        "name": "Code Owners Approval",
+                        "status": "COMPLETED",
+                        "summary": "### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/​analysis/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-analysis-api\">kotlin-analysis-api</a></summary><ul><li><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></li><li><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a></li><li><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li><li><a href=\"https://github.com/erin_user\"><b><code>erin_user</code></b></a></li></ul></details></td><td align=\"center\">🔄<br><a href=\"https://github.com/dave_user\"><b><code>dave_user</code></b></a></td></tr><tr><td><code>/​compiler/​fir/​</code>, <code>/​compiler/​frontend.​common.​jvm/​</code>, <code>/​core/​descriptors.​jvm/​</code>, <code>/​core/​deserialization.​common.​jvm/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-frontend\">kotlin-frontend</a></summary><ul><li><a href=\"https://github.com/quinn_user\"><b><code>quinn_user</code></b></a></li><li><a href=\"https://github.com/rupert_user\"><b><code>rupert_user</code></b></a></li><li><a href=\"https://github.com/sybil_user\"><b><code>sybil_user</code></b></a></li><li><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a></li><li><a href=\"https://github.com/ursula_user\"><b><code>ursula_user</code></b></a> (QA)</li><li><a href=\"https://github.com/victor_user\"><b><code>victor_user</code></b></a> ⏳</li></ul></details></td><td align=\"center\">✅<br><a href=\"https://github.com/trent_user\"><b><code>trent_user</code></b></a> 🔒</td></tr><tr><td><code>/​compiler/​testData/​codegen/​asmLike/​</code></td><td><details><summary><a href=\"https://github.com/orgs/JetBrains/teams/kotlin-jvm\">kotlin-jvm</a></summary><ul><li><a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a></li><li><a href=\"https://github.com/kevin_user\"><b><code>kevin_user</code></b></a> ⏳</li><li><a href=\"https://github.com/laura_user\"><b><code>laura_user</code></b></a></li><li><a href=\"https://github.com/mallory_user\"><b><code>mallory_user</code></b></a> (QA)</li><li><a href=\"https://github.com/dimonchik0036\"><b><code>dimonchik0036</code></b></a></li></ul></details></td><td align=\"center\">❌<br><b><code>UNASSIGNED</code></b></td></tr><tr><td><code>/​core/​descriptors.​runtime/​</code></td><td><a href=\"https://github.com/niaj_user\"><b><code>niaj_user</code></b></a>, <a href=\"https://github.com/judy_user\"><b><code>judy_user</code></b></a>, <a href=\"https://github.com/olivia_user\"><b><code>olivia_user</code></b></a> ⏳</td><td align=\"center\">❌<br><b><code>UNASSIGNED</code></b></td></tr></table>\n\n<!-- CODE_OWNERS_REVIEW_COMMENT -->",
+                        "title": "Waiting for code owner approvals"
+                      },
+                      {
+                        "__typename": "StatusContext",
+                        "context": "Safe-Merge Coordinator (Kotlin Dev)",
+                        "state": "FAILURE",
+                        "targetUrl": "https://buildserver.labs.intellij.net/buildConfiguration/Kotlin_KotlinDev_SafeMergeCoordinator/1076979644"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "createdAt": "2026-09-30T12:42:28Z",
+        "headRefName": "topic/KT-990011-example",
+        "headRefOid": "21deb095afd4d804b0c7a09c0c759566d789ccf8",
+        "history": {
+          "nodes": [
+            {
+              "commit": {
+                "message": "Commit message.\n\n^KT-990004\n^KT-990010"
+              }
+            },
+            {
+              "commit": {
+                "message": "Commit message.\n\n^KT-990004 Fixed"
+              }
+            },
+            {
+              "commit": {
+                "message": "Commit message."
+              }
+            }
+          ]
+        },
+        "isDraft": false,
+        "latestOpinionatedReviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T08:07:42Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#pullrequestreview-1125076306"
+            }
+          ]
+        },
+        "mergedAt": null,
+        "number": 90010,
+        "reviewRequests": {
+          "nodes": []
+        },
+        "reviewThreads": {
+          "nodes": [
+            {
+              "comments": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "trent_user"
+                    },
+                    "createdAt": "2026-09-30T16:38:49Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90010#discussion_r1973945985"
+                  },
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "dimonchik0036"
+                    },
+                    "createdAt": "2026-09-30T16:56:03Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90010#discussion_r1517682660"
+                  },
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "trent_user"
+                    },
+                    "createdAt": "2026-10-01T06:37:33Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90010#discussion_r1799812591"
+                  }
+                ],
+                "totalCount": 3
+              },
+              "firstComment": {
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "login": "trent_user"
+                    },
+                    "body": "Review comment text.",
+                    "createdAt": "2026-09-30T16:38:49Z",
+                    "url": "https://github.com/JetBrains/kotlin/pull/90010#discussion_r1973945985"
+                  }
+                ]
+              },
+              "isOutdated": true,
+              "isResolved": false,
+              "path": "src/f3c374d77.kt"
+            }
+          ]
+        },
+        "reviews": {
+          "nodes": [
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "comments": {
+                "totalCount": 1
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-09-30T16:38:48Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#pullrequestreview-1908502955"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dimonchik0036"
+              },
+              "comments": {
+                "totalCount": 1
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-09-30T16:56:04Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#pullrequestreview-1267689947"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "comments": {
+                "totalCount": 1
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-10-01T06:37:33Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#pullrequestreview-1523778453"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "trent_user"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "APPROVED",
+              "submittedAt": "2026-10-01T08:07:42Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#pullrequestreview-1125076306"
+            },
+            {
+              "author": {
+                "__typename": "User",
+                "login": "dave_user"
+              },
+              "comments": {
+                "totalCount": 0
+              },
+              "state": "COMMENTED",
+              "submittedAt": "2026-10-01T07:12:05Z",
+              "url": "https://github.com/JetBrains/kotlin/pull/90010#pullrequestreview-1125000001"
+            }
+          ]
+        },
+        "state": "OPEN",
+        "timelineItems": {
+          "nodes": [
+            {
+              "__typename": "PullRequestCommit",
+              "commit": {
+                "committedDate": "2026-09-30T12:42:15Z"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-30T15:41:13Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "trent_user"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-30T15:41:13Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "erin_user"
+              }
+            },
+            {
+              "__typename": "ReviewRequestedEvent",
+              "createdAt": "2026-09-30T19:24:55Z",
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "trent_user"
+              }
+            },
+            {
+              "__typename": "PullRequestCommit",
+              "commit": {
+                "committedDate": "2026-10-01T06:35:23Z"
+              }
+            }
+          ]
+        },
+        "title": "KT-990011: Example change",
+        "updatedAt": "2026-10-01T08:07:46Z",
+        "url": "https://github.com/JetBrains/kotlin/pull/90010"
+      }
+    },
+    "viewer": {
+      "login": "dimonchik0036"
+    }
+  }
+}

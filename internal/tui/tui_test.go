@@ -47,7 +47,13 @@ type harness struct {
 
 func newHarness(t *testing.T, configure func(h *harness, opts *Options)) *harness {
 	t.Helper()
-	fixtures, err := demo.Load("../../testdata/raw")
+	return newHarnessOn(t, "../../testdata/raw", configure)
+}
+
+// newHarnessOn is newHarness on the fixtures of dirs (demo.Load).
+func newHarnessOn(t *testing.T, dirs string, configure func(h *harness, opts *Options)) *harness {
+	t.Helper()
+	fixtures, err := demo.Load(dirs)
 	if err != nil {
 		t.Fatal(err)
 	}

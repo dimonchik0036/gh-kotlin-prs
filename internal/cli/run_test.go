@@ -151,9 +151,11 @@ func TestTUIPosts(t *testing.T) {
 		rest.posts[1] != `POST repos/JetBrains/kotlin/pulls/90006/requested_reviewers {"reviewers":["bob_user"]}` {
 		t.Errorf("review request: %v, %q", err, rest.posts)
 	}
+	// Demo mode gets nothing that sends: the TUI only pretends.
 	e.demo = true
-	if got := run(context.Background(), nil, e); got != exitOK || opts.Post != nil || opts.RequestReview != nil {
-		t.Errorf("demo mode: exit %d, post %v, review %v", got, opts.Post != nil, opts.RequestReview != nil)
+	posts := len(rest.posts)
+	if got := run(context.Background(), nil, e); got != exitOK || opts.Post != nil || opts.RequestReview != nil || !opts.Demo || len(rest.posts) != posts {
+		t.Errorf("demo mode: exit %d, post %v, review %v, demo %v, posts %q", got, opts.Post != nil, opts.RequestReview != nil, opts.Demo, rest.posts)
 	}
 }
 

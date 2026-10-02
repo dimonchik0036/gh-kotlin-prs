@@ -26,9 +26,13 @@ in that order, then review the diff.
 
 ## Fixtures
 
-Only through `scripts/fetch-fixtures.sh`, which anonymizes everything it writes. Never commit raw GraphQL responses,
+Only through `scripts/fetch-fixtures.sh`, which anonymizes everything it writes. The one exception is the derived demo
+fixture `testdata/demo/pr-90010.json`: #90006 with another code-owners table (two rows nobody was asked for, a `🔄`
+re-request), for the request-review recording. `TestDemoFixture` derives it from `testdata/raw`;
+`go test ./internal/demo -run TestDemoFixture -update` regenerates it after a refetch. It's not in `testdata/raw`, so
+no golden sees it; demo mode loads it with `GH_KOTLIN_PRS_DEMO=testdata/raw:testdata/demo`. Never commit raw GraphQL responses,
 real logins (other than the repo owner's and the bots'), PR titles or human comment text.
-`TestCommittedFixturesAreAnonymized` guards this.
+`TestCommittedFixturesAreAnonymized` guards this, for both directories.
 PR and KT numbers, commit SHAs and thread paths are fake as well. The real → fake map is
 `testdata/.fixture-map.json`, local and gitignored: never commit it, and never write real numbers into tests or docs,
 nor in commit messages (no real PR or issue to cite a test case by: describe its shape instead).
