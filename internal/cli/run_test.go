@@ -267,3 +267,46 @@ func TestRunRequestReviewFails(t *testing.T) {
 		t.Errorf("exit %d, stdout %q, stderr %q", got, out.String(), errOut.String())
 	}
 }
+
+// A posted command drops the PR's cached details, so the next run (the plugin's) fetches
+// what the bot made of it; a refusal or a declined question keeps them.
+func TestRunForgetsThePR(t *testing.T) {
+	cached := func(e env) bool {
+		entries, _ := filepath.Glob(filepath.Join(e.cacheDir, "PullRequest-*"))
+		return len(entries) > 0
+	}
+	for _, tt := range []struct {
+		name   string
+		args   []string
+		answer string
+		kept   bool
+	}{
+		{"posted", []string{"run", "90006", "dry-run-retry"}, "y\n", false},
+		{"declined", []string{"run", "90006", "dry-run-retry"}, "n\n", true},
+		{"refused", []string{"run", "90006", "safe-merge"}, "y\n", true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			e, _, _, _ := runEnv(t, true, tt.answer)
+			run(context.Background(), tt.args, e)
+			if cached(e) != tt.kept {
+				t.Errorf("the PR's cache entry is there: %v, want %v", cached(e), tt.kept)
+			}
+		})
+	}
+	// The TUI's post does the same.
+	e, rest, _, errOut := runEnv(t, true, "")
+	var opts tui.Options
+	e.runTUI = func(_ context.Context, o tui.Options) error { opts = o; return nil }
+	if got := run(context.Background(), []string{"show", "90006"}, e); got != exitOK || !cached(e) {
+		t.Fatalf("show: exit %d, stderr %q, cached %v", got, errOut.String(), cached(e))
+	}
+	run(context.Background(), nil, e)
+	rest.err = errors.New("HTTP 502")
+	if _, err := opts.Post(context.Background(), 90006, "/fixup"); err == nil || !cached(e) {
+		t.Errorf("a failed post: %v, cached %v", err, cached(e))
+	}
+	rest.err = nil
+	if _, err := opts.Post(context.Background(), 90006, "/fixup"); err != nil || cached(e) {
+		t.Errorf("a post: %v, cached %v", err, cached(e))
+	}
+}

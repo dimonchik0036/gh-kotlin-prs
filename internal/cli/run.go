@@ -65,12 +65,14 @@ func newRunCommand(e env, global *globalOptions) *cobra.Command {
 	return cmd
 }
 
-// runCommand fetches the PR, checks that the command may be posted, shows it, asks, and posts.
+// runCommand fetches the PR, checks that the command may be posted, shows it, asks, and
+// posts. The PR's cached details are dropped after a post, so the next run (the
+// menu-bar plugin's, say) fetches what the bot made of it.
 func runCommand(ctx context.Context, e env, global globalOptions, number int, c actions.Command, yes bool) error {
 	if !yes && !e.interactive() {
 		return usageError{fmt.Errorf("%w: no terminal to ask on; pass --yes to post %s", actions.ErrNotPosted, c.Text)}
 	}
-	cfg, _, pr, viewer, err := fetchLive(ctx, e, global, number)
+	cfg, client, pr, viewer, err := fetchLive(ctx, e, global, number)
 	if err != nil {
 		return err
 	}
@@ -89,6 +91,7 @@ func runCommand(ctx context.Context, e env, global globalOptions, number int, c 
 	if err != nil {
 		return err
 	}
+	github.ForgetPR(client, cfg.Owner(), cfg.Name(), number)
 	writef(e.stdout, "posted %s\n", url)
 	return nil
 }

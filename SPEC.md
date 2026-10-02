@@ -346,6 +346,9 @@ gh kotlin-prs open <number>        # browser
 - TUI: the keys and the menu of §7. A posted dry-run or safe-merge shows as requested straight away, until a refresh
   that started after the post shows what GitHub has; until then the same command isn't posted again on that PR. A
   failed post shows in the status bar. A PR becoming my move right after my own post isn't notified (§14).
+- After a post, from `run` or the TUI, the PR's cached details are dropped (`github.ForgetPR`: its own entry and
+  every details batch holding it), so the next fetch of it, the menu-bar plugin's next run say, is live and shows
+  what the bot made of it. A refusal, a declined question or a failed post keeps them.
 - Demo mode never posts.
 
 **Review requests** (`request-review`, `internal/actions`), for a re-request after a round of review and for the first

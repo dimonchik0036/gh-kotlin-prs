@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A command posted from `run` or the interactive view drops the PR's cached details, so the menu-bar plugin's next
+  run fetches what the bot made of it.
 - `gh kotlin-prs run <number> request-review [login...]` requests a review of a PR of yours from its code owners, in
   one request: the logins given, or by default the ones to re-request (they commented and weren't re-requested, or
   requested changes before your last push). Only people of the bot's code-owners table, never a team; without logins

@@ -45,12 +45,17 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions, 
 	if e.cacheDir != "" && cfg.StartupMaxAge > 0 {
 		initial, _ = listing.Cached(ctx, client, cfg, e.now(), sections, time.Duration(cfg.StartupMaxAge))
 	}
+	// After a post, the PR's cached details go: the next fetch of it, the plugin's say, is live.
 	post := func(ctx context.Context, number int, text string) (string, error) {
 		rest, err := e.newREST()
 		if err != nil {
 			return "", err
 		}
-		return github.PostComment(ctx, rest, cfg.Repo, number, text)
+		url, err := github.PostComment(ctx, rest, cfg.Repo, number, text)
+		if err == nil {
+			github.ForgetPR(client, cfg.Owner(), cfg.Name(), number)
+		}
+		return url, err
 	}
 	if e.demo {
 		post = nil
