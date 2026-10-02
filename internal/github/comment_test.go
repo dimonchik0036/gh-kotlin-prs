@@ -67,3 +67,46 @@ func TestPostCommentError(t *testing.T) {
 		t.Errorf("error %v", err)
 	}
 }
+
+// RequestReviewers asks for every login in one request, and never for a team.
+func TestRequestReviewers(t *testing.T) {
+	var method, path string
+	var body map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		method, path = r.Method, r.URL.Path
+		data, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(data, &body)
+		w.WriteHeader(http.StatusCreated)
+		_, _ = io.WriteString(w, `{"number": 90010, "html_url": "https://github.com/JetBrains/kotlin/pull/90010"}`)
+	}))
+	defer server.Close()
+	u, _ := url.Parse(server.URL)
+	client, err := api.NewRESTClient(api.ClientOptions{Host: "github.com", AuthToken: "test-token", Transport: toServer{u}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := RequestReviewers(context.Background(), client, "JetBrains/kotlin", 90010, []string{"bob_user", "carol_user"}); err != nil {
+		t.Fatal(err)
+	}
+	if method != http.MethodPost || path != "/repos/JetBrains/kotlin/pulls/90010/requested_reviewers" {
+		t.Errorf("%s %s", method, path)
+	}
+	if got, _ := json.Marshal(body); string(got) != `{"reviewers":["bob_user","carol_user"]}` {
+		t.Errorf("body %s", got)
+	}
+}
+
+// A 422 requests nobody: the error names the PR and the people.
+func TestRequestReviewersError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = io.WriteString(w, `{"message": "Reviews may only be requested from collaborators."}`)
+	}))
+	defer server.Close()
+	u, _ := url.Parse(server.URL)
+	client, _ := api.NewRESTClient(api.ClientOptions{Host: "github.com", AuthToken: "test-token", Transport: toServer{u}})
+	err := RequestReviewers(context.Background(), client, "JetBrains/kotlin", 7, []string{"bob_user"})
+	if err == nil || !strings.Contains(err.Error(), "request a review of #7 from bob_user") || !strings.Contains(err.Error(), "422") {
+		t.Errorf("error %v", err)
+	}
+}

@@ -47,8 +47,8 @@ type env struct {
 	// newClient is called only once flags and config are valid, so usage errors never
 	// depend on gh's authentication. account identifies its credentials for the cache.
 	newClient func() (client github.Client, account string, err error)
-	// newREST is the client that posts PR commands, the tool's only write; it's called
-	// only once a command passed its checks.
+	// newREST is the client of the tool's only writes, PR commands and review requests;
+	// it's called only once they passed their checks.
 	newREST func() (github.RESTClient, error)
 	// demo serves fixtures (GH_KOTLIN_PRS_DEMO): nothing is ever posted.
 	demo bool
@@ -133,7 +133,7 @@ func withDemo(e env, fixtures *demo.Client) env {
 
 // client is the GitHub client behind the cache: responses younger than maxAge come from
 // it, and every fetch updates it. --debug prints each query's cost or cache use.
-func (e env) client(global globalOptions, maxAge time.Duration) (github.Client, error) {
+func (e env) client(global globalOptions, maxAge time.Duration) (*cache.Client, error) {
 	next, account, err := e.newClient()
 	if err != nil {
 		return nil, err

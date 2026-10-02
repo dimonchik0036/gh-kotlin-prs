@@ -46,8 +46,18 @@ gh kotlin-prs run 90006 safe-merge --yes
 It refuses what the bot would refuse or what makes no sense now: someone else's PR, a closed one, a second
 dry-run or safe-merge while one is requested or running, a safe-merge on a draft or before approval,
 `cancel-coordinator` with nothing running, `codeowners` while its check is green. Without a terminal it needs
-`--yes`. The interactive view posts the same commands (below). Posting them is the only thing the tool ever writes to
-GitHub.
+`--yes`. The interactive view posts the same commands (below).
+
+`run <number> request-review` requests a review from code owners, only people of the bot's code-owners table, never a
+team, in one request:
+
+```sh
+gh kotlin-prs run 90006 request-review                      # the ones to re-request
+gh kotlin-prs run 90006 request-review bob_user carol_user  # anyone of the table
+```
+
+Without logins it asks the ones to re-request; when there are none, as on a first assignment, it lists the code owners
+per rule to pick from. Posting commands and requesting reviews are the only things the tool ever writes to GitHub.
 
 ### Interactive view
 

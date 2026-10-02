@@ -27,6 +27,8 @@ type fakeClient struct {
 	queries []string
 	// teamRequest adds a request to this team to every fetched PR not authored by the viewer.
 	teamRequest string
+	// edit changes a PR of the fixtures as it's fetched alone (FetchPR).
+	edit func(number int, pr map[string]any)
 }
 
 const searchResponse = `{
@@ -61,6 +63,14 @@ func (f *fakeClient) DoWithContext(_ context.Context, query string, vars map[str
 		}
 		if err := json.Unmarshal(data, &envelope); err != nil {
 			return err
+		}
+		if f.edit != nil {
+			var doc map[string]any
+			if err := json.Unmarshal(envelope.Data, &doc); err != nil {
+				return err
+			}
+			f.edit(n, doc["repository"].(map[string]any)["pullRequest"].(map[string]any))
+			envelope.Data, _ = json.Marshal(doc)
 		}
 		return json.Unmarshal(envelope.Data, resp)
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -23,6 +24,9 @@ func (f *fakeREST) DoWithContext(_ context.Context, method, path string, body io
 	f.posts = append(f.posts, method+" "+path+" "+string(data))
 	if f.err != nil {
 		return f.err
+	}
+	if resp == nil {
+		return nil
 	}
 	return json.Unmarshal([]byte(`{"html_url": "https://github.com/JetBrains/kotlin/pull/90006#issuecomment-42"}`), resp)
 }
@@ -121,9 +125,13 @@ func TestRunInDemoMode(t *testing.T) {
 	t.Setenv(configEnv, "")
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // no config file there
 	var out, errOut strings.Builder
-	if got := Execute(context.Background(), []string{"run", "90006", "dry-run", "--yes"}, &out, &errOut, "test"); got != exitError ||
-		!strings.Contains(errOut.String(), "not posted: demo mode never posts") {
-		t.Errorf("exit %d, stderr %q", got, errOut.String())
+	for _, args := range [][]string{{"run", "90006", "dry-run", "--yes"}, {"run", "90006", "request-review", "bob_user", "--yes"}} {
+		out.Reset()
+		errOut.Reset()
+		if got := Execute(context.Background(), args, &out, &errOut, "test"); got != exitError ||
+			!strings.Contains(errOut.String(), "not posted: demo mode never posts") {
+			t.Errorf("%q: exit %d, stderr %q", args, got, errOut.String())
+		}
 	}
 }
 
@@ -168,5 +176,94 @@ func TestStartFlags(t *testing.T) {
 		if got := run(context.Background(), tt.args, e); got != exitUsage || !strings.Contains(errOut.String(), tt.stderr) {
 			t.Errorf("%q: exit %d, stderr %q", tt.args, got, errOut.String())
 		}
+	}
+}
+
+// request-review asks the code owners named, or by default the ones to re-request, in
+// one request, and drops the PR's cached details.
+func TestRunRequestReview(t *testing.T) {
+	// dave_user, an owner of /analysis/, requested changes before the last push.
+	changesRequested := func(_ int, pr map[string]any) {
+		review := map[string]any{"author": map[string]any{"__typename": "User", "login": "dave_user"}, "state": "CHANGES_REQUESTED",
+			"submittedAt": "2026-09-30T20:00:00Z", "url": "https://github.com/JetBrains/kotlin/pull/90006#pullrequestreview-1"}
+		for _, key := range []string{"latestOpinionatedReviews", "reviews"} {
+			nodes := pr[key].(map[string]any)
+			nodes["nodes"] = append(nodes["nodes"].([]any), review)
+		}
+	}
+	for _, tt := range []struct {
+		name   string
+		args   []string
+		edit   func(int, map[string]any)
+		answer string
+		want   string // the request's body
+	}{
+		{"the logins given, as the table spells them", []string{"Bob_User", "carol_user", "bob_user"}, nil, "y\n", `{"reviewers":["bob_user","carol_user"]}`},
+		{"the ones to re-request by default", nil, changesRequested, "yes\n", `{"reviewers":["dave_user"]}`},
+		{"--yes", []string{"carol_user", "--yes"}, nil, "", `{"reviewers":["carol_user"]}`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			e, rest, out, errOut := runEnv(t, true, tt.answer)
+			client := &fakeClient{t: t, edit: tt.edit}
+			e.newClient = func() (github.Client, string, error) { return client, "test-account", nil }
+			if got := run(context.Background(), append([]string{"run", "90006", "request-review"}, tt.args...), e); got != exitOK {
+				t.Fatalf("exit %d, stderr %q", got, errOut.String())
+			}
+			if want := "POST repos/JetBrains/kotlin/pulls/90006/requested_reviewers " + tt.want; len(rest.posts) != 1 || rest.posts[0] != want {
+				t.Errorf("posts %q, want %q", rest.posts, want)
+			}
+			if !strings.Contains(out.String(), "#90006 KT-990004: Example change\nrequest a review from ") || !strings.Contains(out.String(), "requested a review of #90006 from ") {
+				t.Errorf("output:\n%s", out.String())
+			}
+			if entries, _ := filepath.Glob(filepath.Join(e.cacheDir, "PullRequest-*")); len(entries) != 0 {
+				t.Errorf("the PR's cached details are left: %q", entries)
+			}
+		})
+	}
+}
+
+func TestRunRequestReviewRefuses(t *testing.T) {
+	const candidates = "the code owners to ask, by rule:\n" +
+		"  /analysis/ (requested: erin_user): bob_user, carol_user, dave_user, erin_user\n" +
+		"  /compiler/fir/ +1 (✓ trent_user): quinn_user, rupert_user, sybil_user, trent_user, ursula_user, victor_user, " +
+		"walter_user, yvonne_user, heidi3_user, zoe_user, xavier_user, alice2_user\n"
+	for _, tt := range []struct {
+		name   string
+		args   []string
+		answer string
+		exit   int
+		stderr string
+	}{
+		// erin_user is requested already and trent_user approved: nobody to re-request.
+		{"nobody to re-request", []string{"run", "90006", "request-review"}, "y\n", exitError,
+			"not posted: nobody to re-request on #90006; name " + candidates},
+		{"not a code owner", []string{"run", "90006", "request-review", "bob_user", "zed_user"}, "y\n", exitError,
+			"not posted: zed_user is no code owner of #90006 to ask; " + candidates},
+		{"myself", []string{"run", "90006", "request-review", "dimonchik0036"}, "y\n", exitError, "dimonchik0036 is no code owner of #90006"},
+		{"declined", []string{"run", "90006", "request-review", "bob_user"}, "n\n", exitError, "not posted: cancelled"},
+		{"not mine", []string{"run", "90001", "request-review", "bob_user", "--yes"}, "", exitError, "not posted: #90001 isn't yours"},
+		{"no terminal", []string{"run", "90006", "request-review", "bob_user"}, "y\n", exitUsage, "pass --yes to request the review"},
+		{"logins after another command", []string{"run", "90006", "dry-run", "bob_user"}, "y\n", exitUsage,
+			"run takes a PR number and a command, and request-review the logins to ask"},
+		{"the command first", []string{"run", "request-review", "90006"}, "y\n", exitUsage, `not a PR number: "request-review"`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			e, rest, _, errOut := runEnv(t, tt.name != "no terminal", tt.answer)
+			if got := run(context.Background(), tt.args, e); got != tt.exit || !strings.Contains(errOut.String(), tt.stderr) {
+				t.Errorf("exit %d, stderr %q; want %d, %q", got, errOut.String(), tt.exit, tt.stderr)
+			}
+			if len(rest.posts) != 0 {
+				t.Errorf("requested %q", rest.posts)
+			}
+		})
+	}
+}
+
+func TestRunRequestReviewFails(t *testing.T) {
+	e, rest, out, errOut := runEnv(t, false, "")
+	rest.err = errors.New("HTTP 422: reviews may only be requested from collaborators")
+	if got := run(context.Background(), []string{"run", "90006", "request-review", "bob_user", "--yes"}, e); got != exitError ||
+		!strings.Contains(errOut.String(), "request a review of #90006 from bob_user: HTTP 422") || strings.Contains(out.String(), "requested a review") {
+		t.Errorf("exit %d, stdout %q, stderr %q", got, out.String(), errOut.String())
 	}
 }

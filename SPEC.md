@@ -245,6 +245,7 @@ gh kotlin-prs show <number> [--max-age DURATION]  # details: reviewers, run hist
 gh kotlin-prs config [path|init [--force]]  # effective config with sources, its path, a commented template
 gh kotlin-prs run <number> <command> [--yes]  # post a bot command (§8): dry-run, dry-run-retry, safe-merge,
                                               # cancel-coordinator, fixup, codeowners
+gh kotlin-prs run <number> request-review [login...] [--yes]  # request a review from code owners (§8)
 gh kotlin-prs swiftbar install [--dir D] [--interval 3m] [--force]  # the menu-bar plugin (§15)
 gh kotlin-prs swiftbar script [--interval 3m]  # its script, for a manual install
 gh kotlin-prs open <number>        # browser
@@ -309,8 +310,9 @@ gh kotlin-prs open <number>        # browser
 ## 8. Actions and safety
 
 - An action posts one of the bot's commands as a regular PR comment with exactly the command's text
-  (`POST /repos/{repo}/issues/{n}/comments` with gh's token, never a review comment), so everyone sees it. It's the only
-  write the tool makes: `list`, `show`, `config` and the TUI's refreshes never write.
+  (`POST /repos/{repo}/issues/{n}/comments` with gh's token, never a review comment), so everyone sees it, or requests
+  a review (below). Those are the only writes the tool makes: `list`, `show`, `config` and the TUI's refreshes never
+  write.
 - The commands (`internal/actions`):
 
   | Name | Comment | What the bot does |
@@ -345,6 +347,27 @@ gh kotlin-prs open <number>        # browser
   that started after the post shows what GitHub has; until then the same command isn't posted again on that PR. A
   failed post shows in the status bar. A PR becoming my move right after my own post isn't notified (§14).
 - Demo mode never posts.
+
+**Review requests** (`request-review`, `internal/actions`), for a re-request after a round of review and for the first
+assignment of a rule nobody was asked for (§5, 2a and 2c):
+- One `POST /repos/{repo}/pulls/{n}/requested_reviewers` with `{"reviewers": [logins]}` per confirmation, all the picked
+  people at once (one timeline event, one refresh of the bot's table). GitHub adds them to the requested reviewers and
+  re-requests those who reviewed already; a 422 requests nobody, and is reported as it is. Never a team request.
+- Only people of the bot's code-owners table can be asked: per row (a subsystem), its owners besides me, in table
+  order, then the `(QA)` and `(PM)` members, then the `⏳` ones (still selectable). Rows without owners
+  (`#NO_OWNERS`), or owned only by me, aren't offered. Each person has hints: what they did on the PR (`approved`,
+  `changes requested`, `commented`, `requested`) and `also <path>` for the other rows they own.
+- A row's status: `unassigned`, `requested: x` (or `requested` for a request the table doesn't show yet),
+  `re-request: x` (`🔄`), `changes requested: x`, `✓ x`. It needs me when it's unassigned with nobody requested, or
+  `🔄`; it's covered when it's approved or an owner of it is requested now.
+- The default picks, for a re-request: the `🔄` owners not requested again yet, and the reviewers who requested changes
+  before my last push, both among the table's people. Never an approver (a request doesn't dismiss an approval), and
+  nobody whose approval was dismissed (the bot re-requests those itself). A first assignment has no default.
+- Checks: only on my own open PRs, drafts included; at least one person; only the table's people.
+- CLI: `run <number> request-review [login...]` asks the logins given, or the default picks, with the usual question
+  (`Request this review? [y/N]`, `--yes`). Without logins and without default picks, or with a login the table doesn't
+  have, it refuses with the candidates per row. After the request it drops the PR's cached details, so the next run
+  fetches them.
 
 ## 9. Config
 

@@ -87,13 +87,8 @@ func refuse(format string, args ...any) error {
 // /codeowners only while its check is missing or failing. A request the bot never
 // answered ("no response") doesn't count as running: it may be posted again.
 func Check(c Command, pr model.PR, viewer string) error {
-	switch {
-	case !strings.EqualFold(pr.Author, viewer):
-		return refuse("#%d isn't yours (by %s)", pr.Number, pr.Author)
-	case !pr.MergedAt.IsZero():
-		return refuse("#%d is merged", pr.Number)
-	case pr.Closed:
-		return refuse("#%d is closed", pr.Number)
+	if err := CheckOwnOpen(pr, viewer); err != nil {
+		return err
 	}
 	running, active := activeRun(pr)
 	switch c {
@@ -116,6 +111,19 @@ func Check(c Command, pr model.PR, viewer string) error {
 		if pr.CodeOwners.Check == "SUCCESS" {
 			return refuse("the code-owners check of #%d is already green", pr.Number)
 		}
+	}
+	return nil
+}
+
+// CheckOwnOpen refuses a PR that isn't the viewer's or isn't open.
+func CheckOwnOpen(pr model.PR, viewer string) error {
+	switch {
+	case !strings.EqualFold(pr.Author, viewer):
+		return refuse("#%d isn't yours (by %s)", pr.Number, pr.Author)
+	case !pr.MergedAt.IsZero():
+		return refuse("#%d is merged", pr.Number)
+	case pr.Closed:
+		return refuse("#%d is closed", pr.Number)
 	}
 	return nil
 }
