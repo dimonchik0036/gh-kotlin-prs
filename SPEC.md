@@ -278,8 +278,8 @@ gh kotlin-prs config [path|init [--force]]  # effective config with sources, its
 gh kotlin-prs run <number> <command> [--yes]  # post a bot command (§8): dry-run, dry-run-retry, safe-merge,
                                               # cancel-coordinator, fixup, codeowners
 gh kotlin-prs run <number> request-review [login...] [--yes]  # request a review from code owners (§8)
-gh kotlin-prs swiftbar install [--dir D] [--interval 3m] [--force]  # the menu-bar plugin (§15)
-gh kotlin-prs swiftbar script [--interval 3m]  # its script, for a manual install
+gh kotlin-prs swiftbar install [--dir D] [--interval 30s] [--max-age 3m] [--force]  # the menu-bar plugin (§15)
+gh kotlin-prs swiftbar script [--interval 30s] [--max-age 3m]  # its script, for a manual install
 gh kotlin-prs open <number>        # browser
 ```
 
@@ -619,8 +619,12 @@ scripts/fetch-fixtures.sh
 - The plugin script (`swiftbar script`, written by `swiftbar install` as `kotlin-prs.<interval>.sh`, mode 0755) bakes in
   gh's absolute path, a PATH with its folder, and the config file when `--config` or `$GH_KOTLIN_PRS_CONFIG` names one
   (which must exist), since SwiftBar runs it with a bare environment. It hides SwiftBar's "Run in Terminal" and
-  "About" items. Without arguments it runs `list --format swiftbar --max-age <interval/2, at least 10s>`, so a fresh
-  fetch of the TUI or the CLI answers; with `copy <url>` and `refresh` it serves those clicks of the menu.
+  "About" items. Without arguments it runs `list --format swiftbar --max-age <max-age>`; with `copy <url>` and
+  `refresh` it serves those clicks of the menu.
+  - Two timings: `--interval` (30s) is how often SwiftBar runs it (the file name), `--max-age` (3m, at least the
+    interval, else every run would fetch) how old cached data a run answers with. Runs from the cache are cheap, and
+    the cache is shared: the TUI's refreshes write it and a post forgets the entries holding its PR, so a run picks up
+    within one interval what the TUI fetched or a post changed, with no more GraphQL traffic than a fetch per max-age.
   - Its xbar tags fill SwiftBar's plugin details, with the names SwiftBar 2.1.1's `PluginMetadata` reads: `title`,
     `author` and `author.github` (dimonchik0036), `desc`, `dependencies` (gh) and `about` (the repo; not xbar's
     `abouturl`). No schedule: the file name has the interval. No version either: the script doesn't depend on the

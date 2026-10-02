@@ -98,26 +98,26 @@ func newSwiftbarCommand(e env, global *globalOptions) *cobra.Command {
 		Args: noArgs,
 	}
 	var dir string
-	var interval time.Duration
+	var timing pluginTiming
 	var force bool
 	install := &cobra.Command{
 		Use:   "install",
 		Short: "Write the plugin into SwiftBar's plugin folder",
 		Args:  noArgs,
 		RunE: func(*cobra.Command, []string) error {
-			return installSwiftbar(e, *global, dir, interval, force)
+			return installSwiftbar(e, *global, dir, timing, force)
 		},
 	}
 	install.Flags().StringVar(&dir, "dir", "", "the plugin folder (default: SwiftBar's)")
-	install.Flags().DurationVar(&interval, "interval", 3*time.Minute, "how often SwiftBar refreshes it")
+	timing.flags(install)
 	install.Flags().BoolVar(&force, "force", false, "replace an installed plugin")
-	var scriptInterval time.Duration
+	var scriptTiming pluginTiming
 	script := &cobra.Command{
 		Use:   "script",
 		Short: "Print the plugin script, to install it by hand",
 		Args:  noArgs,
 		RunE: func(*cobra.Command, []string) error {
-			s, _, err := pluginScript(e, *global, scriptInterval)
+			s, _, err := pluginScript(e, *global, scriptTiming)
 			if err != nil {
 				return err
 			}
@@ -125,16 +125,48 @@ func newSwiftbarCommand(e env, global *globalOptions) *cobra.Command {
 			return err
 		},
 	}
-	script.Flags().DurationVar(&scriptInterval, "interval", 3*time.Minute, "how often SwiftBar refreshes it (sets --max-age)")
+	scriptTiming.flags(script)
 	cmd.AddCommand(install, script)
 	return cmd
 }
 
-// pluginScript is the plugin script and its file name for interval.
-func pluginScript(e env, global globalOptions, interval time.Duration) (script, name string, err error) {
-	name, err = swiftbar.FileName(interval)
+// Default plugin timing: a run every 30s is cheap while the cache answers, and the cache
+// is shared, so a run picks up within 30s what the TUI fetched or a post changed.
+const (
+	defaultInterval = 30 * time.Second
+	defaultMaxAge   = 3 * time.Minute
+)
+
+// pluginTiming is how often SwiftBar runs the plugin (its file name) and how old cached
+// data a run takes (its --max-age).
+type pluginTiming struct {
+	interval, maxAge time.Duration
+}
+
+func (t *pluginTiming) flags(cmd *cobra.Command) {
+	cmd.Flags().DurationVar(&t.interval, "interval", defaultInterval, "how often SwiftBar runs the plugin (its file name)")
+	cmd.Flags().DurationVar(&t.maxAge, "max-age", defaultMaxAge, "how old cached data a run answers with; live fetches are this far apart")
+}
+
+// check refuses a max-age below the interval: every run would fetch.
+func (t *pluginTiming) check() error {
+	if t.maxAge <= 0 || t.maxAge.Truncate(time.Second) != t.maxAge {
+		return usageError{fmt.Errorf("--max-age %s isn't a positive whole number of seconds", t.maxAge)}
+	}
+	if t.maxAge < t.interval {
+		return usageError{fmt.Errorf("--max-age %s is shorter than --interval %s: every run would fetch", t.maxAge, t.interval)}
+	}
+	return nil
+}
+
+// pluginScript is the plugin script and its file name for the timing.
+func pluginScript(e env, global globalOptions, timing pluginTiming) (script, name string, err error) {
+	name, err = swiftbar.FileName(timing.interval)
 	if err != nil {
 		return "", "", usageError{err}
+	}
+	if err := timing.check(); err != nil {
+		return "", "", err
 	}
 	gh, err := e.lookGH()
 	if err != nil {
@@ -155,14 +187,13 @@ func pluginScript(e env, global globalOptions, interval time.Duration) (script, 
 			return "", "", err
 		}
 	}
-	maxAge := max(interval/2, 10*time.Second).Truncate(time.Second)
-	return swiftbar.Script(swiftbar.ScriptOptions{GH: gh, Config: cfgPath, MaxAge: maxAge}), name, nil
+	return swiftbar.Script(swiftbar.ScriptOptions{GH: gh, Config: cfgPath, MaxAge: timing.maxAge}), name, nil
 }
 
 // installSwiftbar writes the plugin into the folder, replacing an installed one only
 // with force.
-func installSwiftbar(e env, global globalOptions, dir string, interval time.Duration, force bool) error {
-	script, name, err := pluginScript(e, global, interval)
+func installSwiftbar(e env, global globalOptions, dir string, timing pluginTiming, force bool) error {
+	script, name, err := pluginScript(e, global, timing)
 	if err != nil {
 		return err
 	}

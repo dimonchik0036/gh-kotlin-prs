@@ -94,25 +94,25 @@ func TestSwiftbarInstall(t *testing.T) {
 	if got := run(context.Background(), []string{"swiftbar", "install", "--dir", dir}, e); got != exitOK {
 		t.Fatalf("exit %d, stderr %q", got, errOut.String())
 	}
-	path := filepath.Join(dir, "kotlin-prs.3m.sh")
+	path := filepath.Join(dir, "kotlin-prs.30s.sh")
 	info, err := os.Stat(path)
 	if err != nil || info.Mode().Perm() != 0o755 || out.String() != "wrote "+path+"\n" {
 		t.Fatalf("%v, %v, %q", info, err, out.String())
 	}
 	data, _ := os.ReadFile(path)
-	if !strings.Contains(string(data), "gh=/opt/homebrew/bin/gh\n") || !strings.Contains(string(data), "--max-age 1m30s\n") {
+	if !strings.Contains(string(data), "gh=/opt/homebrew/bin/gh\n") || !strings.Contains(string(data), "--max-age 3m0s\n") {
 		t.Errorf("script:\n%s", data)
 	}
 	errOut.Reset()
-	if got := run(context.Background(), []string{"swiftbar", "install", "--dir", dir, "--interval", "5m"}, e); got != exitError ||
-		!strings.Contains(errOut.String(), "already has the plugin (kotlin-prs.3m.sh); --force replaces it") {
+	if got := run(context.Background(), []string{"swiftbar", "install", "--dir", dir, "--interval", "2m"}, e); got != exitError ||
+		!strings.Contains(errOut.String(), "already has the plugin (kotlin-prs.30s.sh); --force replaces it") {
 		t.Errorf("no --force: exit %d, stderr %q", got, errOut.String())
 	}
-	if got := run(context.Background(), []string{"swiftbar", "install", "--dir", dir, "--interval", "5m", "--force"}, e); got != exitOK {
+	if got := run(context.Background(), []string{"swiftbar", "install", "--dir", dir, "--interval", "2m", "--force"}, e); got != exitOK {
 		t.Errorf("--force: exit %d", got)
 	}
 	entries, _ := os.ReadDir(dir)
-	if len(entries) != 1 || entries[0].Name() != "kotlin-prs.5m.sh" {
+	if len(entries) != 1 || entries[0].Name() != "kotlin-prs.2m.sh" {
 		t.Errorf("the folder holds %v", entries)
 	}
 	for _, tt := range []struct {
@@ -123,6 +123,9 @@ func TestSwiftbarInstall(t *testing.T) {
 		{[]string{"swiftbar", "install"}, exitError, "SwiftBar has no plugin folder yet: open SwiftBar and choose one, or pass --dir"},
 		{[]string{"swiftbar", "install", "--dir", filepath.Join(dir, "missing")}, exitError, "doesn't exist"},
 		{[]string{"swiftbar", "install", "--dir", dir, "--interval", "1500ms"}, exitUsage, "isn't a whole number of seconds"},
+		{[]string{"swiftbar", "install", "--dir", dir, "--interval", "5m", "--max-age", "1m"}, exitUsage,
+			"--max-age 1m0s is shorter than --interval 5m0s: every run would fetch"},
+		{[]string{"swiftbar", "install", "--dir", dir, "--max-age", "90500ms"}, exitUsage, "--max-age 1m30.5s isn't a positive whole number of seconds"},
 	} {
 		errOut.Reset()
 		if got := run(context.Background(), tt.args, e); got != tt.exit || !strings.Contains(errOut.String(), tt.stderr) {
@@ -135,15 +138,15 @@ func TestSwiftbarInstall(t *testing.T) {
 	if got := run(context.Background(), []string{"swiftbar", "install"}, e); got != exitOK {
 		t.Errorf("SwiftBar's folder: exit %d", got)
 	}
-	if _, err := os.Stat(filepath.Join(other, "kotlin-prs.3m.sh")); err != nil {
+	if _, err := os.Stat(filepath.Join(other, "kotlin-prs.30s.sh")); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestSwiftbarScript(t *testing.T) {
 	e, out, _ := testEnv(t, nil, "")
-	if got := run(context.Background(), []string{"swiftbar", "script", "--interval", "30s"}, e); got != exitOK ||
-		!strings.HasPrefix(out.String(), "#!/bin/bash\n") || !strings.Contains(out.String(), "--max-age 15s\n") ||
+	if got := run(context.Background(), []string{"swiftbar", "script", "--interval", "1m", "--max-age", "5m"}, e); got != exitOK ||
+		!strings.HasPrefix(out.String(), "#!/bin/bash\n") || !strings.Contains(out.String(), "--max-age 5m0s\n") ||
 		!strings.Contains(out.String(), "\nexport GH_KOTLIN_PRS_SCRIPT=2\n") {
 		t.Errorf("exit %d:\n%s", got, out.String())
 	}

@@ -172,15 +172,15 @@ With [SwiftBar](https://github.com/swiftbar/SwiftBar), the menu bar shows how ma
 the same sections as `list`:
 
 ```sh
-gh kotlin-prs swiftbar install                 # into SwiftBar's plugin folder, refreshed every 3 minutes
-gh kotlin-prs swiftbar install --interval 5m --force
+gh kotlin-prs swiftbar install                 # into SwiftBar's plugin folder: a run every 30s, a fetch every 3m
+gh kotlin-prs swiftbar install --interval 1m --max-age 5m --force
 ```
 
 It needs SwiftBar to have a plugin folder (SwiftBar asks for one on its first start); `--dir` names another. For a
 manual install, write the script yourself and make it executable:
 
 ```sh
-gh kotlin-prs swiftbar script > ~/your-plugin-folder/kotlin-prs.3m.sh && chmod +x ~/your-plugin-folder/kotlin-prs.3m.sh
+gh kotlin-prs swiftbar script > ~/your-plugin-folder/kotlin-prs.30s.sh && chmod +x ~/your-plugin-folder/kotlin-prs.30s.sh
 ```
 
 The icon turns red while a dry-run or safe-merge of yours failed or was rejected, and shows `⋯` while one runs and `!`
@@ -194,8 +194,9 @@ in the browser instead.
 They open in the terminal chosen in SwiftBar's Settings → Advanced → Terminal (Terminal, iTerm or Ghostty), in a new
 tab that closes when you quit the interactive view.
 
-The plugin answers from the cache when it's younger than half its interval, so it shares fetches with the interactive
-view. When it fetched live, it notifies of what changed since its last live run. A click on its notification opens
+SwiftBar runs the plugin every `--interval` (30s, the file name says it), and a run answers from the cache while it's
+younger than `--max-age` (3m, at least the interval): the runs are cheap, and since the cache is shared, a run picks up
+within 30s what the interactive view fetched or a command you posted changed. When it fetched live, it notifies of what changed since its last live run. A click on its notification opens
 the interactive view on that PR, like the menu. One that was posted before you reinstalled the plugin with another
 `--interval` can't, since SwiftBar no longer finds the plugin that posted it.
 
