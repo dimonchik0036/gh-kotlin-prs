@@ -202,9 +202,10 @@ tab that closes when you quit the interactive view.
 
 SwiftBar runs the plugin every `--interval` (30s, the file name says it), and a run answers from the cache while it's
 younger than `--max-age` (3m, at least the interval): the runs are cheap, and since the cache is shared, a run picks up
-within 30s what the interactive view fetched or a command you posted changed. When it fetched live, it notifies of what changed since its last live run. A click on its notification opens
-the interactive view on that PR, like the menu. One that was posted before you reinstalled the plugin with another
-`--interval` can't, since SwiftBar no longer finds the plugin that posted it.
+within 30s what the interactive view fetched or a command you posted changed. When it gets newer data, its own fetch or
+one the interactive view made, it notifies of what changed since the data it last notified of. A click on its
+notification opens the interactive view on that PR, like the menu. One that was posted before you reinstalled the plugin
+with another `--interval` can't, since SwiftBar no longer finds the plugin that posted it.
 
 Three things may notify, and they don't coordinate, so the same change can show up more than once:
 

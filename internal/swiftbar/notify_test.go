@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
@@ -162,19 +163,27 @@ func TestBaseline(t *testing.T) {
 	if _, ok := LoadBaseline(dir); ok {
 		t.Error("a baseline in an empty dir")
 	}
+	at := time.Date(2026, 10, 1, 13, 0, 0, 0, time.UTC)
 	prs := []model.PR{{Number: 7, Section: model.SectionMine, Next: model.NextMe}}
-	if err := SaveBaseline(dir, prs); err != nil {
+	if err := SaveBaseline(dir, Baseline{PRs: prs, FetchedAt: at}); err != nil {
 		t.Fatal(err)
 	}
 	got, ok := LoadBaseline(dir)
-	if !ok || len(got) != 1 || got[0].Number != 7 {
+	if !ok || len(got.PRs) != 1 || got.PRs[0].Number != 7 || !got.FetchedAt.Equal(at) {
 		t.Errorf("baseline %+v, %v", got, ok)
 	}
 	entries, _ := os.ReadDir(dir)
 	if len(entries) != 1 {
 		t.Errorf("left %v", entries)
 	}
-	for _, data := range []string{"{", `{"format": 2, "prs": []}`} {
+	// v0.5.2's format 1 has no fetch time: any data is newer.
+	if err := os.WriteFile(filepath.Join(dir, baselineFile), []byte(`{"format": 1, "prs": [{"number": 7}]}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if got, ok := LoadBaseline(dir); !ok || len(got.PRs) != 1 || !got.FetchedAt.IsZero() {
+		t.Errorf("format 1: %+v, %v", got, ok)
+	}
+	for _, data := range []string{"{", `{"format": 3, "prs": []}`} {
 		if err := os.WriteFile(filepath.Join(dir, baselineFile), []byte(data), 0o600); err != nil {
 			t.Fatal(err)
 		}
@@ -182,7 +191,7 @@ func TestBaseline(t *testing.T) {
 			t.Errorf("%q read as a baseline", data)
 		}
 	}
-	if err := SaveBaseline("", prs); err == nil {
+	if err := SaveBaseline("", Baseline{PRs: prs}); err == nil {
 		t.Error("saved without a dir")
 	}
 }

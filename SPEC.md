@@ -653,9 +653,12 @@ scripts/fetch-fixtures.sh
   into the user's shell, unquoted, with no PATH of its own, so the line reads `…; exec /opt/homebrew/bin/gh kotlin-prs
   --pr 90006`. `exec` replaces the tab's shell, so the tab closes when the interactive view quits. gh's path is the
   plugin script's (`GH_KOTLIN_PRS_GH`), the gh the plugin itself runs. There's no config of our own for it.
-- Notifications: a plugin run that fetched every query live (no cache hit) diffs its rows with the last live run's,
-  kept in the cache dir (`swiftbar-baseline.json`), with `notify.Diff` and the `notify.events` of §14. The first run
-  only stores its rows. Each event goes to `notify.command`, and unless `notify.swiftbar` is false to SwiftBar's
+- Notifications: a plugin run whose data is newer than the baseline's (the oldest of its parts against the baseline's
+  fetch time) diffs its rows with the baseline's, kept in the cache dir (`swiftbar-baseline.json`, with that time),
+  with `notify.Diff` and the `notify.events` of §14, and makes them the baseline. Whoever fetched the data counts:
+  the plugin's own live run, or a cache entry the TUI, `list` or another run wrote, so nothing is lost when the TUI
+  fetched first; data no newer than the baseline notifies nothing, so nothing is told twice. The first run only
+  stores its rows; v0.5.2's baseline has no time, so any data is newer. Each event goes to `notify.command`, and unless `notify.swiftbar` is false to SwiftBar's
   `swiftbar://notify?plugin=…&title=…&body=…&bash=exec&param1=<gh>&param2=kotlin-prs&param3=--pr&param4=N&terminal=true`
   (`osascript display notification`, which no click opens anything from, when SwiftBar isn't the caller). Every event
   is about a PR, and a click opens the interactive view on its details, the way the menu's items do; one about no PR

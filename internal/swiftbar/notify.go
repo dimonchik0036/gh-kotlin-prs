@@ -8,42 +8,52 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 )
 
-// baselineFile holds the rows of the plugin's last live run, in the cache dir: the next
-// live run notifies of what changed since.
+// baselineFile holds the rows the plugin last notified up to, in the cache dir, and when
+// their data was fetched: a run with newer data notifies of what changed since.
 const baselineFile = "swiftbar-baseline.json"
 
-// baselineFormat is the version of the file; another one is no baseline.
-const baselineFormat = 1
+// baselineFormat is the version of the file: 2 added FetchedAt. A format-1 file (none of
+// v0.5.2 and older) reads with a zero FetchedAt; another one is no baseline.
+const baselineFormat = 2
 
-type baseline struct {
-	Format int        `json:"format"`
-	PRs    []model.PR `json:"prs"`
+// Baseline is the rows of the data notified up to, and when that data was fetched (the
+// oldest of its parts).
+type Baseline struct {
+	PRs       []model.PR
+	FetchedAt time.Time
 }
 
-// LoadBaseline is the rows of the last live run; false when there's none to compare with.
-func LoadBaseline(dir string) ([]model.PR, bool) {
+type baselineDoc struct {
+	Format    int        `json:"format"`
+	FetchedAt time.Time  `json:"fetchedAt,omitzero"`
+	PRs       []model.PR `json:"prs"`
+}
+
+// LoadBaseline is the baseline; false when there's none to compare with.
+func LoadBaseline(dir string) (Baseline, bool) {
 	data, err := os.ReadFile(filepath.Join(dir, baselineFile))
 	if err != nil {
-		return nil, false
+		return Baseline{}, false
 	}
-	var b baseline
-	if err := json.Unmarshal(data, &b); err != nil || b.Format != baselineFormat {
-		return nil, false
+	var b baselineDoc
+	if err := json.Unmarshal(data, &b); err != nil || (b.Format != baselineFormat && b.Format != 1) {
+		return Baseline{}, false
 	}
-	return b.PRs, true
+	return Baseline{PRs: b.PRs, FetchedAt: b.FetchedAt}, true
 }
 
 // SaveBaseline replaces the baseline atomically (a temp file renamed over it).
-func SaveBaseline(dir string, prs []model.PR) error {
+func SaveBaseline(dir string, b Baseline) error {
 	if dir == "" {
 		return errors.New("no cache dir")
 	}
-	data, err := json.Marshal(baseline{Format: baselineFormat, PRs: prs})
+	data, err := json.Marshal(baselineDoc{Format: baselineFormat, FetchedAt: b.FetchedAt.UTC(), PRs: b.PRs})
 	if err != nil {
 		return err
 	}

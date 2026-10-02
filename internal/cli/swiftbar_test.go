@@ -155,42 +155,68 @@ func TestSwiftbarScript(t *testing.T) {
 // A live run notifies of what changed since the last live run; a cached one doesn't.
 func TestSwiftbarNotifications(t *testing.T) {
 	e, _, errOut := swiftbarEnv(t, &fakeClient{t: t}, "")
+	clock := now
+	e.now = func() time.Time { return clock }
 	var started [][]string
 	e.start = func(argv []string) error { started = append(started, argv); return nil }
-	menu := func(args ...string) {
+	runs := func(args ...string) {
 		t.Helper()
-		if got := run(context.Background(), append([]string{"list", "--format", "swiftbar"}, args...), e); got != exitOK {
-			t.Fatalf("exit %d, stderr %q", got, errOut.String())
+		if got := run(context.Background(), args, e); got != exitOK {
+			t.Fatalf("%q: exit %d, stderr %q", args, got, errOut.String())
 		}
 	}
+	menu := func(args ...string) { t.Helper(); runs(append([]string{"list", "--format", "swiftbar"}, args...)...) }
 	menu()
-	prs, ok := swiftbar.LoadBaseline(e.cacheDir)
-	if !ok || len(started) != 0 {
-		t.Fatalf("the first run: baseline %v, notified %q", ok, started)
+	b, ok := swiftbar.LoadBaseline(e.cacheDir)
+	if !ok || len(started) != 0 || !b.FetchedAt.Equal(now) {
+		t.Fatalf("the first run: baseline %v at %v, notified %q", ok, b.FetchedAt, started)
 	}
 	// Before, #90006's dry-run was still running.
-	for i := range prs {
-		if prs[i].Number == 90006 {
-			prs[i].DryRun.State, prs[i].Next = model.RunRunning, model.NextCI
+	for i := range b.PRs {
+		if b.PRs[i].Number == 90006 {
+			b.PRs[i].DryRun.State, b.PRs[i].Next = model.RunRunning, model.NextCI
 		}
 	}
-	if err := swiftbar.SaveBaseline(e.cacheDir, prs); err != nil {
+	if err := swiftbar.SaveBaseline(e.cacheDir, b); err != nil {
 		t.Fatal(err)
 	}
+	// The cache answers with the baseline's own data: nothing newer.
+	clock = clock.Add(10 * time.Second)
 	menu("--max-age", "1h")
 	if len(started) != 0 {
-		t.Errorf("a cached run notified: %q", started)
+		t.Errorf("data no newer than the baseline notified: %q", started)
 	}
-	menu()
+	// Someone else (the TUI, `list`) fetches; the plugin's next run answers from the cache
+	// with that newer data and notifies, once.
+	clock = clock.Add(time.Minute)
+	runs("list", "--format", "json")
+	clock = clock.Add(10 * time.Second)
+	menu("--max-age", "1h")
 	if len(started) != 1 || started[0][0] != "open" || started[0][1] != "-g" ||
 		!strings.HasPrefix(started[0][2], "swiftbar://notify?") || strings.Contains(started[0][2], "href=") ||
 		!strings.Contains(started[0][2], "plugin=kotlin-prs") || !strings.Contains(started[0][2], "title=%2390006+dry-run+failed") ||
 		!strings.Contains(started[0][2], "&bash=exec&param1="+url.QueryEscape("/opt/homebrew/bin/gh")+"&param2=kotlin-prs&param3=--pr&param4=90006&terminal=true") {
 		t.Errorf("notified %q", started)
 	}
+	menu("--max-age", "1h")
+	clock = clock.Add(time.Minute)
 	menu()
 	if len(started) != 1 {
 		t.Errorf("notified again: %q", started)
+	}
+	if b, _ := swiftbar.LoadBaseline(e.cacheDir); !b.FetchedAt.Equal(clock) {
+		t.Errorf("the baseline is from %v, want the live run's %v", b.FetchedAt, clock)
+	}
+	// A baseline newer than the data (the cache can't go back, but a clock can) stays.
+	future := clock.Add(time.Hour)
+	b, _ = swiftbar.LoadBaseline(e.cacheDir)
+	b.FetchedAt = future
+	if err := swiftbar.SaveBaseline(e.cacheDir, b); err != nil {
+		t.Fatal(err)
+	}
+	menu("--max-age", "1h")
+	if b, _ := swiftbar.LoadBaseline(e.cacheDir); !b.FetchedAt.Equal(future) || len(started) != 1 {
+		t.Errorf("older data replaced the baseline (%v) or notified %q", b.FetchedAt, started)
 	}
 }
 
@@ -209,13 +235,14 @@ func TestSwiftbarNotifyCommand(t *testing.T) {
 				}
 			}
 			menu()
-			prs, _ := swiftbar.LoadBaseline(e.cacheDir)
-			for i := range prs {
-				if prs[i].Number == 90006 {
-					prs[i].DryRun.State, prs[i].Next = model.RunRunning, model.NextCI
+			b, _ := swiftbar.LoadBaseline(e.cacheDir)
+			for i := range b.PRs {
+				if b.PRs[i].Number == 90006 {
+					b.PRs[i].DryRun.State, b.PRs[i].Next = model.RunRunning, model.NextCI
 				}
 			}
-			if err := swiftbar.SaveBaseline(e.cacheDir, prs); err != nil {
+			b.FetchedAt = b.FetchedAt.Add(-time.Minute) // the data the next run fetches is newer
+			if err := swiftbar.SaveBaseline(e.cacheDir, b); err != nil {
 				t.Fatal(err)
 			}
 			menu()
