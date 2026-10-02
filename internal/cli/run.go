@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/x/ansi"
 	"github.com/spf13/cobra"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/actions"
@@ -82,7 +83,9 @@ func runCommand(ctx context.Context, e env, global globalOptions, number int, c 
 	if !yes {
 		writef(e.stdout, "Post this comment? [y/N] ")
 		answer, _ := bufio.NewReader(e.stdin).ReadString('\n')
-		if a := strings.ToLower(strings.TrimSpace(answer)); a != "y" && a != "yes" {
+		// gh asks the terminal for its background (OSC 11, then CSI 6n) before it runs the
+		// extension, and the replies may still wait on stdin: they aren't the answer.
+		if a := strings.ToLower(strings.TrimSpace(ansi.Strip(answer))); a != "y" && a != "yes" {
 			return fmt.Errorf("%w: cancelled", actions.ErrNotPosted)
 		}
 	}

@@ -47,6 +47,10 @@ func TestRunPosts(t *testing.T) {
 		{"--yes", []string{"run", "90006", "dry-run-retry", "--yes"}, false, ""},
 		{"y", []string{"run", "#90006", "dry-run-retry"}, true, "y\n"},
 		{"Yes", []string{"run", "90006", "dry-run-retry"}, true, "Yes\n"},
+		// gh queries the terminal's background before it runs the extension (OSC 11, then
+		// CSI 6n); the replies can be left on stdin ahead of the answer.
+		{"y after terminal replies", []string{"run", "90006", "dry-run-retry"}, true, "\x1b]11;rgb:0000/0000/0000\x1b\\\x1b[12;1Ry\n"},
+		{"yes after a BEL-ended reply", []string{"run", "90006", "dry-run-retry"}, true, "\x1b]11;rgb:ffff/ffff/ffff\a\x1b[3;7Ryes\n"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			e, rest, out, errOut := runEnv(t, tt.terminal, tt.answer)
@@ -78,6 +82,9 @@ func TestRunRefuses(t *testing.T) {
 		{"declined", []string{"run", "90006", "dry-run"}, true, "n\n", exitError, "not posted: cancelled"},
 		{"enter means no", []string{"run", "90006", "dry-run"}, true, "\n", exitError, "not posted: cancelled"},
 		{"no answer", []string{"run", "90006", "dry-run"}, true, "", exitError, "not posted: cancelled"},
+		{"n after terminal replies", []string{"run", "90006", "dry-run"}, true, "\x1b]11;rgb:0000/0000/0000\x1b\\\x1b[12;1Rn\n", exitError, "not posted: cancelled"},
+		{"only terminal replies", []string{"run", "90006", "dry-run"}, true, "\x1b]11;rgb:0000/0000/0000\x1b\\\x1b[12;1R\n", exitError, "not posted: cancelled"},
+		{"y inside a reply", []string{"run", "90006", "dry-run"}, true, "\x1b]11;y\x1b\\\n", exitError, "not posted: cancelled"},
 		{"no terminal", []string{"run", "90006", "dry-run"}, false, "y\n", exitUsage, "not posted: no terminal to ask on; pass --yes to post /dry-run"},
 		{"not mine", []string{"run", "90001", "dry-run", "--yes"}, false, "", exitError, "not posted: #90001 isn't yours (by alice_user)"},
 		{"not approved", []string{"run", "90006", "safe-merge", "--yes"}, false, "", exitError, "not posted: #90006 isn't approved: code owners missing"},

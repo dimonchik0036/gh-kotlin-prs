@@ -327,7 +327,9 @@ gh kotlin-prs open <number>        # browser
 - CLI: `run <number> <command>` fetches the PR live, checks the command, prints the PR's number and title and the exact
   comment, and asks `Post this comment? [y/N]`: only `y` or `yes` posts. `--yes` skips the question; without a terminal
   and without `--yes` it refuses (exit 2) before fetching anything. It prints the new comment's URL. A refusal or a
-  failed post exits 1.
+  failed post exits 1. Escape sequences in the answer are dropped first: gh asks the terminal for its background
+  (OSC 11, then CSI 6n) before it runs the extension, and reads the replies itself, but a late one (after its 5s wait)
+  would reach the question's stdin ahead of the answer. The tool itself never queries the terminal.
 - TUI: the keys and the menu of §7. A posted dry-run or safe-merge shows as requested straight away, until a refresh
   that started after the post shows what GitHub has; until then the same command isn't posted again on that PR. A
   failed post shows in the status bar. A PR becoming my move right after my own post isn't notified (§14).

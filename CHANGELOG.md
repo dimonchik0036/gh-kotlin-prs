@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `run`'s `[y/N]` question ignores terminal replies that reach it ahead of the answer (gh asks the terminal for its
+  background before it starts the extension), so they can no longer turn a `y` into "not posted: cancelled".
+
 ## v0.5.0 — 2026-10-02
 
 A switch for the menu-bar plugin's notifications, and clearer docs on which notification settings apply where. The
