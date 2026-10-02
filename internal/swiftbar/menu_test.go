@@ -209,6 +209,31 @@ func TestRowReviews(t *testing.T) {
 // Every item with a submenu has an action, so SwiftBar 2.1.1 keeps it enabled when it
 // patches the item: a PR's row opens its details like the submenu's "Details", a
 // section's does nothing. An alternate row has its main row's text and opens the PR.
+// A Review row has the author after the title, and its submenu who wrote it and when they
+// last pushed; Mine has neither.
+func TestReviewAuthor(t *testing.T) {
+	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	none := func(kind model.RunKind) model.Run { return model.Run{Kind: kind, State: model.RunNone} }
+	out := Render(Menu{Icons: render.Unicode, Sections: allSections, Viewer: "me", Now: now, PRs: []model.PR{
+		{Number: 7, Title: "Their change", Author: "a_rather_long_login", Section: model.SectionReview, Next: model.NextMe,
+			LastPush: now.Add(-2 * time.Hour), DryRun: none(model.DryRun), SafeMerge: none(model.SafeMerge)},
+		{Number: 8, Title: "My change", Author: "me", Section: model.SectionMine, Next: model.NextMe,
+			LastPush: now.Add(-time.Hour), DryRun: none(model.DryRun), SafeMerge: none(model.SafeMerge)},
+	}})
+	for _, want := range []string{
+		"  #7    Their change  a_rather_lo⋯  DR -  SM -",
+		"\n--Their change | color=gray trim=false emojize=false symbolize=false\n--by a_rather_long_login · pushed 2h ago | color=gray trim=false\n",
+		"\n--My change | color=gray trim=false emojize=false symbolize=false\n--Your move",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("lacks %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "by me") {
+		t.Errorf("a Mine submenu says who wrote it:\n%s", out)
+	}
+}
+
 func TestParentsHaveAnAction(t *testing.T) {
 	m := fixtureMenu(t)
 	pr := model.PR{Number: 7, Title: "Resolve class/file annotations", URL: "https://example.org/pull/7", Author: m.Viewer, Section: model.SectionTeams,

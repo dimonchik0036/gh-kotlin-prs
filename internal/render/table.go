@@ -17,6 +17,7 @@ import (
 
 const (
 	titleWidth  = 50
+	authorWidth = 12
 	reasonWidth = 70
 )
 

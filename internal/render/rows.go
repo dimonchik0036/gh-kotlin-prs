@@ -7,11 +7,12 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 )
 
-// Column is a column of the list. Open PRs have every column; Recently merged has
-// Next, Number, Issue, Title and Reason.
+// Column is a column of the list. Open PRs have every column but Author, which only
+// Review has; Recently merged has Next, Number, Issue, Title and Reason.
 type Column string
 
 const (
@@ -19,6 +20,7 @@ const (
 	ColumnNumber    Column = "number"
 	ColumnIssue     Column = "issue"
 	ColumnTitle     Column = "title"
+	ColumnAuthor    Column = "author"
 	ColumnDryRun    Column = "dry-run"
 	ColumnSafeMerge Column = "safe-merge"
 	ColumnReview    Column = "review"
@@ -108,7 +110,7 @@ func textCell(column Column, url string, segments ...segment) Cell {
 }
 
 // NewRow builds the cells of a PR: who has the move, the number, the issue, the title,
-// then for open PRs the dry-run and safe-merge, the reviews and threads, and the
+// the author in Review, then for open PRs the dry-run and safe-merge, the reviews and threads, and the
 // primary reason.
 func NewRow(pr model.PR, icons Icons) Row {
 	title := trimIssuePrefix(pr.Title, pr.Issues)
@@ -135,17 +137,19 @@ func NewRow(pr model.PR, icons Icons) Row {
 	if pr.UnresolvedThreads > 0 {
 		threads = textCell(ColumnThreads, "", segment{text: pluralize(pr.UnresolvedThreads, "thread")})
 	}
-	return Row{PR: pr, Cells: []Cell{
-		next,
-		number,
-		issueCell(pr),
-		titleCell,
+	cells := []Cell{next, number, issueCell(pr), titleCell}
+	if pr.Section == model.SectionReview {
+		author := textCell(ColumnAuthor, github.ProfileURL(pr.Author), segment{text: pr.Author})
+		author.Max, author.ellipsis = authorWidth, icons.Ellipsis
+		cells = append(cells, author)
+	}
+	return Row{PR: pr, Cells: append(cells,
 		runCell(ColumnDryRun, "DR", pr.DryRun, icons),
 		runCell(ColumnSafeMerge, "SM", pr.SafeMerge, icons),
 		reviewCell(pr, icons),
 		threads,
 		reason,
-	}}
+	)}
 }
 
 // issueCell is the primary issue and how many more there are: "KT-123 +1".

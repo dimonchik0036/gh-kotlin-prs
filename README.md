@@ -141,8 +141,9 @@ A row reads:
 ❯  #90005  KT-990003 +1  Example change  DR ✓  SM -  0/2 ✗  2 threads  changes requested by alice_user
 ```
 
-The first column is whose move it is, then the issue, the latest dry-run (`DR`) and safe-merge (`SM`), approvals out
-of the people reviewing with the code-owners verdict, unresolved threads and the main reason. `show` lists every reason.
+The first column is whose move it is, then the issue, the title (in Review followed by the PR's author), the latest
+dry-run (`DR`) and safe-merge (`SM`), approvals out of the people reviewing with the code-owners verdict, unresolved
+threads and the main reason. `show` lists every reason.
 
 Issues come from `^KT-123 Fixed` / `^KT-123 Obsolete` / `^KT-123` trailers in the PR's commit messages, then the branch
 name and the title. The row shows the primary one (fixed first) and how many more: `KT-990003 +1`; `show` lists them all.

@@ -175,6 +175,14 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 	b.line(depth, text(row), style+" "+action)
 	sub := depth + 1
 	b.line(sub, text(pr.Title), "color=gray trim=false emojize=false symbolize=false")
+	if pr.Section == model.SectionReview {
+		// Mine are always mine.
+		by := "by " + pr.Author
+		if !pr.LastPush.IsZero() {
+			by += " · pushed " + model.Ago(m.Now, pr.LastPush)
+		}
+		b.line(sub, text(by), "color=gray trim=false")
+	}
 	if m.Plugin != "" {
 		b.line(sub, "Details in the interactive view", m.open(pr.Number, ""))
 	}
@@ -373,7 +381,7 @@ func (m Menu) updateAction() string {
 // the title, and for open PRs the dry-run, the safe-merge and the reviews (approvals of
 // the people reviewing and the code-owners verdict), the cells and symbols of `list`.
 func rowLines(rows []render.Row) []string {
-	keep := []render.Column{render.ColumnNext, render.ColumnNumber, render.ColumnIssue, render.ColumnTitle,
+	keep := []render.Column{render.ColumnNext, render.ColumnNumber, render.ColumnIssue, render.ColumnTitle, render.ColumnAuthor,
 		render.ColumnDryRun, render.ColumnSafeMerge, render.ColumnReview}
 	short := make([]render.Row, len(rows))
 	for i, r := range rows {

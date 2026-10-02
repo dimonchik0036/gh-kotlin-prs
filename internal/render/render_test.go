@@ -705,6 +705,27 @@ func TestRowCells(t *testing.T) {
 	}
 }
 
+// Review rows have the author after the title, linked to their profile and cut to 12
+// columns; the title keeps its width.
+func TestRowAuthor(t *testing.T) {
+	pr := model.PR{Number: 1, Title: strings.Repeat("x", 60), Author: "a_rather_long_login", Section: model.SectionReview, Next: model.NextMe}
+	row := NewRow(pr, Unicode)
+	var columns []Column
+	for _, c := range row.Cells {
+		columns = append(columns, c.Column)
+	}
+	want := []Column{ColumnNext, ColumnNumber, ColumnIssue, ColumnTitle, ColumnAuthor, ColumnDryRun, ColumnSafeMerge, ColumnReview, ColumnThreads, ColumnReason}
+	if !slices.Equal(columns, want) {
+		t.Fatalf("columns %v, want %v", columns, want)
+	}
+	if author := row.Cells[4]; author.Render(false) != "a_rather_lo⋯" || author.URL() != "https://github.com/a_rather_long_login" {
+		t.Errorf("author %q, %q", author.Render(false), author.URL())
+	}
+	if got := ansi.StringWidth(row.Cells[3].Render(false)); got != titleWidth {
+		t.Errorf("title %d wide, want %d", got, titleWidth)
+	}
+}
+
 // Max cuts a cell like ansi.Truncate, across its segments, keeping links and styles.
 func TestCellMax(t *testing.T) {
 	c := textCell(ColumnReason, "https://example.org", segment{text: "dry-run "}, segment{text: "failed 2h ago", style: styleFailed})

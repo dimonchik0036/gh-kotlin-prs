@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Review rows show the PR's author after the title (cut at 12 characters), in `list`, the interactive view and the
+  menu-bar plugin, whose Review submenus start with "by <login> · pushed 2h ago".
 - A PR of yours that GitHub reports as conflicting with its base branch is your move: "conflicts with master,
   rebase", right after a failed run, and said once when the bot rejected a command for it. `/dry-run` and
   `/safe-merge` are refused locally on it ("has conflicts with the base branch; rebase first"). The JSON PR has

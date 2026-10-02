@@ -294,6 +294,8 @@ gh kotlin-prs open <number>        # browser
 ```
 
 - Table rows: `❯ #90005  KT-990003 +1 <title⋯>  DR ✓  SM -  1/2 ✓  2 threads  <primary reason>`. Rows where `Next = Me` come first in each section.
+  Review rows have the author after the title (cut at 12, linked to the profile), in `list`, the TUI and the menu-bar
+  plugin alike; the title keeps its width, so those rows are wider.
   The issue column is the primary issue plus how many more; `show` lists them all: `KT-1 (fixed) ∙ KT-2 (related) ∙ KT-3 (branch)`.
   `1/2 ✓` is approvals out of the people reviewing, then the code-owners verdict.
 - Symbols are single-width text characters only: no emoji, nothing East-Asian-ambiguous, since terminals draw those
@@ -610,10 +612,12 @@ scripts/fetch-fixtures.sh
   - the dropdown: "Your move: N ∙ updated 1m ago" (or the fetch error, with the cached data's age), the API budget when
     less than a tenth is left (live responses only), then the sections: Mine and Review at the top level, Team requests
     and Recently merged as submenus, each with its count and the `--all` note. A PR is one monospace line: who has
-    the move, the number, the issue, the title cut at 33 (the submenu starts with all of it), the dry-run, the
+    the move, the number, the issue, the title cut at 33 (the submenu starts with all of it), in Review the author
+    (as in `list`), the dry-run, the
     safe-merge and `list`'s reviews cell (`1/2 ✗`: approvals of the people reviewing, the code-owners mark), no thread
     count;
-  - a PR's submenu: the whole title (gray, no action), "Details in the interactive view", whose move it is and every
+  - a PR's submenu: the whole title (gray, no action), in Review "by <login> · pushed 2h ago" (gray; Mine is always
+    mine), "Details in the interactive view", whose move it is and every
     reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the reviewers and
     the code-owner rules still missing, "Open on GitHub", "Copy link", "Copy branch" (through the script's `copy`
     verb), and the commands `actions.Available` allows now. A command opens the interactive view on the PR with that command's question (`--pr N --post <command>`);

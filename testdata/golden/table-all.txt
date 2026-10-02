@@ -4,10 +4,10 @@ Mine (3)
 ∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗            waiting: bob_user
 
 Review (4)
-❯  #90001  KT-990002  [draft] Example change  DR ✓  SM -  0/2 ✗  8 threads  review requested 3d ago
-∙  #90008             Example change          DR ⟳  SM -  2/2 ✓             not requested from you
-✓  #90009             Example change          DR ✗  SM -  2/2 ✓             approved 6h ago
-✓  #90003             Example change          DR -  SM -  1/2 ✗  7 threads  approved 30h ago; author pushed since
+❯  #90001  KT-990002  [draft] Example change  alice_user   DR ✓  SM -  0/2 ✗  8 threads  review requested 3d ago
+∙  #90008             Example change          judy3_user   DR ⟳  SM -  2/2 ✓             not requested from you
+✓  #90009             Example change          kevin2_user  DR ✗  SM -  2/2 ✓             approved 6h ago
+✓  #90003             Example change          victor_user  DR -  SM -  1/2 ✗  7 threads  approved 30h ago; author pushed since
 
 Recently merged (24h) (2)
 ✓  #90002  KT-990006 +5  Example change  merged 2h ago
