@@ -25,8 +25,6 @@ var pseudonyms = []string{
 }
 
 const (
-	// keptName stands for the name of a person whose login stays (the viewer, a bot).
-	keptName      = "Example Name"
 	commentFiller = "Comment text."
 	threadFiller  = "Review comment text."
 	commitFiller  = "Commit message."
@@ -247,15 +245,16 @@ func commandOnly(body string) string {
 
 // replaceLogins swaps logins in the places bots put them: profile links, the
 // <code>login</code> inside them, and @mentions. A name next to a login in a profile link
-// becomes the pseudonym's (or keptName, for a login that stays).
+// becomes the pseudonym's; a login that stays (the viewer, a bot) loses its name, as if the
+// profile had none.
 func (a *Anonymizer) replaceLogins(body string) string {
 	body = namedLogin.ReplaceAllStringFunc(body, func(m string) string {
 		g := namedLogin.FindStringSubmatch(m)
-		login, name := g[3], keptName
-		if pseudonym, ok := a.names[strings.ToLower(login)]; ok {
-			login, name = pseudonym, pseudonymName(pseudonym)
+		pseudonym, ok := a.names[strings.ToLower(g[3])]
+		if !ok {
+			return g[1] + g[3] + "</code>"
 		}
-		return g[1] + name + " (" + login + ")</code>"
+		return g[1] + pseudonymName(pseudonym) + " (" + pseudonym + ")</code>"
 	})
 	logins := slices.Collect(maps.Keys(a.names))
 	// Longest first, so a login that prefixes another doesn't clobber it.

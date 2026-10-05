@@ -93,7 +93,7 @@ func TestAnonymize(t *testing.T) {
 		`<a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a> ⏳`,
 		`❌<br><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a>`,
 		`<a href=\"https://github.com/bob_user\"><b><code>Bob User (bob_user)</code></b></a> ⏳, ` +
-			`<a href=\"https://github.com/the_viewer\"><b><code>Example Name (the_viewer)</code></b></a>`,
+			`<a href=\"https://github.com/the_viewer\"><b><code>the_viewer</code></b></a>`,
 		"Quality gate is triggered at https://example.org/build/1 — ping @carol_user",
 		`"body": "/safe-squash-merge --retry"`,
 		`"summary": "<table><tr><td><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></td></tr></table>`,
@@ -180,7 +180,7 @@ func TestCommittedFixturesAreAnonymized(t *testing.T) {
 					}
 				}
 				for _, m := range namedLogin.FindAllStringSubmatch(obj[text].(string), -1) {
-					if name, login := m[2], m[3]; name != keptName && (!pseudonym.MatchString(login) || name != pseudonymName(login)) {
+					if name, login := m[2], m[3]; !pseudonym.MatchString(login) || name != pseudonymName(login) {
 						t.Errorf("%s: bot comment names %q", filepath.Base(f), name)
 					}
 				}
