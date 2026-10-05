@@ -782,12 +782,16 @@ func TestReviewers(t *testing.T) {
 		reviewed(me, "COMMENTED", at(25)).
 		owners(
 			ownerRow{path: "/analysis/", team: "kotlin-analysis-api", members: []string{"carol_user", "alice_user ⏳"}, mark: "✅", assignees: []string{"carol_user 🔒"}},
-			ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"bob_user", "dave_user"}, mark: "🔄", assignees: []string{"bob_user"}},
+			ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"bob_user", "dave_user"}, mark: "🔄", assignees: []string{"bob_user"},
+				names: map[string]string{"bob_user": "Bob User"}},
+			ownerRow{path: "/compiler/ir/", team: "kotlin-backend", members: []string{"alice_user"}, mark: "❌", assignees: []string{"alice_user"},
+				names: map[string]string{"alice_user": "Alice User"}},
 		).mine()
+	// Names come from the table, an owner's or an assignee's.
 	want := []model.Reviewer{
-		{Login: "alice_user", State: model.ReviewerPending, Requested: true, CodeOwner: true, Unavailable: true},
+		{Login: "alice_user", Name: "Alice User", State: model.ReviewerPending, Requested: true, CodeOwner: true, Unavailable: true},
 		{Team: "kotlin-analysis-api", State: model.ReviewerPending, Requested: true},
-		{Login: "bob_user", State: model.ReviewerCommented, At: at(10), CodeOwner: true, ReRequest: true},
+		{Login: "bob_user", Name: "Bob User", State: model.ReviewerCommented, At: at(10), CodeOwner: true, ReRequest: true},
 		{Login: "carol_user", State: model.ReviewerApproved, At: at(20), CodeOwner: true, Final: true},
 	}
 	if !slices.Equal(pr.Reviewers, want) {

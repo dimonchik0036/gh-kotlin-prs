@@ -191,6 +191,7 @@ type Run struct {
 }
 type Reviewer struct {
     Login     string
+    Name      string    // the code-owners table's display name, when it has one
     Team      string    // non-empty for team requests
     State     ReviewerState // Pending | Approved | ChangesRequested | Commented | Dismissed
     Final     bool      // 🔒
@@ -332,7 +333,7 @@ gh kotlin-prs open <number>        # browser
   narrow terminal the reason column narrows first, then the title, down to 20 and 16 columns; past that lines are cut.
 - **Detail pane** (`enter`, `esc` back): the `show` view at the terminal's width, scrollable (`j`/`k`, `pgup`/`pgdown`).
   A merged row comes from the search, so its detail fetches the PR in full. It shows:
-  - all reviewers with state and time;
+  - all reviewers with state and time, and the name the code-owners table shows (`judy_user (Judy Doe)`);
   - code-owner rules with what's missing;
   - run history with TeamCity links;
   - unresolved threads (author, path, first line);

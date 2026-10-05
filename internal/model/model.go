@@ -118,6 +118,8 @@ const (
 
 type Reviewer struct {
 	Login string `json:"login,omitempty"`
+	// Name is the display name the code-owners bot shows next to the login, when it does.
+	Name string `json:"name,omitempty"`
 	// Team is set for a request to a team; Login is empty then.
 	Team  string        `json:"team,omitempty"`
 	State ReviewerState `json:"state"`

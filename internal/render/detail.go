@@ -96,6 +96,9 @@ func DetailView(pr model.PR, now time.Time, opts Options, width int) string {
 	var rows [][]string
 	for _, r := range pr.Reviewers {
 		name := link(links, github.ProfileURL(r.Login), r.Login)
+		if r.Name != "" {
+			name += " (" + r.Name + ")"
+		}
 		if r.Team != "" {
 			name = "team " + link(links && opts.Org != "", github.TeamURL(opts.Org, r.Team), r.Team)
 		}

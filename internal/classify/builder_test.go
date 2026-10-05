@@ -216,7 +216,8 @@ type ownerRow struct {
 	team      string
 	members   []string // "login", "login ⏳", "login (QA)"
 	mark      string
-	assignees []string // "login", "login 🔒"; none means UNASSIGNED
+	assignees []string          // "login", "login 🔒"; none means UNASSIGNED
+	names     map[string]string // profile names by login, shown as the bot does: "Judy Doe (judy_user)"
 }
 
 // owners posts the code-owners comment.
@@ -235,10 +236,14 @@ func (b *prBuilder) ownersCheck(conclusion string, rows ...ownerRow) *prBuilder 
 func ownersTableHTML(rows []ownerRow) string {
 	var s strings.Builder
 	s.WriteString("### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr>")
-	userLink := func(login string) string {
-		return fmt.Sprintf(`<a href="https://github.com/%s"><b><code>%s</code></b></a>`, login, login)
-	}
 	for _, r := range rows {
+		userLink := func(login string) string {
+			text := login
+			if name := r.names[login]; name != "" {
+				text = name + " (" + login + ")"
+			}
+			return fmt.Sprintf(`<a href="https://github.com/%s"><b><code>%s</code></b></a>`, login, text)
+		}
 		writef(&s, "<tr><td><code>%s</code></td><td>", strings.ReplaceAll(r.path, "/", "/\u200b"))
 		if r.team != "" {
 			writef(&s, `<details><summary><a href="https://github.com/orgs/JetBrains/teams/%s">%s</a></summary><ul>`, r.team, r.team)

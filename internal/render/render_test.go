@@ -488,7 +488,7 @@ func TestRunURL(t *testing.T) {
 func TestDetailCodeOwnerWords(t *testing.T) {
 	pr := model.PR{Number: 7, Next: model.NextMe,
 		Reviewers: []model.Reviewer{
-			{Login: "alice_user", State: model.ReviewerCommented, CodeOwner: true, ReRequest: true},
+			{Login: "alice_user", Name: "Alice User", State: model.ReviewerCommented, CodeOwner: true, ReRequest: true},
 			{Login: "bob_user", State: model.ReviewerApproved, CodeOwner: true, Final: true},
 			{Login: "carol_user", State: model.ReviewerPending, Requested: true, Unavailable: true},
 		},
@@ -512,7 +512,7 @@ func TestDetailCodeOwnerWords(t *testing.T) {
 			"  " + icons.OwnersOK + " /b/\n      approved: bob_user (final), erin_user (final, unavailable)" + sep + "owners: bob_user, erin_user\n",
 			"      no reviewer assigned" + sep + "owners: team-c\n",
 			"      no review: carol_user (unavailable)" + sep + "owners: team-d\n",
-			"code owner, needs a re-request\n",
+			"  alice_user (Alice User)  commented  code owner, needs a re-request\n",
 			"code owner, final\n",
 			"requested, unavailable\n",
 		} {

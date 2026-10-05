@@ -8,6 +8,8 @@ breaking JSON changes and noted here.
 
 - The review picker shows the code owners' names in the bot's current format, `Judy Doe (judy_user)` inside the
   link; they were dropped before.
+- `show` and the detail pane show those names next to the reviewers' logins too (`judy_user (Judy Doe)`), and the
+  JSON output has them as the reviewers' `name`.
 
 ## v0.6.2 — 2026-10-02
 

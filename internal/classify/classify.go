@@ -3,6 +3,7 @@
 package classify
 
 import (
+	"cmp"
 	"slices"
 	"strings"
 	"time"
@@ -360,6 +361,7 @@ func (f *facts) reviewers() []model.Reviewer {
 			if r, ok := byLogin[strings.ToLower(o.Login)]; ok {
 				r.CodeOwner = true
 				r.Unavailable = r.Unavailable || o.Unavailable
+				r.Name = cmp.Or(r.Name, o.Name)
 			}
 		}
 		for _, a := range rule.Assignees {
@@ -370,6 +372,7 @@ func (f *facts) reviewers() []model.Reviewer {
 			r.CodeOwner = true
 			r.Final = r.Final || a.Final
 			r.Unavailable = r.Unavailable || a.Unavailable
+			r.Name = cmp.Or(r.Name, a.Name)
 			r.ReRequest = r.ReRequest || rule.Mark == model.MarkReRequest
 		}
 	}
