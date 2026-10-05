@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.8.0 — 2026-10-05
+
+Code owners' names in the menu-bar plugin. The JSON output is unchanged (`"version": 1`).
+
 - The menu-bar plugin shows the reviewers' names after their logins too, as `show` does: cut after a word at 24
   columns, the whole name in the tooltip.
 
