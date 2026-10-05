@@ -28,7 +28,7 @@ in that order, then review the diff.
 
 Only through `scripts/fetch-fixtures.sh`, which anonymizes everything it writes. The one exception is the derived demo
 fixture `testdata/demo/pr-90010.json`: #90006 with another code-owners table (three rows nobody was asked for, two
-sharing an owner, a `🔄` re-request), for the request-review recording. `TestDemoFixture` derives it from
+sharing an owner, a `🔄` re-request, some owners with a profile name), for the request-review recording. `TestDemoFixture` derives it from
 `testdata/raw`; `go test ./internal/demo -run TestDemoFixture -update` regenerates it after a refetch. It's not in
 `testdata/raw`, so no golden sees it; demo mode loads it with `GH_KOTLIN_PRS_DEMO=testdata/raw:testdata/demo`.
 Never commit raw GraphQL responses,

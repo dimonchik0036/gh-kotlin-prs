@@ -247,9 +247,11 @@ func TestRequestReviewRecording(t *testing.T) {
 		t.Errorf("no review hint: %q", h.statusBar())
 	}
 	h.keys("A")
-	h.contains("▾ /analysis/                           → dave_user", "    [x] dave_user          commented", "▸ /compiler/fir/ +3", "✓ trent_user",
+	h.contains("▾ /analysis/                           → dave_user", "    [x] dave_user (Dave User)    commented", "▸ /compiler/fir/ +3", "✓ trent_user",
 		"▾ /compiler/testData/codegen/asmLike/  unassigned", "▾ /core/descriptors.runtime/           unassigned",
-		"▾ /plugins/parcelize/                  unassigned", "2 of 5 subsystems covered ∙ will request: dave_user")
+		"▾ /plugins/parcelize/                  unassigned", "    [ ] judy_user (Judy User)    also /core/descriptors.runtime/",
+		"2 of 5 subsystems covered ∙ will request: dave_user")
+	h.lacks("peggy_user (")
 	// judy_user covers two rows; the third unassigned one stays open.
 	for range 7 {
 		h.keys("down")
@@ -281,7 +283,7 @@ func TestRequestReviewRecording(t *testing.T) {
 		t.Errorf("the hint stays: %q", h.statusBar())
 	}
 	h.keys("enter")
-	h.contains("#90010 KT-990011: Example change")
+	h.contains("#90010 KT-990011: Example change", "  dave_user (Dave User)    commented", "  peggy_user               pending")
 }
 
 // The status bar hints the review key only on a PR with someone to re-request (2a) or a

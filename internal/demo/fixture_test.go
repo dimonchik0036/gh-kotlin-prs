@@ -75,15 +75,26 @@ var assignmentTable = []codeOwnersRow{
 		owners: []string{"peggy_user", "heidi_user (QA)", "ivan_user ⏳"}},
 }
 
+// profileNames are the people of assignmentTable with a profile name, named as the
+// anonymizer names pseudonyms; the others have none, as some real people don't.
+var profileNames = map[string]string{
+	"dave_user": "Dave User", "judy_user": "Judy User", "quinn_user": "Quinn User", "trent_user": "Trent User",
+}
+
 // codeOwnersHTML is the table in the bot's HTML: zero-width spaces after "/", ".", "_"
-// and "-" in paths, user links in <code>, a team as <details>, marks after the links.
+// and "-" in paths, user links in <code> ("Name (login)" with a profile name), a team as
+// <details>, marks after the links.
 func codeOwnersHTML(rows []codeOwnersRow) string {
 	user := func(entry string) string {
 		login, suffix, _ := strings.Cut(entry, " ")
 		if suffix != "" {
 			suffix = " " + suffix
 		}
-		return fmt.Sprintf(`<a href="https://github.com/%s"><b><code>%s</code></b></a>%s`, login, login, suffix)
+		text := login
+		if name := profileNames[login]; name != "" {
+			text = name + " (" + login + ")"
+		}
+		return fmt.Sprintf(`<a href="https://github.com/%s"><b><code>%s</code></b></a>%s`, login, text, suffix)
 	}
 	zwsp := strings.NewReplacer("/", "/\u200b", ".", ".\u200b", "_", "_\u200b", "-", "-\u200b")
 	var b strings.Builder
@@ -211,15 +222,19 @@ func TestDemoAssignment(t *testing.T) {
 	for _, s := range actions.Subsystems(pr) {
 		var logins []string
 		for _, c := range s.Candidates {
-			logins = append(logins, c.Login)
+			if c.Name != "" {
+				logins = append(logins, c.Login+"("+c.Name+")")
+			} else {
+				logins = append(logins, c.Login)
+			}
 		}
 		rows = append(rows, fmt.Sprintf("%s +%d %s: %s", s.Path, s.More, s.Status, strings.Join(logins, " ")))
 	}
 	want := []string{
-		"/analysis/ +0 re-request: dave_user: bob_user carol_user dave_user erin_user",
-		"/compiler/fir/ +3 ✓ trent_user: quinn_user rupert_user sybil_user trent_user ursula_user victor_user",
-		"/compiler/testData/codegen/asmLike/ +0 unassigned: judy_user laura_user mallory_user kevin_user",
-		"/core/descriptors.runtime/ +0 unassigned: niaj_user judy_user olivia_user",
+		"/analysis/ +0 re-request: dave_user: bob_user carol_user dave_user(Dave User) erin_user",
+		"/compiler/fir/ +3 ✓ trent_user: quinn_user(Quinn User) rupert_user sybil_user trent_user(Trent User) ursula_user victor_user",
+		"/compiler/testData/codegen/asmLike/ +0 unassigned: judy_user(Judy User) laura_user mallory_user kevin_user",
+		"/core/descriptors.runtime/ +0 unassigned: niaj_user judy_user(Judy User) olivia_user",
 		"/plugins/parcelize/ +0 unassigned: peggy_user heidi_user ivan_user",
 	}
 	if strings.Join(rows, "\n") != strings.Join(want, "\n") {
