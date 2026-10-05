@@ -6,6 +6,11 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.7.0 — 2026-10-05
+
+Code owners' names, now that the bot's table has them. The JSON output only gains a field, so it stays
+`"version": 1`.
+
 - The review picker shows the code owners' names in the bot's current format, `Judy Doe (judy_user)` inside the
   link; they were dropped before.
 - `show` and the detail pane show those names next to the reviewers' logins too (`judy_user (Judy Doe)`), and the
