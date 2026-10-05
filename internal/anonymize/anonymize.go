@@ -1,7 +1,7 @@
 // Package anonymize rewrites raw GraphQL responses before they are committed as test
 // fixtures. Human logins become stable pseudonyms (alice_user, bob_user, …), human-written
 // text becomes filler, and bot comments stay verbatim, since they are the parsing contract,
-// except for the logins inside them. PR and KT numbers, commit SHAs, Space merge requests
+// except for the logins and names inside them. PR and KT numbers, commit SHAs, Space merge requests
 // and file paths become fake values of the same shape, so a fixture can't be traced back
 // to its PR.
 package anonymize
@@ -25,6 +25,8 @@ var pseudonyms = []string{
 }
 
 const (
+	// keptName stands for the name of a person whose login stays (the viewer, a bot).
+	keptName      = "Example Name"
 	commentFiller = "Comment text."
 	threadFiller  = "Review comment text."
 	commitFiller  = "Commit message."
@@ -35,8 +37,11 @@ var (
 	// Profile links in bot comments: <a href="https://github.com/login">.
 	// Underscores never occur in real logins, but synthetic test logins use them.
 	profileLink = regexp.MustCompile(`https://github\.com/([A-Za-z0-9_](?:[A-Za-z0-9_-]*[A-Za-z0-9_])?)"`)
-	command     = regexp.MustCompile(`^/[a-z-]+`)
-	flag        = regexp.MustCompile(`^--?[a-z-]+$`)
+	// A person's name and login in a profile link: <a href="…"><b><code>Judy Doe (judy)</code></b></a>.
+	// The name is any profile text, parentheses included, with < escaped.
+	namedLogin = regexp.MustCompile(`(https://github\.com/[^"]+"[^>]*>(?:<[a-z]+>)*<code>)([^<]+?)\s\(([A-Za-z0-9_-]+(?:\[bot])?)\)</code>`)
+	command    = regexp.MustCompile(`^/[a-z-]+`)
+	flag       = regexp.MustCompile(`^--?[a-z-]+$`)
 )
 
 type Anonymizer struct {
@@ -241,8 +246,17 @@ func commandOnly(body string) string {
 }
 
 // replaceLogins swaps logins in the places bots put them: profile links, the
-// <code>login</code> inside them, and @mentions.
+// <code>login</code> inside them, and @mentions. A name next to a login in a profile link
+// becomes the pseudonym's (or keptName, for a login that stays).
 func (a *Anonymizer) replaceLogins(body string) string {
+	body = namedLogin.ReplaceAllStringFunc(body, func(m string) string {
+		g := namedLogin.FindStringSubmatch(m)
+		login, name := g[3], keptName
+		if pseudonym, ok := a.names[strings.ToLower(login)]; ok {
+			login, name = pseudonym, pseudonymName(pseudonym)
+		}
+		return g[1] + name + " (" + login + ")</code>"
+	})
 	logins := slices.Collect(maps.Keys(a.names))
 	// Longest first, so a login that prefixes another doesn't clobber it.
 	slices.SortFunc(logins, func(x, y string) int { return len(y) - len(x) })
@@ -278,6 +292,12 @@ func (a *Anonymizer) check(doc any) error {
 		return fmt.Errorf("real identifiers left after anonymizing: %s", strings.Join(ids, ", "))
 	}
 	return nil
+}
+
+// pseudonymName is the made-up name of a pseudonym: "Bob User" for bob_user and bob2_user.
+func pseudonymName(pseudonym string) string {
+	first := strings.TrimRight(strings.TrimSuffix(pseudonym, "_user"), "0123456789")
+	return strings.ToUpper(first[:1]) + first[1:] + " User"
 }
 
 func (a *Anonymizer) pseudonym(login string) string {

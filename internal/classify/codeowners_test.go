@@ -260,6 +260,21 @@ func TestParseCodeOwnersPeople(t *testing.T) {
 			model.Owner{Login: "judy", Name: "Judy Doe", Unavailable: true}, false},
 		{"only a name: the login from the href", link(profile, "<b><code>Judy Doe</code></b>"),
 			model.Owner{Login: "judy", Name: "Judy Doe"}, false},
+		{"the name, then the login", link(profile, "<b><code>Judy Doe (judy)</code></b>") + " (QA) ⏳",
+			model.Owner{Login: "judy", Name: "Judy Doe", Role: "QA", Unavailable: true}, false},
+		{"the name, then the login: any profile name", link(profile, "<b><code>J. Doe 2nd (Judy) &amp; co 👩\u200d💻 (judy)</code></b>"),
+			model.Owner{Login: "judy", Name: "J. Doe 2nd (Judy) & co 👩\u200d💻"}, false},
+		{"the name, then the login: marks in the name aren't marks", link(profile, "<b><code>Judy ⏳🔒 (QA) (judy)</code></b>") + " (PM)",
+			model.Owner{Login: "judy", Name: "Judy ⏳🔒 (QA)", Role: "PM"}, false},
+		{"the name, then the login: no control characters", link(profile, "<b><code>Judy\x1b[31m\tDoe\u202e (judy)</code></b>"),
+			model.Owner{Login: "judy", Name: "Judy [31m Doe"}, false},
+		{"the name, then the login in another case", link(profile, "<b><code>Judy Doe (Judy)</code></b>"),
+			model.Owner{Login: "judy", Name: "Judy Doe"}, false},
+		{"the name, then another login: unsure", link(profile, "<b><code>Judy Doe (kevin)</code></b>"),
+			model.Owner{Login: "judy"}, false},
+		{"another host, the name, then the login", link("https://example.org/people/42", "<code>Judy Doe (judy-doe)</code>"),
+			model.Owner{Login: "judy-doe", Name: "Judy Doe"}, false},
+		{"another host, a name and a role", link("https://example.org/people/42", "<code>Judy Doe (QA)</code>"), model.Owner{}, true},
 		{"a name in an inline element", link(profile, "<b><code>judy</code></b>") + " <sub>Judy Doe</sub> ⏳",
 			model.Owner{Login: "judy", Name: "Judy Doe", Unavailable: true}, false},
 		{"a trailing slash and a fragment", link("https://github.com/judy/#profile", "<code>judy</code>"), model.Owner{Login: "judy"}, false},
@@ -290,12 +305,14 @@ func TestParseCodeOwnersAssigneesWithNames(t *testing.T) {
 	body := "<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/src/</code></td><td></td>" +
 		`<td align="center">✅<br><a href="https://github.com/judy"><b><code>judy</code></b></a> <sub>Judy Doe</sub> 🔒, ` +
 		`<a href="https://github.com/kevin/"><b><code>Kevin Roe</code></b></a> ⏳, ` +
-		`<a href="https://github.com/laura"><b><code>laura</code></b></a></td></tr></table>` + "\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"
+		`<a href="https://github.com/laura"><b><code>laura</code></b></a>, ` +
+		`<a href="https://github.com/mike"><b><code>Mike Poe (mike)</code></b></a> 🔒</td></tr></table>` + "\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"
 	rules, ok := ParseCodeOwners(body)
 	if !ok || len(rules) != 1 {
 		t.Fatalf("rules = %+v, %v", rules, ok)
 	}
-	want := []model.Assignee{{Login: "judy", Name: "Judy Doe", Final: true}, {Login: "kevin", Name: "Kevin Roe", Unavailable: true}, {Login: "laura"}}
+	want := []model.Assignee{{Login: "judy", Name: "Judy Doe", Final: true}, {Login: "kevin", Name: "Kevin Roe", Unavailable: true},
+		{Login: "laura"}, {Login: "mike", Name: "Mike Poe", Final: true}}
 	if r := rules[0]; r.Mark != model.MarkApproved || !slices.Equal(r.Assignees, want) {
 		t.Errorf("approval = %s %+v, want %+v", r.Mark, r.Assignees, want)
 	}

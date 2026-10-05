@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- The review picker shows the code owners' names in the bot's current format, `Judy Doe (judy_user)` inside the
+  link; they were dropped before.
+
 ## v0.6.2 — 2026-10-02
 
 Fixes for long lines in the menu-bar plugin. The JSON output is unchanged (`"version": 1`).

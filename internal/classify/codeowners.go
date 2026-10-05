@@ -3,6 +3,7 @@ package classify
 import (
 	"regexp"
 	"strings"
+	"unicode"
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -159,34 +160,58 @@ var validLogin = regexp.MustCompile(`^[A-Za-z0-9-]+(\[bot])?$`)
 // punctuation of names, nothing like a mark or a list.
 var displayName = regexp.MustCompile(`^\p{L}[\p{L}\p{M} .'-]*$`)
 
+// nameAndLogin is the bot's "Judy Doe (judy)" in a person link: the profile name, any text,
+// then the login.
+var nameAndLogin = regexp.MustCompile(`^(.+?)\s+\(([^()\s]+)\)$`)
+
 // parsePerson reads a person link: the login from its href, a profile URL, else from its
 // text when that's a valid login (anything else isn't a person). The marks (⏳, 🔒, (QA),
 // (PM)) are in the text up to the next link, <br>, <li> or the cell's end, whatever
-// inline elements hold it; a display name, in the link or after it, only when it's clearly
-// one: a single candidate that looks like a name and isn't the login.
+// inline elements hold it. "Judy Doe (judy)" in the link is the name and the login when
+// that login is the href's (or, without a profile href, a valid one): the name is kept
+// whatever it holds, and the marks are only read around it. Otherwise a display name, in
+// the link or after it, only when it's clearly one: a single candidate that looks like a
+// name and isn't the login.
 func parsePerson(a *html.Node) (person, bool) {
 	inside := cleanText(a)
 	code := inside
 	if c := find(a, atom.Code); c != nil {
 		code = cleanText(c)
 	}
+	rest := strings.Replace(inside, code, "", 1)
+	login, profile := github.ParseProfileURL(attr(a, "href"))
+	named := nameAndLogin.FindStringSubmatch(code)
+	if named != nil && !(profile && strings.EqualFold(named[2], login) ||
+		!profile && validLogin.MatchString(named[2]) && !memberRole.MatchString("("+named[2]+")")) {
+		named = nil
+	}
 	var p person
-	if login, ok := github.ParseProfileURL(attr(a, "href")); ok {
+	switch {
+	case profile:
 		p.login = login
-	} else if validLogin.MatchString(code) {
+	case named != nil:
+		p.login = named[2]
+	case validLogin.MatchString(code):
 		p.login = code
-	} else {
+	default:
 		return person{}, false
 	}
 	after := textAfter(a)
 	marks := inside + " " + after
+	if named != nil {
+		marks = rest + " " + after
+	}
 	p.unavailable = strings.Contains(marks, markUnavailable)
 	p.final = strings.Contains(marks, markFinal)
 	if m := memberRole.FindStringSubmatch(marks); m != nil {
 		p.role = m[1]
 	}
+	if named != nil {
+		p.name = printable(named[1])
+		return p, true
+	}
 	var names []string
-	for _, candidate := range []string{strings.Replace(inside, code, "", 1), code, after} {
+	for _, candidate := range []string{rest, code, after} {
 		if n := stripMarks(candidate); n != "" && !strings.EqualFold(n, p.login) && displayName.MatchString(n) {
 			names = append(names, n)
 		}
@@ -195,6 +220,18 @@ func parsePerson(a *html.Node) (person, bool) {
 		p.name = names[0]
 	}
 	return p, true
+}
+
+// printable is a name without control and other invisible characters (but the joiner of
+// emoji sequences), its spaces collapsed.
+func printable(s string) string {
+	s = strings.Map(func(r rune) rune {
+		if unicode.IsGraphic(r) || r == '\u200d' {
+			return r
+		}
+		return ' '
+	}, s)
+	return strings.Join(strings.Fields(s), " ")
 }
 
 // stripMarks drops the marks and list punctuation around a name.

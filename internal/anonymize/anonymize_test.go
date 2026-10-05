@@ -22,6 +22,8 @@ const first = `{"data": {
     "comments": {"nodes": [
       {"author": {"__typename": "Bot", "login": "kotlin-safemerge"}, "isMinimized": false,
        "body": "<table><tr><td><a href=\"https://github.com/real_owner\"><b><code>real_owner</code></b></a> ⏳</td><td>❌<br><a href=\"https://github.com/Real_Reviewer\"><b><code>Real_Reviewer</code></b></a></td></tr></table>\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"},
+      {"author": {"__typename": "Bot", "login": "kotlin-safemerge"}, "isMinimized": false,
+       "body": "<table><tr><td><a href=\"https://github.com/real_owner\"><b><code>Secret Name (Secret) &amp; co (real_owner)</code></b></a> ⏳, <a href=\"https://github.com/the_viewer\"><b><code>Viewer Secret (the_viewer)</code></b></a></td></tr></table>"},
       {"author": {"__typename": "User", "login": "KotlinBuild"}, "isMinimized": false, "body": "Quality gate is triggered at https://example.org/build/1 — ping @real_reviewer"},
       {"author": {"__typename": "User", "login": "real_author"}, "isMinimized": false, "body": "/safe-squash-merge --title=\"Secret plans\" --retry\nmore text"},
       {"author": {"__typename": "User", "login": "the_viewer"}, "isMinimized": false, "body": "I talked to real_reviewer about it",
@@ -70,7 +72,7 @@ func anonymizeBoth(t *testing.T) (string, string) {
 
 func TestAnonymize(t *testing.T) {
 	got, other := anonymizeBoth(t)
-	for _, secret := range []string{"real_author", "real_reviewer", "Real_Reviewer", "real_owner", "Secret plans", "frobnicator", "talked", "Why,"} {
+	for _, secret := range []string{"real_author", "real_reviewer", "Real_Reviewer", "real_owner", "Secret plans", "frobnicator", "talked", "Why,", "Secret Name", "Viewer Secret"} {
 		if strings.Contains(got, secret) || strings.Contains(other, secret) {
 			t.Errorf("%q survived:\n%s", secret, got)
 		}
@@ -90,6 +92,8 @@ func TestAnonymize(t *testing.T) {
           "login": "alice_user"`,
 		`<a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a> ⏳`,
 		`❌<br><a href=\"https://github.com/carol_user\"><b><code>carol_user</code></b></a>`,
+		`<a href=\"https://github.com/bob_user\"><b><code>Bob User (bob_user)</code></b></a> ⏳, ` +
+			`<a href=\"https://github.com/the_viewer\"><b><code>Example Name (the_viewer)</code></b></a>`,
 		"Quality gate is triggered at https://example.org/build/1 — ping @carol_user",
 		`"body": "/safe-squash-merge --retry"`,
 		`"summary": "<table><tr><td><a href=\"https://github.com/bob_user\"><b><code>bob_user</code></b></a></td></tr></table>`,
@@ -139,6 +143,10 @@ func TestPseudonymsWrapAround(t *testing.T) {
 	if a.names["user_zz"] != "" || a.names["user_ax"] != "alice2_user" || a.names["user_bx"] != "bob2_user" {
 		t.Errorf("names = %v", a.names)
 	}
+	// The made-up names have no digits, so the parser takes them for names.
+	if got := pseudonymName("alice2_user"); got != "Alice User" {
+		t.Errorf("pseudonymName(alice2_user) = %q", got)
+	}
 }
 
 // Every committed fixture went through the anonymizer: logins are pseudonyms, the
@@ -169,6 +177,11 @@ func TestCommittedFixturesAreAnonymized(t *testing.T) {
 				for _, m := range profileLink.FindAllStringSubmatch(obj[text].(string), -1) {
 					if m[1] != viewer && !pseudonym.MatchString(m[1]) {
 						t.Errorf("%s: bot comment links %q", filepath.Base(f), m[1])
+					}
+				}
+				for _, m := range namedLogin.FindAllStringSubmatch(obj[text].(string), -1) {
+					if name, login := m[2], m[3]; name != keptName && (!pseudonym.MatchString(login) || name != pseudonymName(login)) {
+						t.Errorf("%s: bot comment names %q", filepath.Base(f), name)
 					}
 				}
 			} else if body, ok := obj["body"].(string); ok && body != commentFiller && body != threadFiller && body != commandOnly(body) {

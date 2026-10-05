@@ -80,11 +80,15 @@ We read the check first: the comment is old, so on a busy PR it falls out of `co
   takes any reviewer's decision.
 - A person, in the Owners and the Approval cells, is a link whose href is a profile, `https://github.com/<login>`
   (a trailing slash, a query or a fragment don't matter): the login comes from the href, and the link's text is only
-  shown. A link elsewhere counts only when its text is a valid login (`[A-Za-z0-9-]+`, maybe with `[bot]`). The marks
-  after a person (`⏳`, `🔒`, `(QA)`, `(PM)`) are read from all the text up to the next link, `<br>`, `<li>` or the
-  end of the cell, inline elements such as `<sub>` included. A display name, in the link (`<code>login</code> Name`,
-  or a text that isn't the login) or after it, is kept (`Owner.Name`, `Assignee.Name`; the picker shows
-  `judy_user (Judy Doe)`) only when there's exactly one that looks like a name; otherwise none.
+  shown. A link elsewhere counts only when its text is a valid login (`[A-Za-z0-9-]+`, maybe with `[bot]`), alone or
+  in the bot's `Name (login)`. The marks after a person (`⏳`, `🔒`, `(QA)`, `(PM)`) are read from all the text up to
+  the next link, `<br>`, `<li>` or the end of the cell, inline elements such as `<sub>` included.
+- Names (`Owner.Name`, `Assignee.Name`; the picker shows `judy_user (Judy Doe)`): the bot writes a person with a
+  profile name as `<code>Judy Doe (judy_user)</code>` in the link, else as `<code>judy_user</code>`. The name is the
+  profile's free text (HTML-escaped): kept whatever it holds, without control characters, when the login in
+  parentheses is the href's; marks are then read only outside the `<code>`. Other forms, a name in the link
+  (`<code>login</code> Name`, or a text that isn't the login) or after it, are kept only when there's exactly one that
+  looks like a name; otherwise none.
 - Approval: a mark, then the people it refers to:
   - `❌` no decision: the owners currently requested as reviewers, or `UNASSIGNED`;
   - `🔄` an owner only commented and isn't requested again: they owe a decision and need a re-request;

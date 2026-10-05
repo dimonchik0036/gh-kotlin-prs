@@ -292,7 +292,8 @@ refresh. The README's recordings come from it: `scripts/screenshots.sh` plays `d
 `testdata/raw` holds GraphQL responses, `testdata/golden` the model JSON
 and table text they produce. `scripts/fetch-fixtures.sh` refetches every fixture and passes the batch through
 `scripts/anonymize`: logins become pseudonyms (alice_user, bob_user, …) except yours and the bots', human text becomes
-filler, and bot comments stay verbatim apart from the logins in them. Raw responses never leave a temp dir.
+filler, and bot comments stay verbatim apart from the logins in them and the names next to those (`Bob User`, or
+`Example Name` for a login that stays). Raw responses never leave a temp dir.
 PR and KT numbers, commit SHAs, merge-request ids and thread paths are fake too. The real → fake map is
 `testdata/.fixture-map.json`: local, gitignored, never commit it. Without it the script can't refetch the
 existing fixtures, only add new ones.
