@@ -344,6 +344,16 @@ func (b *builder) reviewers(depth int, pr model.PR, icons render.Icons) {
 	b.line(depth, text(fmt.Sprintf("Reviewers (%d approved)", pr.Approvals)), "color=gray")
 	for _, r := range pr.Reviewers {
 		who := r.Login
+		params := "trim=false"
+		if r.Name != "" {
+			name := cutWords(r.Name, nameWidth, icons.Ellipsis)
+			who += " (" + name + ")"
+			// A name is free text: SwiftBar mustn't read :codes: in it as emoji or symbols.
+			params += " emojize=false symbolize=false"
+			if name != r.Name {
+				params += " tooltip=" + param(text(r.Login+" ("+r.Name+")"))
+			}
+		}
 		if r.Team != "" {
 			who = "team " + r.Team
 		}
@@ -351,7 +361,7 @@ func (b *builder) reviewers(depth int, pr model.PR, icons render.Icons) {
 		if r.CodeOwner {
 			s += " (code owner)"
 		}
-		b.line(depth, text(s), "trim=false")
+		b.line(depth, text(s), params)
 	}
 	b.line(depth, text("Code owners: "+string(pr.CodeOwners.State)), "color=gray")
 	for _, rule := range pr.CodeOwners.Missing() {
@@ -397,14 +407,22 @@ func cutList(items []string, width int, more string) string {
 // has it all.
 const submenuTitleWidth = 100
 
+// nameWidth is where a reviewer's name is cut in the menu; the tooltip has it whole.
+const nameWidth = 24
+
 // cutTitle cuts title to submenuTitleWidth with the ellipsis, after its last whole word
 // when there is one.
 func cutTitle(title, ellipsis string) string {
-	if ansi.StringWidth(title) <= submenuTitleWidth {
-		return title
+	return cutWords(title, submenuTitleWidth, ellipsis)
+}
+
+// cutWords cuts s to width with the ellipsis, after its last whole word when there is one.
+func cutWords(s string, width int, ellipsis string) string {
+	if ansi.StringWidth(s) <= width {
+		return s
 	}
-	cut := ansi.Truncate(title, submenuTitleWidth-ansi.StringWidth(ellipsis), "")
-	if i := strings.LastIndex(cut, " "); i > 0 && title[len(cut)] != ' ' {
+	cut := ansi.Truncate(s, width-ansi.StringWidth(ellipsis), "")
+	if i := strings.LastIndex(cut, " "); i > 0 && s[len(cut)] != ' ' {
 		cut = cut[:i]
 	}
 	return strings.TrimRight(cut, " ") + ellipsis

@@ -371,6 +371,29 @@ func TestCodeOwnerRulePaths(t *testing.T) {
 	}
 }
 
+// A reviewer's name follows the login, cut after a word at nameWidth with the whole one in
+// the tooltip; SwiftBar reads no codes in it. Without a name the line stays as it was.
+func TestReviewerNames(t *testing.T) {
+	m := fixtureMenu(t)
+	m.PRs = []model.PR{{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Author: m.Viewer,
+		Section: model.SectionMine, Next: model.NextReviewers, Reviewers: []model.Reviewer{
+			{Login: "alice_user", Name: "Alice User", State: model.ReviewerApproved, CodeOwner: true},
+			{Login: "bob_user", Name: "Bobby Example-Longname :smile: Third", State: model.ReviewerPending},
+			{Login: "carol_user", State: model.ReviewerPending},
+		}}}
+	out := Render(m)
+	for _, want := range []string{
+		"\n--  alice_user (Alice User) approved (code owner) | trim=false emojize=false symbolize=false\n",
+		"\n--  bob_user (Bobby Example-Longname⋯) pending | trim=false emojize=false symbolize=false " +
+			`tooltip="bob_user (Bobby Example-Longname :smile: Third)"` + "\n",
+		"\n--  carol_user pending | trim=false\n",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("the menu lacks %q:\n%s", want, out)
+		}
+	}
+}
+
 // A long title at the top of a PR's submenu is cut after a word, the whole title in the
 // tooltip; a short one stays as it is, without one.
 func TestSubmenuTitle(t *testing.T) {

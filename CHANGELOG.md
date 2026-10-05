@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- The menu-bar plugin shows the reviewers' names after their logins too, as `show` does: cut after a word at 24
+  columns, the whole name in the tooltip.
+
 ## v0.7.0 — 2026-10-05
 
 Code owners' names, now that the bot's table has them. The JSON output only gains a field, so it stays

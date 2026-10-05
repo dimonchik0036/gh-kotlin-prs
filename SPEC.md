@@ -624,7 +624,8 @@ scripts/fetch-fixtures.sh
   - a PR's submenu: the title (gray, no action; cut after a word at 100, with the whole title as the tooltip), in
     Review "by <login> · pushed 2h ago" (gray; Mine is always mine), "Details in the interactive view", whose move it
     is and every reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the
-    reviewers and the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in
+    reviewers (a name after the login as in `show`, cut after a word at 24 with the whole one in the tooltip, and
+    neither emoji nor SF Symbol codes read in it) and the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in
     the tooltip, so the owners after them stay), "Open on GitHub", "Copy link", "Copy branch" (through the script's
     `copy` verb), and the commands `actions.Available` allows now. A command opens the interactive view on the PR with
     that command's question (`--pr N --post <command>`); nothing is ever posted from the menu. On my open PRs,
