@@ -19,13 +19,17 @@
      binaries to the existing draft again and publishes it.
    - A published release is final (with immutable releases on, its binaries and tag can't change): a broken one gets
      a new patch version, never a re-tag.
-5. Once the release exists, install it from GitHub and check it:
+5. Once the release exists, install it from GitHub and check it. `gh extension list` says what's installed first:
+   the release (`dimonchik0036/gh-kotlin-prs`) or a development install from the repository.
    ```sh
-   gh extension remove kotlin-prs                    # if a development install exists
+   gh extension remove kotlin-prs                    # whatever is installed
    gh extension install dimonchik0036/gh-kotlin-prs
    gh kotlin-prs --version                           # prints vX.Y.Z
+   ```
+   Keep it installed, unless it replaced a development install; then go back to that:
+   ```sh
    gh extension remove kotlin-prs
-   go build && gh extension install .                # back to the development install
+   go build && gh extension install .
    ```
 
 ## Versions
