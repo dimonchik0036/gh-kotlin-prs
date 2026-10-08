@@ -6,6 +6,11 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.9.0 — 2026-10-08
+
+Release branches and the bots' PRs. The JSON output only gains fields and values (`"next": "release"`,
+`qualityGate`, `cherryPickOf`, `assignees`), so it stays `"version": 1`.
+
 - PRs into a release branch (`2.5.0`, `2.5.0-RC`, …) follow the release workflow: no dry-run or safe-merge offered,
   the quality gates are the TeamCity builds on the head commit, of which only the release Aggregate blocks (a failed
   one is your move until you comment or push; the User Projects are hints), and once it passed and the other code
