@@ -22,7 +22,7 @@ go build -o "$tmp/gh-kotlin-prs" .
 # author; the review hint, a name, a pick covering two rows, the question, the pretended send.
 shows() {
   case "$1" in
-    demo) echo "pick code owners to request a review from|copy its branch name|Example change          kevin2_user  DR" ;;
+    demo) echo "post /test-public, after asking|pick code owners to request a review from|copy its branch name|Example change          kevin2_user  DR" ;;
     request-review) echo "A request review|judy_user (Judy User)|4 of 5 subsystems covered|Request a review of #90010 from dave_user, judy_user, peggy_user? [y/N]|demo: not sent: requested a review of #90010" ;;
   esac
 }
