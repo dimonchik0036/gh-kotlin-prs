@@ -36,7 +36,7 @@ func TestQueries(t *testing.T) {
 		t.Fatal(err)
 	}
 	ctx := context.Background()
-	search, err := github.SearchSections(ctx, c, "JetBrains/kotlin", c.Now().Add(-24*time.Hour))
+	search, err := github.SearchSections(ctx, c, "JetBrains/kotlin", "KotlinBuild", c.Now().Add(-24*time.Hour))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestQueries(t *testing.T) {
 			t.Errorf("#%d merged outside the window", pr.Number)
 		}
 	}
-	prs, _, err := github.FetchPRs(ctx, c, "JetBrains", "kotlin", search.Mine)
+	prs, _, err := github.FetchPRs(ctx, c, "JetBrains", "kotlin", search.Mine, nil)
 	if err != nil || len(prs) != len(search.Mine) {
 		t.Errorf("FetchPRs: %d PRs, %v", len(prs), err)
 	}

@@ -41,6 +41,7 @@ var fields = []field{
 	{key: "bots", doc: "Accounts ignored by the \"someone commented\" rules.", get: func(c Config) string { return list(c.Bots) }},
 	{key: "gateBot", doc: "Posts the quality-gate comments.", get: func(c Config) string { return scalar(c.GateBot) }},
 	{key: "ownersBot", doc: "Posts the code-owners table and answers commands.", get: func(c Config) string { return scalar(c.OwnersBot) }},
+	{key: "cherryPickBot", doc: "Opens the cherry-pick PRs, whose body names the original PR's author: they're that author's.", get: func(c Config) string { return scalar(c.CherryPickBot) }},
 	{key: "releaseBranches", doc: "Base branches with the release workflow: no dry-run or safe-merge, quality gates on pushes, a manual merge.", get: func(c Config) string { return scalar(c.ReleaseBranches) }},
 	{key: "releaseRunPrefixes", doc: "Branch prefixes whose pushes run a release branch's quality gates; {base} is the release branch.", get: func(c Config) string { return list(c.ReleaseRunPrefixes) }},
 	{key: "releaseTeam", doc: "The code-owner team of the release engineers: its members merge a release branch's PRs.", get: func(c Config) string { return scalar(c.ReleaseTeam) }},

@@ -39,11 +39,24 @@ type Data struct {
 // Fetch runs the searches and fetches the PRs of the given sections: two requests, or
 // more for over 40 PRs.
 func Fetch(ctx context.Context, client github.Client, cfg config.Config, now time.Time, sections []model.Section) (*Data, error) {
-	search, err := github.SearchSections(ctx, client, cfg.Repo, now.Add(-MergedWindow))
+	search, err := github.SearchSections(ctx, client, cfg.Repo, cfg.CherryPickBot, now.Add(-MergedWindow))
 	if err != nil {
 		return nil, err
 	}
 	d := &Data{Viewer: search.Viewer, RateLimit: search.RateLimit, section: map[int]model.Section{}}
+	// Of the others' PRs that may be mine, those I answer for are: a bot's assigned to me, a
+	// cherry-pick naming me with nobody assigned. Not a person's PR assigned to me, nor a
+	// mention alone.
+	mine := func(pr github.PullRequest) bool {
+		owners, _ := classify.Owners(cfg, &pr)
+		return slices.ContainsFunc(owners, func(o string) bool { return config.SameLogin(o, search.Viewer) })
+	}
+	var others []int
+	for _, pr := range search.MaybeMine {
+		if mine(pr) {
+			others = append(others, pr.Number)
+		}
+	}
 
 	// A PR goes to the first section it qualifies for: Mine, Review (personal request or
 	// reviewed by me), then Team requests (requested from a team only).
@@ -55,12 +68,12 @@ func Fetch(ctx context.Context, client github.Client, cfg config.Config, now tim
 			}
 		}
 	}
-	assign(model.SectionMine, search.Mine)
+	assign(model.SectionMine, search.Mine, others)
 	assign(model.SectionReview, search.Personal, search.Reviewed)
 	assign(model.SectionTeams, search.Requested)
 	d.order = slices.DeleteFunc(d.order, func(n int) bool { return !slices.Contains(sections, d.section[n]) })
 
-	prs, limit, err := github.FetchPRs(ctx, client, cfg.Owner(), cfg.Name(), d.order)
+	prs, limit, err := github.FetchPRs(ctx, client, cfg.Owner(), cfg.Name(), d.order, others)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +82,7 @@ func Fetch(ctx context.Context, client github.Client, cfg config.Config, now tim
 		d.RateLimit = limit
 	}
 	if slices.Contains(sections, model.SectionMerged) {
-		d.merged = search.Merged
+		d.merged = slices.Concat(search.Merged, slices.DeleteFunc(search.MaybeMineMerged, func(pr github.PullRequest) bool { return !mine(pr) }))
 	}
 	return d, nil
 }

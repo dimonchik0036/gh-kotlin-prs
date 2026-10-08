@@ -41,7 +41,7 @@ func TestForgetPR(t *testing.T) {
 	fetch := func() {
 		t.Helper()
 		for _, batch := range [][]int{{7, 8}, {9}} {
-			if _, _, err := github.FetchPRs(ctx, c, "JetBrains", "kotlin", batch); err != nil {
+			if _, _, err := github.FetchPRs(ctx, c, "JetBrains", "kotlin", batch, nil); err != nil {
 				t.Fatal(err)
 			}
 		}

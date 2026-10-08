@@ -135,13 +135,36 @@ func (c *Client) search(vars map[string]any) map[string]any {
 			since, _ = time.Parse(time.RFC3339, strings.Fields(after)[0])
 		}
 	}
-	sections := map[string][]any{"mine": {}, "personal": {}, "reviewed": {}, "requested": {}, "merged": {}}
+	// The cherry-pick searches: the bot's PRs whose body mentions the viewer; the assigned
+	// ones: others' PRs assigned to the viewer. Both with the fields that tell whose they are.
+	var bot string
+	if q, _ := vars["cherryPicks"].(string); q != "" {
+		if _, after, ok := strings.Cut(q, "author:"); ok {
+			bot = strings.Fields(after)[0]
+		}
+	}
+	sections := map[string][]any{"mine": {}, "personal": {}, "reviewed": {}, "requested": {}, "merged": {},
+		"cherryPicks": {}, "cherryPicksMerged": {}, "assigned": {}, "assignedMerged": {}}
 	add := func(section string, n int) {
 		sections[section] = append(sections[section], map[string]any{"number": n})
 	}
 	for _, n := range slices.Sorted(maps.Keys(c.raw)) {
 		pr := c.raw[n]
 		mine := strings.EqualFold(pr.Author.LoginOrEmpty(), c.viewer)
+		whose := func(search string) {
+			switch {
+			case pr.State == "OPEN":
+				sections[search] = append(sections[search], map[string]any{"number": n, "author": pr.Author, "body": pr.Body, "assignees": pr.Assignees})
+			case pr.State == "MERGED" && pr.MergedAt != nil && !pr.MergedAt.Before(since):
+				sections[search+"Merged"] = append(sections[search+"Merged"], json.RawMessage(c.prs[n]))
+			}
+		}
+		if bot != "" && strings.EqualFold(pr.Author.LoginOrEmpty(), bot) && strings.Contains(strings.ToLower(pr.Body), "@"+strings.ToLower(c.viewer)) {
+			whose("cherryPicks")
+		}
+		if !mine && slices.ContainsFunc(pr.Assignees.Nodes, func(a github.Actor) bool { return strings.EqualFold(a.Login, c.viewer) }) {
+			whose("assigned")
+		}
 		switch {
 		case pr.State == "MERGED":
 			if mine && pr.MergedAt != nil && !pr.MergedAt.Before(since) {

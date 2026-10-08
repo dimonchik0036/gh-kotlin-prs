@@ -8,6 +8,7 @@ fragment PR on PullRequest {
   updatedAt
   mergedAt
   author { __typename login }
+  assignees(first: 5) { nodes { login } }
   headRefName
   headRefOid
   baseRefName

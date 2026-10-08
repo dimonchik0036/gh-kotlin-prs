@@ -44,7 +44,7 @@ func (c *Classifier) PR(raw *github.PullRequest, section model.Section) model.PR
 // Show classifies a single PR in the section it would be listed in. A merged or
 // closed PR keeps its details, but the rules don't apply to it.
 func (c *Classifier) Show(raw *github.PullRequest) model.PR {
-	pr := c.PR(raw, SectionFor(raw, c.Viewer))
+	pr := c.PR(raw, c.SectionFor(raw))
 	switch raw.State {
 	case "MERGED":
 		merged := c.Merged(raw)
@@ -71,19 +71,66 @@ func (c *Classifier) Merged(raw *github.PullRequest) model.PR {
 	return pr
 }
 
+// Owners are who answer for raw: its author; for a bot's PR, its assignees, or without
+// any, the original author a cherry-pick's body names. An assignee answers for the
+// cherry-pick then, not the original author: the bot may assign whoever asked for it. A
+// bot's PR with neither stays the bot's. original is the PR a cherry-pick of the
+// configured bot was made from.
+func Owners(cfg config.Config, raw *github.PullRequest) (owners []string, original *model.Original) {
+	author := raw.Author.LoginOrEmpty()
+	if cfg.CherryPickBot != "" && config.SameLogin(author, cfg.CherryPickBot) {
+		if o, login, ok := ParseCherryPick(raw.Body); ok {
+			o.Author = login
+			original = &o
+		}
+	}
+	if raw.Author == nil || raw.Author.Typename != "Bot" && !cfg.IsBot(author) {
+		return []string{author}, original
+	}
+	for _, a := range raw.Assignees.Nodes {
+		if a.Login != "" && !cfg.IsBot(a.Login) {
+			owners = append(owners, a.Login)
+		}
+	}
+	switch {
+	case len(owners) > 0:
+		return owners, original
+	case original != nil && !cfg.IsBot(original.Author):
+		return []string{original.Author}, original
+	}
+	return []string{author}, original
+}
+
+// owner is whose PR raw is for the viewer: the viewer when they're among its owners, else
+// the first one.
+func (c *Classifier) owner(raw *github.PullRequest) (string, *model.Original) {
+	owners, original := Owners(c.Config, raw)
+	if slices.ContainsFunc(owners, func(o string) bool { return sameLogin(o, c.Viewer) }) {
+		return c.Viewer, original
+	}
+	return owners[0], original
+}
+
 func (c *Classifier) basics(raw *github.PullRequest, section model.Section) model.PR {
+	owner, original := c.owner(raw)
+	var assignees []string
+	for _, a := range raw.Assignees.Nodes {
+		assignees = append(assignees, a.Login)
+	}
 	pr := model.PR{
-		Number:    raw.Number,
-		Title:     raw.Title,
-		URL:       raw.URL,
-		Author:    raw.Author.LoginOrEmpty(),
-		Branch:    raw.HeadRefName,
-		Base:      raw.BaseRefName,
-		Release:   c.Config.IsReleaseBranch(raw.BaseRefName),
-		Draft:     raw.IsDraft,
-		Conflicts: raw.Mergeable == "CONFLICTING",
-		Section:   section,
-		Updated:   raw.UpdatedAt,
+		Number:       raw.Number,
+		Title:        raw.Title,
+		URL:          raw.URL,
+		Author:       owner,
+		Assignees:    assignees,
+		CherryPickOf: original,
+		Branch:       raw.HeadRefName,
+		Base:         raw.BaseRefName,
+		Release:      c.Config.IsReleaseBranch(raw.BaseRefName),
+		Draft:        raw.IsDraft,
+		Conflicts:    raw.Mergeable == "CONFLICTING",
+		Section:      section,
+		Updated:      raw.UpdatedAt,
 	}
 	if pr.URL == "" {
 		pr.URL = github.PRURL(c.Config.Repo, raw.Number)
@@ -443,8 +490,9 @@ func (c *Classifier) isBot(a *github.Actor) bool {
 func sameLogin(a, b string) bool { return a != "" && config.SameLogin(a, b) }
 
 // SectionFor picks the section a single PR would be listed in, for `show`.
-func SectionFor(pr *github.PullRequest, viewer string) model.Section {
-	if sameLogin(pr.Author.LoginOrEmpty(), viewer) {
+func (c *Classifier) SectionFor(pr *github.PullRequest) model.Section {
+	viewer := c.Viewer
+	if owner, _ := c.owner(pr); sameLogin(owner, viewer) {
 		return model.SectionMine
 	}
 	personal := false

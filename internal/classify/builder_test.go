@@ -42,6 +42,21 @@ func newPR(author string) *prBuilder {
 	return b
 }
 
+// cherryPick makes it a PR the bot opened for /cherry-pick of PR 5 by original, with the
+// bot's body, into the release branch 2.5.0.
+func cherryPick(original string) *prBuilder {
+	b := newPR("KotlinBuild").release()
+	b.pr.Body = "Original pull request: https://github.com/JetBrains/kotlin/pull/5 by @" + original + "\n"
+	return b
+}
+
+func (b *prBuilder) assign(logins ...string) *prBuilder {
+	for _, l := range logins {
+		b.pr.Assignees.Nodes = append(b.pr.Assignees.Nodes, github.Actor{Login: l})
+	}
+	return b
+}
+
 // release makes it a PR into the release branch 2.5.0, from a branch whose pushes run its
 // quality gates.
 func (b *prBuilder) release() *prBuilder {

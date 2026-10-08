@@ -46,11 +46,18 @@ type Search struct {
 	// Requested: review requested from the viewer or one of their teams.
 	Requested []int
 	// Merged: the viewer's PRs merged since the cut-off, with a few fields only.
-	Merged    []PullRequest
-	RateLimit RateLimit
+	Merged []PullRequest
+	// MaybeMine: open PRs of others that may be the viewer's: the cherry-pick bot's that
+	// mention the viewer, and those assigned to the viewer. Each comes with its author, body
+	// and assignees, which tell whose it is (a mention may be just that, an assignment a
+	// person's PR). Each PR once.
+	MaybeMine []PullRequest
+	// MaybeMineMerged: the same, merged since the cut-off, with Merged's fields too.
+	MaybeMineMerged []PullRequest
+	RateLimit       RateLimit
 }
 
-const searchQuery = `query Sections($mine: String!, $personal: String!, $reviewed: String!, $requested: String!, $merged: String!) {
+const searchQuery = `query Sections($mine: String!, $personal: String!, $reviewed: String!, $requested: String!, $merged: String!, $cherryPicks: String!, $cherryPicksMerged: String!, $assigned: String!, $assignedMerged: String!) {
   viewer { login }
   rateLimit { limit cost remaining resetAt }
   mine: search(type: ISSUE, query: $mine, first: 50) { nodes { ... on PullRequest { number } } }
@@ -60,7 +67,15 @@ const searchQuery = `query Sections($mine: String!, $personal: String!, $reviewe
   merged: search(type: ISSUE, query: $merged, first: 50) {
     nodes { ... on PullRequest { number title url isDraft state createdAt updatedAt mergedAt headRefName author { __typename login } } }
   }
-}`
+  cherryPicks: search(type: ISSUE, query: $cherryPicks, first: 20) { nodes { ...Whose } }
+  cherryPicksMerged: search(type: ISSUE, query: $cherryPicksMerged, first: 20) { nodes { ...Whose ...Merged } }
+  assigned: search(type: ISSUE, query: $assigned, first: 20) { nodes { ...Whose } }
+  assignedMerged: search(type: ISSUE, query: $assignedMerged, first: 20) { nodes { ...Whose ...Merged } }
+}
+
+fragment Whose on PullRequest { number author { __typename login } body assignees(first: 5) { nodes { login } } }
+
+fragment Merged on PullRequest { title url isDraft state createdAt updatedAt mergedAt headRefName }`
 
 type numberNodes struct {
 	Nodes []struct {
@@ -83,53 +98,92 @@ func (n numberNodes) numbers() []int {
 // the unique PRs afterwards (FetchPRs) is several times cheaper than inlining them.
 // Merged PRs are searched from the start of mergedSince's UTC day, so that the query
 // stays the same (and cacheable) all day, then filtered by mergedSince.
-func SearchSections(ctx context.Context, client Client, repo string, mergedSince time.Time) (*Search, error) {
+//
+// A bot's PRs aren't the viewer's on GitHub, but they may be: a cherry-pick's body names
+// the original PR's author, and a bot's PR assigned to the viewer is theirs to handle.
+// Those that mention the viewer or are assigned to them come with what tells whose they are,
+// 20 per search: each one's assignees count as a connection of their own, and with 50 the
+// request would cost 2 points instead of 1.
+func SearchSections(ctx context.Context, client Client, repo, cherryPickBot string, mergedSince time.Time) (*Search, error) {
 	scope := "repo:" + repo + " is:pr "
 	day := mergedSince.UTC().Truncate(24 * time.Hour)
+	merged := " merged:>=" + day.Format(time.RFC3339)
+	cherryPicks := "author:" + cherryPickBot + " mentions:@me"
+	if cherryPickBot == "" {
+		cherryPicks = "author:@me -author:@me" // finds nothing
+	}
 	vars := map[string]any{
-		"mine":      scope + "is:open author:@me",
-		"personal":  scope + "is:open user-review-requested:@me",
-		"reviewed":  scope + "is:open reviewed-by:@me -author:@me",
-		"requested": scope + "is:open review-requested:@me",
-		"merged":    scope + "is:merged author:@me merged:>=" + day.Format(time.RFC3339),
+		"mine":              scope + "is:open author:@me",
+		"personal":          scope + "is:open user-review-requested:@me",
+		"reviewed":          scope + "is:open reviewed-by:@me -author:@me",
+		"requested":         scope + "is:open review-requested:@me",
+		"merged":            scope + "is:merged author:@me" + merged,
+		"cherryPicks":       scope + "is:open " + cherryPicks,
+		"cherryPicksMerged": scope + "is:merged " + cherryPicks + merged,
+		"assigned":          scope + "is:open assignee:@me -author:@me",
+		"assignedMerged":    scope + "is:merged assignee:@me -author:@me" + merged,
 	}
 	var resp struct {
-		Viewer    struct{ Login string } `json:"viewer"`
-		RateLimit RateLimit              `json:"rateLimit"`
-		Mine      numberNodes            `json:"mine"`
-		Personal  numberNodes            `json:"personal"`
-		Reviewed  numberNodes            `json:"reviewed"`
-		Requested numberNodes            `json:"requested"`
-		Merged    Nodes[PullRequest]     `json:"merged"`
+		Viewer            struct{ Login string } `json:"viewer"`
+		RateLimit         RateLimit              `json:"rateLimit"`
+		Mine              numberNodes            `json:"mine"`
+		Personal          numberNodes            `json:"personal"`
+		Reviewed          numberNodes            `json:"reviewed"`
+		Requested         numberNodes            `json:"requested"`
+		Merged            Nodes[PullRequest]     `json:"merged"`
+		CherryPicks       Nodes[PullRequest]     `json:"cherryPicks"`
+		CherryPicksMerged Nodes[PullRequest]     `json:"cherryPicksMerged"`
+		Assigned          Nodes[PullRequest]     `json:"assigned"`
+		AssignedMerged    Nodes[PullRequest]     `json:"assignedMerged"`
 	}
 	if err := client.DoWithContext(ctx, searchQuery, vars, &resp); err != nil {
 		return nil, fmt.Errorf("search: %w", err)
 	}
+	before := func(pr PullRequest) bool { return pr.MergedAt == nil || pr.MergedAt.Before(mergedSince) }
 	return &Search{
-		Viewer:    resp.Viewer.Login,
-		Mine:      resp.Mine.numbers(),
-		Personal:  resp.Personal.numbers(),
-		Reviewed:  resp.Reviewed.numbers(),
-		Requested: resp.Requested.numbers(),
-		Merged:    slices.DeleteFunc(resp.Merged.Nodes, func(pr PullRequest) bool { return pr.MergedAt == nil || pr.MergedAt.Before(mergedSince) }),
-		RateLimit: resp.RateLimit,
+		Viewer:          resp.Viewer.Login,
+		Mine:            resp.Mine.numbers(),
+		Personal:        resp.Personal.numbers(),
+		Reviewed:        resp.Reviewed.numbers(),
+		Requested:       resp.Requested.numbers(),
+		Merged:          slices.DeleteFunc(resp.Merged.Nodes, before),
+		MaybeMine:       unique(slices.Concat(resp.CherryPicks.Nodes, resp.Assigned.Nodes), func(PullRequest) bool { return false }),
+		MaybeMineMerged: unique(slices.Concat(resp.CherryPicksMerged.Nodes, resp.AssignedMerged.Nodes), before),
+		RateLimit:       resp.RateLimit,
 	}, nil
+}
+
+// unique drops the PRs without a number (not a PR), dropped ones, and repeats.
+func unique(prs []PullRequest, drop func(PullRequest) bool) []PullRequest {
+	var out []PullRequest
+	for _, pr := range prs {
+		if pr.Number != 0 && !drop(pr) && !slices.ContainsFunc(out, func(o PullRequest) bool { return o.Number == pr.Number }) {
+			out = append(out, pr)
+		}
+	}
+	return out
 }
 
 // prBatch caps the PRs per request, keeping each well under GitHub's node limit.
 const prBatch = 40
 
-// FetchPRs fetches full details for the given PRs, aliased into as few requests as possible.
-// It returns the summed query cost. The PRs are queried in order of their numbers, so the
-// same PRs make the same queries (the cache keys) whatever order they come in.
-func FetchPRs(ctx context.Context, client Client, owner, name string, numbers []int) (map[int]*PullRequest, RateLimit, error) {
+// FetchPRs fetches full details for the given PRs, aliased into as few requests as possible,
+// with the body of those in withBody (the cherry-picks: other bodies are human text, which
+// the tool doesn't read). It returns the summed query cost. The PRs are queried in order
+// of their numbers, so the same PRs make the same queries (the cache keys) whatever order
+// they come in.
+func FetchPRs(ctx context.Context, client Client, owner, name string, numbers, withBody []int) (map[int]*PullRequest, RateLimit, error) {
 	prs := make(map[int]*PullRequest, len(numbers))
 	var limit RateLimit
 	for batch := range slices.Chunk(slices.Compact(slices.Sorted(slices.Values(numbers))), prBatch) {
 		var q strings.Builder
 		q.WriteString("query PullRequests($owner: String!, $name: String!) {\n  rateLimit { limit cost remaining resetAt }\n  repository(owner: $owner, name: $name) {\n")
 		for _, n := range batch {
-			writef(&q, "    pr%d: pullRequest(number: %d) { ...PR }\n", n, n)
+			body := ""
+			if slices.Contains(withBody, n) {
+				body = " body"
+			}
+			writef(&q, "    pr%d: pullRequest(number: %d) { ...PR%s }\n", n, n, body)
 		}
 		q.WriteString("  }\n}\n")
 		q.WriteString(prFragment)
@@ -155,12 +209,13 @@ func FetchPRs(ctx context.Context, client Client, owner, name string, numbers []
 	return prs, limit, nil
 }
 
-// PRQuery is the single-PR query, also used by scripts/fetch-fixtures.sh.
+// PRQuery is the single-PR query, also used by scripts/fetch-fixtures.sh. It has the body,
+// which a cherry-pick needs: one PR's body costs nothing worth saving.
 func PRQuery() string {
 	return `query PullRequest($owner: String!, $name: String!, $number: Int!) {
   viewer { login }
   rateLimit { limit cost remaining resetAt }
-  repository(owner: $owner, name: $name) { pullRequest(number: $number) { ...PR } }
+  repository(owner: $owner, name: $name) { pullRequest(number: $number) { ...PR body } }
 }
 ` + prFragment
 }

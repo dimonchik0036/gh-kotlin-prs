@@ -25,7 +25,7 @@ version, add `--pin vX.Y.Z` to the install.
 
 ```sh
 gh kotlin-prs                 # the interactive view on a terminal (? for its keys), `list` otherwise
-gh kotlin-prs list            # Mine, Review, Team requests, Recently merged (24h)
+gh kotlin-prs list            # Mine (with the bots' PRs you answer for), Review, Team requests, Recently merged (24h)
 gh kotlin-prs list --mine     # only your PRs (and the recently merged ones)
 gh kotlin-prs list --review --waiting-on-me
 gh kotlin-prs list --all      # also reviews not waiting on you and drafts
@@ -150,6 +150,11 @@ threads and the main reason. `show` lists every reason.
 Issues come from `^KT-123 Fixed` / `^KT-123 Obsolete` / `^KT-123` trailers in the PR's commit messages, then the branch
 name and the title. The row shows the primary one (fixed first) and how many more: `KT-990003 +1`; `show` lists them all.
 
+A bot's PR is yours when you're assigned to it, and a cherry-pick that `/cherry-pick` opened also when nobody is and
+you wrote the original PR: the bot (`KotlinBuild`) is its author on GitHub, but its description names you. Such a PR
+is in Mine with you as the author, and `show` says `cherry-pick of #N` and who's assigned. A person's PR assigned to
+you stays theirs.
+
 A PR into a release branch (`2.5.0`, `2.5.0-RC`, …) has no dry-run or safe-merge: its quality gates are the TeamCity
 builds a push to `rrr/2.5.0/…` or `rrrn/2.5.0/…` starts, shown on its head commit, and the release engineer merges it.
 Only the release Aggregate blocks it: a failed one is your move until you push, comment on it (a failure unrelated to
@@ -258,6 +263,7 @@ repo: JetBrains/kotlin
 bots: [KotlinBuild, kotlin-safemerge, kodee-bot]
 gateBot: KotlinBuild
 ownersBot: kotlin-safemerge
+cherryPickBot: KotlinBuild   # opens the /cherry-pick PRs; empty: not looked for
 releaseBranches: '(?i)^\d+\.\d+\.\d+(?:-(?:RC|Beta)\d*)?$'   # base branches with the release workflow
 releaseRunPrefixes: [rrr/{base}/, rrrn/{base}/]   # pushes to these run a release branch's quality gates
 releaseTeam: kotlin-release   # the release engineers, who merge them

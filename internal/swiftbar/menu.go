@@ -180,6 +180,13 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 		title += " tooltip=" + param(text(pr.Title))
 	}
 	b.line(sub, text(cutTitle(pr.Title, m.Icons.Ellipsis)), title)
+	if o := pr.CherryPickOf; o != nil {
+		item := fmt.Sprintf("Cherry-pick of #%d", o.Number)
+		if o.Author != "" && !strings.EqualFold(o.Author, pr.Author) {
+			item += " by " + o.Author
+		}
+		b.line(sub, text(item), "href="+param(o.URL))
+	}
 	if pr.Section == model.SectionReview {
 		// Mine are always mine.
 		by := "by " + pr.Author

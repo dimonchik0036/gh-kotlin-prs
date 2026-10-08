@@ -248,12 +248,25 @@ const (
 	NextDone    NextAction = "done"
 )
 
+// Original is the PR a cherry-pick was made from.
+type Original struct {
+	Number int    `json:"number"`
+	URL    string `json:"url"`
+	Author string `json:"author,omitempty"`
+}
+
 type PR struct {
 	Number int    `json:"number"`
 	Title  string `json:"title"`
 	URL    string `json:"url"`
+	// Author is whose PR it is: for a bot's PR, the assignee who answers for it (the viewer
+	// when they're one), or else a cherry-pick's original author.
 	Author string `json:"author"`
-	Branch string `json:"branch"`
+	// Assignees are the PR's assignees on GitHub.
+	Assignees []string `json:"assignees,omitempty"`
+	// CherryPickOf is the original PR of a cherry-pick the bot opened.
+	CherryPickOf *Original `json:"cherryPickOf,omitempty"`
+	Branch       string    `json:"branch"`
 	// Base is the branch the PR merges into.
 	Base string `json:"base,omitempty"`
 	// Release: Base is a release branch (config releaseBranches): no dry-run or safe-merge

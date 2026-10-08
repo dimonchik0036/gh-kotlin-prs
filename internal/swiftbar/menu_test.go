@@ -234,6 +234,24 @@ func TestReviewAuthor(t *testing.T) {
 	}
 }
 
+// A cherry-pick's submenu opens its original PR.
+func TestCherryPickItem(t *testing.T) {
+	none := func(kind model.RunKind) model.Run { return model.Run{Kind: kind, State: model.RunNone} }
+	out := Render(Menu{Icons: render.Unicode, Sections: allSections, Viewer: "me", PRs: []model.PR{
+		{Number: 8, Title: "[2.5.0] My change", Author: "me", Section: model.SectionMine, Next: model.NextRelease,
+			CherryPickOf: &model.Original{Number: 7, URL: "https://github.com/JetBrains/kotlin/pull/7", Author: "alice_user"},
+			DryRun:       none(model.DryRun), SafeMerge: none(model.SafeMerge)},
+	}})
+	for _, want := range []string{
+		"\n--Cherry-pick of #7 by alice_user | href=https://github.com/JetBrains/kotlin/pull/7\n",
+		"\n--Waiting on the release engineer",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("lacks %q:\n%s", want, out)
+		}
+	}
+}
+
 func TestParentsHaveAnAction(t *testing.T) {
 	m := fixtureMenu(t)
 	pr := model.PR{Number: 7, Title: "Resolve class/file annotations", URL: "https://example.org/pull/7", Author: m.Viewer, Section: model.SectionTeams,

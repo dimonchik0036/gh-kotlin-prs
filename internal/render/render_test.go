@@ -462,6 +462,25 @@ func TestDetailURLs(t *testing.T) {
 	}
 }
 
+// A cherry-pick names its original PR under the header, linked, or with its URL.
+func TestDetailCherryPick(t *testing.T) {
+	pr := loadModel(t, "pr-90001.json")
+	pr.CherryPickOf = &model.Original{Number: 90002, URL: "https://github.com/JetBrains/kotlin/pull/90002"}
+	on := DetailView(pr, now, Options{Icons: Unicode, Hyperlinks: true}, 0)
+	if !strings.Contains(on, "cherry-pick of "+ansi.SetHyperlink(pr.CherryPickOf.URL)) || !strings.Contains(ansi.Strip(on), "\ncherry-pick of #90002\n") {
+		t.Errorf("links on:\n%q", on)
+	}
+	if off := DetailView(pr, now, Options{Icons: Unicode}, 0); !strings.Contains(off, "\ncherry-pick of #90002 https://github.com/JetBrains/kotlin/pull/90002\n") {
+		t.Errorf("links off:\n%s", off)
+	}
+	// Assigned to someone else than the original author: both are named.
+	pr.Author, pr.Assignees, pr.CherryPickOf.Author = "bob_user", []string{"bob_user"}, "alice_user"
+	if off := DetailView(pr, now, Options{Icons: Unicode}, 0); !strings.Contains(off, "by bob_user ∙ assigned to bob_user ∙ ") ||
+		!strings.Contains(off, "\ncherry-pick of #90002 https://github.com/JetBrains/kotlin/pull/90002 by alice_user\n") {
+		t.Errorf("assigned:\n%s", off)
+	}
+}
+
 func TestRunURL(t *testing.T) {
 	for _, c := range []struct{ url, label string }{
 		{"https://ci.example.com/build/1076982024", "build 1076982024"},

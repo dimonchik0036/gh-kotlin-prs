@@ -9,7 +9,14 @@ Repo: `dimonchik0036/gh-kotlin-prs` (public). Kotlin specifics (repo, bot logins
 ## 1. Scope
 
 Two sections:
-- **Mine:** `is:pr is:open author:@me`.
+- **Mine:** `is:pr is:open author:@me`, plus the bots' PRs you answer for. A bot's PR (`bots`, or a GitHub Bot account
+  like Junie's) is its human assignees'; without any, a cherry-pick of the bot's (§3) is the original author's its body
+  names, else it stays the bot's. An assignee answers for a cherry-pick rather than the original author: the bot may
+  assign whoever asked for it. They come from two more searches, `is:pr is:open author:KotlinBuild mentions:@me`
+  (`cherryPickBot`) and `is:pr is:open assignee:@me -author:@me`, kept when you're among the owners: a mention alone
+  (someone tagging you there) doesn't make a PR yours, nor does an assignment to a person's PR, which keeps its
+  author. Such a PR is yours everywhere: its author is you (`author` in the JSON, or another owner's when you aren't
+  one; the original PR in `cherryPickOf`), and the commands and review requests take it.
 - **Review:** PRs where you're a reviewer, from three searches merged and deduplicated:
   - `user-review-requested:@me`: requested from you personally;
   - `reviewed-by:@me -author:@me`: you reviewed earlier, and GitHub drops you from `review-requested` after a review;
@@ -20,7 +27,8 @@ Then, at the end, two optional groups. Both are shown by default, hidden when em
 - **Team requests:** the team-only requests above (`--no-teams`, TUI `t`).
 - **Recently merged:** your PRs merged in the last 24h, confirming that a safe-merge landed (`--no-merged`, TUI `M`).
   The search is `is:pr is:merged author:@me merged:>=<UTC day of now-24h>`, the same query all day (so it can be
-  cached, §13), and the result is cut to the last 24h with the current clock.
+  cached, §13), and the result is cut to the last 24h with the current clock. The bots' PRs you answer for merged in
+  that window come from the same two searches with `is:merged`, filtered the same way.
 
 Drafts are shown in Mine (marked) and hidden in Review unless `--all`.
 
@@ -33,8 +41,14 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
   The token is never stored; the responses are, in the cache (§13).
 - Two GraphQL requests per refresh. The first runs every section's `search(type: ISSUE, query: …, first: 50)` and returns
   only PR numbers: search connections are charged by page size, so inlining the details would cost ~50 points per search.
-  The second fetches the unique PRs by alias (`pr90005: pullRequest(number: 90005) { ...PR }`), ~1 point per PR. Per PR:
-  - `number title url isDraft author headRefName headRefOid baseRefName mergeable createdAt updatedAt`. `mergeable` is
+  The searches for others' PRs also return the author, the body (a bot's one line) and the assignees, to drop the PRs
+  that aren't yours before the second request. Those four take 20 PRs each: every PR's assignees count as a connection
+  of their own, so with 50 the first request would cost 2 points; with 20 it still costs 1.
+  The second fetches the unique PRs by alias (`pr90005: pullRequest(number: 90005) { ...PR }`), ~1 point per PR; a
+  bot's PR of yours with its body (`{ ...PR body }`), the others without: their bodies are human text the tool
+  doesn't read. `show` and the other single-PR fetches always take the body, which costs nothing. Per PR:
+  - `number title url isDraft author headRefName headRefOid baseRefName mergeable createdAt updatedAt`, and
+    `assignees(first: 5)` (1 point more for 27 PRs). `mergeable` is
     `MERGEABLE`, `CONFLICTING` or `UNKNOWN` (GitHub computes it lazily, so the first ask after a push often gets
     `UNKNOWN`); a fixture without it reads as `UNKNOWN`. Neither field changes the cost (4 points for a batch of 3
     PRs before and after).
@@ -160,7 +174,7 @@ A successful safe-merge merges the PR, so it moves to Recently merged.
 | `/fixup` | Autosquashes `fixup!` commits and force-pushes. Not supported for PRs from forks. |
 | `/test-public` | Public Aggregate without rebasing (the release Aggregate on release branches). |
 | `/test-private` | Private Aggregate without rebasing. JetBrains organization members only. |
-| `/cherry-pick --target=<ver>` | Opens a PR from branch `rrr/<target>/<branch>`. Works on open and merged PRs. |
+| `/cherry-pick --target=<ver>` | Opens a PR from branch `rrr/<target>/<branch>`. Works on open and merged PRs. See below. |
 | `/review` | The auto code review, run by another bot. |
 
 **Release branches** (`releaseBranches`, by default the bot's `^\d+\.\d+\.\d+(-(RC|Beta)\d*)?$`, case-insensitive)
@@ -171,6 +185,14 @@ the User Projects aggregates, say. `/test-public` reruns the release Aggregate. 
 `kotlin-release`, owner of the `*` code-owner rule) approves and merges by hand, seconds apart, once the Aggregate
 passed and the other code owners approved: failed User Projects don't stop that, nor does a failed Aggregate the
 author explained.
+
+**Cherry-picks:** `/cherry-pick --target=<release>`, by anyone with write access, starts a TeamCity build that
+cherry-picks the PR's commits onto the release branch, pushes `rrr/<release>/<branch>` and opens a PR as `KotlinBuild`
+(`cherryPickBot`): title `[<release>] <title>`, body exactly `Original pull request: <url> by @<author>`, where the
+author is the original PR's, not whoever asked. It sets no assignee (yet) and requests no review; it comments
+``Cherry-picked to `<release>` in <url>.`` on the original PR. The PR is then the original author's: they push fixes
+to its branch and follow its review. Once assigned, it's the assignee's (§1). A cherry-pick of a cherry-pick names
+`KotlinBuild` and stays the bot's unless assigned.
 
 v1 parses dry-run and safe-merge runs, and `/test-public` on a release branch: the bot answers it like the others (🚀
 once the build is triggered, a reply when it can't), and the release Aggregate's status context then reports the
@@ -213,7 +235,9 @@ type Reviewer struct {
     CodeOwner bool
 }
 type PR struct {
-    Number, Title, URL, Author, Branch string
+    Number, Title, URL, Author, Branch string // Author: whose PR it is (§1)
+    Assignees        []string
+    CherryPickOf     *Original  // {Number, URL, Author}: the PR a cherry-pick of the bot was made from
     Draft            bool
     Section          Section    // Mine | Review
     Issues           []Issue    // {ID, URL, Source: trailer|branch|title, Resolution: fixed|obsolete|""}, primary first
@@ -523,6 +547,7 @@ repo: JetBrains/kotlin
 bots: [KotlinBuild, kotlin-safemerge, kodee-bot]
 gateBot: KotlinBuild
 ownersBot: kotlin-safemerge
+cherryPickBot: KotlinBuild   # opens the cherry-picks; empty: not looked for
 releaseBranches: '(?i)^\d+\.\d+\.\d+(?:-(?:RC|Beta)\d*)?$'   # release branches (§3)
 releaseRunPrefixes: [rrr/{base}/, rrrn/{base}/]   # their quality gates run on pushes to these
 releaseTeam: kotlin-release   # its members merge them
@@ -691,7 +716,8 @@ scripts/fetch-fixtures.sh
     safe-merge and `list`'s reviews cell (`1/2 ✗`: approvals of the people reviewing, the code-owners mark), no thread
     count;
   - a PR's submenu: the title (gray, no action; cut after a word at 100, with the whole title as the tooltip), in
-    Review "by <login> ∙ pushed 2h ago" (gray, with the icon set's separator; Mine is always mine), "Details in the interactive view", whose move it
+    Review "by <login> ∙ pushed 2h ago" (gray, with the icon set's separator; Mine is always mine), "Cherry-pick of #N" for a cherry-pick (opening
+    the original PR; "by <login>" after it when the original author isn't the one answering for it), "Details in the interactive view", whose move it
     is and every reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the
     reviewers (a name after the login as in `show`, cut after a word at 24 with the whole one in the tooltip, and
     neither emoji nor SF Symbol codes read in it) and the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in

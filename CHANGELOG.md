@@ -16,6 +16,11 @@ breaking JSON changes and noted here.
 - `test-public` (`T` in the interactive view) posts `/test-public`: the public Aggregate without rebasing, whose result
   GitHub doesn't show. On a release branch it reruns the release Aggregate, and the run shows as requested, accepted,
   then with the Aggregate's result, and answers a failed Aggregate.
+- The bots' PRs you answer for are in Mine, and in Recently merged once merged: one assigned to you (a Junie PR, say),
+  and a cherry-pick `/cherry-pick` opened of your PR while nobody is assigned to it (its description names you; an
+  assignee answers for it instead). The bot is their author on GitHub; the JSON gives you as their `author`, with
+  their `assignees` and the original PR in `cherryPickOf`, which `show` and the menu-bar plugin link. A person's PR
+  assigned to you stays theirs. New config key `cherryPickBot`.
 - The menu-bar plugin's "by … ∙ pushed …" line uses the icon set's separator, like the rest of the menu: it had a
   `·`, which may render double-width.
 

@@ -3,6 +3,7 @@ package classify
 import (
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
@@ -35,7 +36,27 @@ var (
 	successReplies = []string{"Private aggregate run triggered at ", "Cherry-pick to `"}
 
 	slashCommand = regexp.MustCompile(`^/[a-z-]+(?:\s|$)`)
+
+	// The body of a PR /cherry-pick opened: the original PR and its author's mention.
+	// Real logins have no underscore; synthetic test logins do.
+	cherryPickBody = regexp.MustCompile(`^Original pull request: (https://github\.com/[^/\s]+/[^/\s]+/pull/(\d+)) by @([A-Za-z0-9_](?:[A-Za-z0-9_-]*[A-Za-z0-9_])?)$`)
 )
+
+// ParseCherryPick reads the first line of a cherry-pick's body, as the bot writes it:
+// "Original pull request: https://github.com/JetBrains/kotlin/pull/123 by @alice".
+// It returns the original PR and its author's login.
+func ParseCherryPick(body string) (model.Original, string, bool) {
+	first, _, _ := strings.Cut(strings.TrimSpace(body), "\n")
+	m := cherryPickBody.FindStringSubmatch(strings.TrimSpace(first))
+	if m == nil {
+		return model.Original{}, "", false
+	}
+	n, err := strconv.Atoi(m[2])
+	if err != nil {
+		return model.Original{}, "", false
+	}
+	return model.Original{Number: n, URL: m[1]}, m[3], true
+}
 
 // Command is a command of the code-owners bot, without the slash.
 type Command string

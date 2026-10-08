@@ -71,11 +71,25 @@ func DetailView(pr model.PR, now time.Time, opts Options, width int) string {
 	if !links || pr.URL == "" {
 		writef(&b, "%s\n", pr.URL)
 	}
-	meta := []string{"by " + pr.Author, pr.Branch}
+	meta := []string{"by " + pr.Author}
+	if len(pr.Assignees) > 0 {
+		meta = append(meta, "assigned to "+strings.Join(pr.Assignees, ", "))
+	}
+	meta = append(meta, pr.Branch)
 	if !pr.LastPush.IsZero() {
 		meta = append(meta, "pushed "+model.Ago(now, pr.LastPush))
 	}
 	writef(&b, "%s\n", styleFaint.Render(strings.Join(meta, " "+icons.Separator+" ")))
+	if o := pr.CherryPickOf; o != nil {
+		original := link(links, o.URL, fmt.Sprintf("#%d", o.Number))
+		if !links {
+			original += " " + o.URL
+		}
+		if o.Author != "" && !strings.EqualFold(o.Author, pr.Author) {
+			original += " by " + o.Author
+		}
+		writef(&b, "cherry-pick of %s\n", original)
+	}
 	if len(pr.Issues) > 0 {
 		var issues []string
 		for _, issue := range pr.Issues {

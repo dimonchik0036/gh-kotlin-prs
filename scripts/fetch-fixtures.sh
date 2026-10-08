@@ -41,7 +41,7 @@ trap 'rm -rf "$tmp"' EXIT
 query="query PullRequest(\$owner: String!, \$name: String!, \$number: Int!) {
   viewer { login }
   rateLimit { limit cost remaining resetAt }
-  repository(owner: \$owner, name: \$name) { pullRequest(number: \$number) { ...PR } }
+  repository(owner: \$owner, name: \$name) { pullRequest(number: \$number) { ...PR body } }
 }
 $(cat "$root/internal/github/pr.graphql")"
 

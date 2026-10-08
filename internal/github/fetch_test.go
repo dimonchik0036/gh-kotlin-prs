@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -34,7 +35,7 @@ func TestFetchPRsBatches(t *testing.T) {
 		numbers = append(numbers, n)
 	}
 	client := &recordingClient{}
-	prs, limit, err := FetchPRs(context.Background(), client, "JetBrains", "kotlin", numbers)
+	prs, limit, err := FetchPRs(context.Background(), client, "JetBrains", "kotlin", numbers, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +62,7 @@ func (c *searchClient) DoWithContext(_ context.Context, _ string, vars map[strin
 func TestSearchMergedWindow(t *testing.T) {
 	client := &searchClient{}
 	since := time.Date(2026, 9, 30, 13, 0, 0, 0, time.UTC)
-	search, err := SearchSections(context.Background(), client, "JetBrains/kotlin", since)
+	search, err := SearchSections(context.Background(), client, "JetBrains/kotlin", "KotlinBuild", since)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,13 +78,82 @@ func TestSearchMergedWindow(t *testing.T) {
 	}
 }
 
+// The cherry-pick bot's PRs that mention the viewer, open and merged in the window; none
+// without a bot.
+func TestSearchCherryPicks(t *testing.T) {
+	client := &searchClient{}
+	since := time.Date(2026, 9, 30, 13, 0, 0, 0, time.UTC)
+	if _, err := SearchSections(context.Background(), client, "JetBrains/kotlin", "KotlinBuild", since); err != nil {
+		t.Fatal(err)
+	}
+	if q := client.vars["cherryPicks"]; q != "repo:JetBrains/kotlin is:pr is:open author:KotlinBuild mentions:@me" {
+		t.Errorf("cherryPicks query %q", q)
+	}
+	if q := client.vars["cherryPicksMerged"]; q != "repo:JetBrains/kotlin is:pr is:merged author:KotlinBuild mentions:@me merged:>=2026-09-30T00:00:00Z" {
+		t.Errorf("cherryPicksMerged query %q", q)
+	}
+	if q := client.vars["assigned"]; q != "repo:JetBrains/kotlin is:pr is:open assignee:@me -author:@me" {
+		t.Errorf("assigned query %q", q)
+	}
+	if q := client.vars["assignedMerged"]; q != "repo:JetBrains/kotlin is:pr is:merged assignee:@me -author:@me merged:>=2026-09-30T00:00:00Z" {
+		t.Errorf("assignedMerged query %q", q)
+	}
+	if _, err := SearchSections(context.Background(), client, "JetBrains/kotlin", "", since); err != nil {
+		t.Fatal(err)
+	}
+	if q := client.vars["cherryPicks"].(string); !strings.Contains(q, "author:@me -author:@me") {
+		t.Errorf("without a bot: %q", q)
+	}
+}
+
+type bothClient struct{}
+
+func (bothClient) DoWithContext(_ context.Context, _ string, _ map[string]any, resp any) error {
+	return json.Unmarshal([]byte(`{
+	  "cherryPicks": {"nodes": [{"number": 1, "body": "b1"}, {}]},
+	  "assigned": {"nodes": [{"number": 2}, {"number": 1, "body": "b1"}]},
+	  "assignedMerged": {"nodes": [{"number": 3, "mergedAt": "2026-09-30T08:00:00Z"}, {"number": 4, "mergedAt": "2026-09-30T14:00:00Z"}]}}`), resp)
+}
+
+// A PR both searches find is there once; merged ones are cut to the window.
+func TestSearchMaybeMine(t *testing.T) {
+	search, err := SearchSections(context.Background(), bothClient{}, "JetBrains/kotlin", "KotlinBuild", time.Date(2026, 9, 30, 13, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	numbers := func(prs []PullRequest) []int {
+		var out []int
+		for _, pr := range prs {
+			out = append(out, pr.Number)
+		}
+		return out
+	}
+	if got := numbers(search.MaybeMine); !slices.Equal(got, []int{1, 2}) {
+		t.Errorf("MaybeMine = %v, want [1 2]", got)
+	}
+	if got := numbers(search.MaybeMineMerged); !slices.Equal(got, []int{4}) {
+		t.Errorf("MaybeMineMerged = %v, want [4]", got)
+	}
+}
+
+// Only the PRs asked for come with their body.
+func TestFetchPRsWithBody(t *testing.T) {
+	client := &recordingClient{}
+	if _, _, err := FetchPRs(context.Background(), client, "JetBrains", "kotlin", []int{1, 2}, []int{2}); err != nil {
+		t.Fatal(err)
+	}
+	if q := client.queries[0]; !strings.Contains(q, "pr1: pullRequest(number: 1) { ...PR }") || !strings.Contains(q, "pr2: pullRequest(number: 2) { ...PR body }") {
+		t.Errorf("query:\n%s", q)
+	}
+}
+
 // The same PRs in any order make the same queries.
 func TestFetchPRsOrder(t *testing.T) {
 	a, b := &recordingClient{}, &recordingClient{}
-	if _, _, err := FetchPRs(context.Background(), a, "JetBrains", "kotlin", []int{3, 1, 2}); err != nil {
+	if _, _, err := FetchPRs(context.Background(), a, "JetBrains", "kotlin", []int{3, 1, 2}, nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := FetchPRs(context.Background(), b, "JetBrains", "kotlin", []int{2, 3, 1, 3}); err != nil {
+	if _, _, err := FetchPRs(context.Background(), b, "JetBrains", "kotlin", []int{2, 3, 1, 3}, nil); err != nil {
 		t.Fatal(err)
 	}
 	if a.queries[0] != b.queries[0] || strings.Count(a.queries[0], ": pullRequest(") != 3 {
@@ -93,7 +163,7 @@ func TestFetchPRsOrder(t *testing.T) {
 
 func TestFetchPRsNothing(t *testing.T) {
 	client := &recordingClient{}
-	prs, _, err := FetchPRs(context.Background(), client, "JetBrains", "kotlin", nil)
+	prs, _, err := FetchPRs(context.Background(), client, "JetBrains", "kotlin", nil, nil)
 	if err != nil || len(prs) != 0 || len(client.queries) != 0 {
 		t.Errorf("no numbers should mean no request: %v, %d, %d", err, len(prs), len(client.queries))
 	}

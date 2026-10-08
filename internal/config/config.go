@@ -21,6 +21,8 @@ type Config struct {
 	Bots      []string `yaml:"bots"`
 	GateBot   string   `yaml:"gateBot"`
 	OwnersBot string   `yaml:"ownersBot"`
+	// CherryPickBot opens the cherry-pick PRs of /cherry-pick; empty: none are looked for.
+	CherryPickBot string `yaml:"cherryPickBot"`
 	// ReleaseBranches matches the base branches the bot treats as release branches: no
 	// coordinator there, the quality gates run on pushes to ReleaseRunPrefixes.
 	ReleaseBranches string `yaml:"releaseBranches"`
@@ -69,6 +71,7 @@ func Default() Config {
 		Bots:               []string{"KotlinBuild", "kotlin-safemerge", "kodee-bot"},
 		GateBot:            "KotlinBuild",
 		OwnersBot:          "kotlin-safemerge",
+		CherryPickBot:      "KotlinBuild",
 		ReleaseBranches:    `(?i)^\d+\.\d+\.\d+(?:-(?:RC|Beta)\d*)?$`,
 		ReleaseRunPrefixes: []string{"rrr/{base}/", "rrrn/{base}/"},
 		ReleaseTeam:        "kotlin-release",
