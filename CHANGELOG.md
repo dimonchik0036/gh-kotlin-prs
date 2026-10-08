@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- The menu-bar plugin's "by … ∙ pushed …" line uses the icon set's separator, like the rest of the menu: it had a
+  `·`, which may render double-width.
+
 ## v0.8.0 — 2026-10-05
 
 Code owners' names in the menu-bar plugin. The JSON output is unchanged (`"version": 1`).

@@ -222,7 +222,7 @@ func TestReviewAuthor(t *testing.T) {
 	}})
 	for _, want := range []string{
 		"  #7    Their change  a_rather_lo⋯  DR -  SM -",
-		"\n--Their change | color=gray trim=false emojize=false symbolize=false\n--by a_rather_long_login · pushed 2h ago | color=gray trim=false\n",
+		"\n--Their change | color=gray trim=false emojize=false symbolize=false\n--by a_rather_long_login ∙ pushed 2h ago | color=gray trim=false\n",
 		"\n--My change | color=gray trim=false emojize=false symbolize=false\n--Your move",
 	} {
 		if !strings.Contains(out, want) {

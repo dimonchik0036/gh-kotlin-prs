@@ -184,7 +184,7 @@ func (b *builder) pr(m Menu, depth int, row string, pr model.PR) {
 		// Mine are always mine.
 		by := "by " + pr.Author
 		if !pr.LastPush.IsZero() {
-			by += " · pushed " + model.Ago(m.Now, pr.LastPush)
+			by += " " + m.Icons.Separator + " pushed " + model.Ago(m.Now, pr.LastPush)
 		}
 		b.line(sub, text(by), "color=gray trim=false")
 	}

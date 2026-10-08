@@ -622,7 +622,7 @@ scripts/fetch-fixtures.sh
     safe-merge and `list`'s reviews cell (`1/2 ✗`: approvals of the people reviewing, the code-owners mark), no thread
     count;
   - a PR's submenu: the title (gray, no action; cut after a word at 100, with the whole title as the tooltip), in
-    Review "by <login> · pushed 2h ago" (gray; Mine is always mine), "Details in the interactive view", whose move it
+    Review "by <login> ∙ pushed 2h ago" (gray, with the icon set's separator; Mine is always mine), "Details in the interactive view", whose move it
     is and every reason (linked, cut at 80 with the whole text as the tooltip), the runs (linked to their builds), the
     reviewers (a name after the login as in `show`, cut after a word at 24 with the whole one in the tooltip, and
     neither emoji nor SF Symbol codes read in it) and the code-owner rules still missing (their paths cut between paths at 80 to `⋯ (+N)`, all of them in
