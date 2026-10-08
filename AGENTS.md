@@ -35,7 +35,8 @@ Never commit raw GraphQL responses,
 real logins (other than the repo owner's and the bots'), PR titles or human comment text.
 `TestCommittedFixturesAreAnonymized` guards this, for both directories.
 PR and KT numbers, commit SHAs and thread paths are fake as well. The real → fake map is
-`testdata/.fixture-map.json`, local and gitignored: never commit it, and never write real numbers into tests or docs,
+`testdata/.fixture-map.json`, local and gitignored (its `refs` are PRs bot text links without being fixtures, like a
+cherry-pick's original): never commit it, and never write real numbers into tests or docs,
 nor in commit messages (no real PR or issue to cite a test case by: describe its shape instead).
 `TestNoRealPRReferences` fails on a `JetBrains/kotlin#N` or `…/kotlin/pull/N` outside the fixtures unless N is a
 fixture's 900xx or a made-up number under 1000; `TestNoRealFixtureNumbers`, when the local map is there, on any of

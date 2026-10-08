@@ -132,3 +132,47 @@ func TestLoadMapMigratesBareKeys(t *testing.T) {
 		t.Errorf("LoadMap = %+v, %v", m, err)
 	}
 }
+
+// A cherry-pick the bot opened: its body names the original PR, not a fixture, and its
+// author, who appears nowhere else. Both get fakes; the release-run prefix of the branch stays.
+const cherryPick = `{"data": {"viewer": {"login": "the_viewer"}, "repository": {"pullRequest": {
+  "number": 78, "title": "[2.5.0] Fix", "headRefName": "rrr/2.5.0/real_author/fix", "baseRefName": "2.5.0",
+  "author": {"__typename": "User", "login": "KotlinBuild"},
+  "body": "Original pull request: https://github.com/JetBrains/kotlin/pull/77 by @real_author\n"
+}}}}`
+
+func TestRemapCherryPick(t *testing.T) {
+	m := NewMap()
+	m.PRs["60"] = firstFakePR
+	a := New(config.Default())
+	a.UseMap(m, func(n int) bool { return n == firstFakePR+1 })
+	doc, err := Decode([]byte(cherryPick))
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Collect(doc)
+	if err := a.Rewrite(doc); err != nil {
+		t.Fatal(err)
+	}
+	data, err := Encode(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := string(data)
+	for _, want := range []string{
+		`"body": "Original pull request: https://github.com/JetBrains/kotlin/pull/90004 by @alice_user\n"`,
+		`"headRefName": "rrr/2.5.0/topic/example-90003"`,
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("output lacks %s:\n%s", want, got)
+		}
+	}
+	if m.PRs["78"] != firstFakePR+2 || m.Refs["77"] != firstFakePR+3 {
+		t.Errorf("map = %+v", m)
+	}
+	// Once the original is a fixture, its own number is used.
+	m.PRs["77"] = 90009
+	if again := a.remapRefs("https://github.com/JetBrains/kotlin/pull/77"); again != "https://github.com/JetBrains/kotlin/pull/90009" {
+		t.Errorf("remapRefs = %s", again)
+	}
+}

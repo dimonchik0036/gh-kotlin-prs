@@ -25,13 +25,18 @@ const (
 
 // Map keeps the real → fake numbers of the committed fixtures. It lives in a local,
 // gitignored file: committing it would undo the remapping. Issues are keyed by their
-// upper-case ID (KT-123); each project gets its own fake numbers.
+// upper-case ID (KT-123); each project gets its own fake numbers. Refs are the PRs bot
+// text links without being fixtures (a cherry-pick's original PR): they share the PRs'
+// fake numbers, but scripts/fetch-fixtures.sh only refetches PRs.
 type Map struct {
 	PRs    map[string]int `json:"prs"`
 	Issues map[string]int `json:"issues"`
+	Refs   map[string]int `json:"refs,omitempty"`
 }
 
-func NewMap() *Map { return &Map{PRs: map[string]int{}, Issues: map[string]int{}} }
+func NewMap() *Map {
+	return &Map{PRs: map[string]int{}, Issues: map[string]int{}, Refs: map[string]int{}}
+}
 
 // LoadMap reads the map; a missing file is reported as fs.ErrNotExist.
 func LoadMap(file string) (*Map, error) {
@@ -42,6 +47,9 @@ func LoadMap(file string) (*Map, error) {
 	m := NewMap()
 	if err := json.Unmarshal(data, m); err != nil {
 		return nil, fmt.Errorf("%s: %w", file, err)
+	}
+	if m.Refs == nil {
+		m.Refs = map[string]int{}
 	}
 	// Maps written before other projects were recognized keyed KT issues by number only.
 	for k, v := range m.Issues {
@@ -70,13 +78,44 @@ func (m *Map) fakePR(real string, taken func(int) bool) int {
 	if n, ok := m.PRs[real]; ok {
 		return n
 	}
+	n := m.nextFake(taken)
+	m.PRs[real] = n
+	return n
+}
+
+// fakeRef returns the fake number of a PR that bot text links, a fixture's when it's one.
+func (m *Map) fakeRef(real string, taken func(int) bool) int {
+	if n, ok := m.PRs[real]; ok {
+		return n
+	}
+	if n, ok := m.Refs[real]; ok {
+		return n
+	}
+	n := m.nextFake(taken)
+	m.Refs[real] = n
+	return n
+}
+
+// nextFake is the first fake PR number neither the map nor taken uses.
+func (m *Map) nextFake(taken func(int) bool) int {
 	n := firstFakePR
-	used := slices.Collect(maps.Values(m.PRs))
+	used := slices.Concat(slices.Collect(maps.Values(m.PRs)), slices.Collect(maps.Values(m.Refs)))
 	for slices.Contains(used, n) || taken(n) {
 		n++
 	}
-	m.PRs[real] = n
 	return n
+}
+
+// remapRefs gives the PRs bot text links that aren't fixtures fake numbers too. It runs
+// after remapText, which replaced the fixtures' own: what's left below the fake range is real.
+func (a *Anonymizer) remapRefs(s string) string {
+	return prRef.ReplaceAllStringFunc(s, func(m string) string {
+		g := prRef.FindStringSubmatch(m)
+		if n, err := strconv.Atoi(g[2]); err != nil || n >= firstFakePR {
+			return m
+		}
+		return g[1] + strconv.Itoa(a.fakes.fakeRef(g[2], a.taken))
+	})
 }
 
 // fakeIssue returns the fake number of a real issue of a project, assigning the next one
@@ -215,7 +254,7 @@ func (a *Anonymizer) remap(obj map[string]any) {
 // checkIdentifiers fails if a real PR number, KT issue number or commit SHA survived.
 func (a *Anonymizer) checkIdentifiers(text string) []string {
 	var leaked []string
-	for number := range a.fakes.PRs {
+	for _, number := range slices.Concat(slices.Collect(maps.Keys(a.fakes.PRs)), slices.Collect(maps.Keys(a.fakes.Refs))) {
 		if regexp.MustCompile(`(/pull/|GITHUB-|"number": )` + number + `\b`).MatchString(text) {
 			leaked = append(leaked, "PR "+number)
 		}

@@ -53,6 +53,9 @@ func TestNoRealFixtureNumbers(t *testing.T) {
 	for n := range m.PRs {
 		prs = append(prs, regexp.QuoteMeta(n))
 	}
+	for n := range m.Refs {
+		prs = append(prs, regexp.QuoteMeta(n))
+	}
 	for id := range m.Issues {
 		issues = append(issues, regexp.QuoteMeta(id))
 	}

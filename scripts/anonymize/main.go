@@ -42,10 +42,15 @@ func run(out, mapFile string, files []string) error {
 		return err
 	}
 	a := anonymize.New(config.Default())
-	// Without the map's entries, a fake number could already name a committed fixture.
+	// Without the map's entries, a fake number could already name a committed fixture: one
+	// in out, or a derived one next to it (testdata/demo), which the map never has.
 	a.UseMap(m, func(n int) bool {
-		_, err := os.Stat(filepath.Join(out, fmt.Sprintf("pr-%d.json", n)))
-		return err == nil
+		for _, dir := range []string{out, filepath.Join(filepath.Dir(out), "demo")} {
+			if _, err := os.Stat(filepath.Join(dir, fmt.Sprintf("pr-%d.json", n))); err == nil {
+				return true
+			}
+		}
+		return false
 	})
 
 	files = slices.Sorted(slices.Values(files))

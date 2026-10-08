@@ -38,8 +38,10 @@ var (
 	// A person's name and login in a profile link: <a href="…"><b><code>Judy Doe (judy)</code></b></a>.
 	// The name is any profile text, parentheses included, with < escaped.
 	namedLogin = regexp.MustCompile(`(https://github\.com/[^"]+"[^>]*>(?:<[a-z]+>)*<code>)([^<]+?)\s\(([A-Za-z0-9_-]+(?:\[bot])?)\)</code>`)
-	command    = regexp.MustCompile(`^/[a-z-]+`)
-	flag       = regexp.MustCompile(`^--?[a-z-]+$`)
+	// @mentions in bot text, like a cherry-pick's "by @login"; not the @ of an e-mail address.
+	mention = regexp.MustCompile(`(?:^|[^A-Za-z0-9_.])@([A-Za-z0-9_](?:[A-Za-z0-9_-]*[A-Za-z0-9_])?)\b`)
+	command = regexp.MustCompile(`^/[a-z-]+`)
+	flag    = regexp.MustCompile(`^--?[a-z-]+$`)
 )
 
 type Anonymizer struct {
@@ -115,6 +117,11 @@ func (a *Anonymizer) Collect(doc any) {
 			a.register(login)
 		}
 		if text, ok := botText(a, obj); ok {
+			for _, m := range mention.FindAllStringSubmatch(obj[text].(string), -1) {
+				if !a.cfg.IsBot(m[1]) {
+					a.register(m[1])
+				}
+			}
 			for _, m := range profileLink.FindAllStringSubmatch(obj[text].(string), -1) {
 				if !a.cfg.IsBot(m[1]) {
 					a.register(m[1])
@@ -162,7 +169,7 @@ func (a *Anonymizer) Rewrite(doc any) error {
 			a.rewritePR(obj)
 		}
 		if text, ok := botText(a, obj); ok {
-			obj[text] = a.replaceLogins(obj[text].(string))
+			obj[text] = a.remapRefs(a.replaceLogins(obj[text].(string)))
 			return
 		}
 		if msg, ok := obj["message"].(string); ok {
@@ -194,10 +201,18 @@ func (a *Anonymizer) rewritePR(pr map[string]any) {
 	}
 	branch, _ := pr["headRefName"].(string)
 	number := fmt.Sprint(pr["number"])
+	// A release-run prefix (rrr/2.5.0/) says where the quality gates run: it stays.
+	base, _ := pr["baseRefName"].(string)
+	prefix := ""
+	for _, p := range a.cfg.ReleaseRunPrefixesOf(base) {
+		if base != "" && strings.HasPrefix(branch, p) {
+			prefix = p
+		}
+	}
 	if id := a.issues.FindString(branch); id != "" {
-		pr["headRefName"] = "topic/" + id + "-example"
+		pr["headRefName"] = prefix + "topic/" + id + "-example"
 	} else {
-		pr["headRefName"] = "topic/example-" + number
+		pr["headRefName"] = prefix + "topic/example-" + number
 	}
 }
 
