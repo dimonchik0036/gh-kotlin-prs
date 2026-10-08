@@ -43,7 +43,8 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
   - `reviewThreads(last: 50) { isResolved isOutdated path firstComment: comments(first: 1) { author body createdAt url } comments(last: 5) { author createdAt } }`
   - `comments(last: 40) { author body createdAt updatedAt }`. The bots edit their comments in place, so `updatedAt` matters.
   - `timelineItems(last: 5, itemTypes: [PULL_REQUEST_COMMIT, HEAD_REF_FORCE_PUSHED_EVENT, REVIEW_REQUESTED_EVENT])`, for the time of the last push and of the last review request.
-  - `commits(last: 1) { commit { statusCheckRollup { contexts(first: 20) { ... on CheckRun { name conclusion status } ... on StatusContext { context state targetUrl } } } } }`
+  - `commits(last: 1) { commit { statusCheckRollup { contexts(first: 20) { ... on CheckRun { name conclusion status } ... on StatusContext { context state targetUrl createdAt } } } } }`.
+    A status context's `createdAt` is when it got its state, for a release branch's gates (§5).
   - `history: commits(last: 30) { commit { message } }`, for the issue trailers (no measurable cost: ~40 points for 27 PRs before and after).
 - Issues: `^PROJ-N` trailer lines in the commit messages (`^KT-123 Fixed`, `^KT-123 Obsolete`, bare `^KT-123` =
   related; several per commit), then IDs in the branch name, then in the title. The projects come from `issueProjects`
@@ -162,7 +163,19 @@ A successful safe-merge merges the PR, so it moves to Recently merged.
 | `/cherry-pick --target=<ver>` | Opens a PR from branch `rrr/<target>/<branch>`. Works on open and merged PRs. |
 | `/review` | The auto code review, run by another bot. |
 
-v1 only parses dry-run and safe-merge runs. How the bot reports the result of `/test-public` is still unknown, so it's out of scope for now.
+**Release branches** (`releaseBranches`, by default the bot's `^\d+\.\d+\.\d+(-(RC|Beta)\d*)?$`, case-insensitive)
+have no coordinator: the bot rejects `/dry-run`, `/safe-merge` and `/test-private` there ("Command cannot be used on
+release branches."). Their quality gates are TeamCity builds that a push to `rrr/<release>/…` or `rrrn/<release>/…`
+(`releaseRunPrefixes`) starts and that report as status contexts on the head commit: `Aggregate (2.5.0) (2.5.0)` and
+the User Projects aggregates, say. `/test-public` reruns the release Aggregate. The release engineer (team
+`kotlin-release`, owner of the `*` code-owner rule) approves and merges by hand, seconds apart, once the Aggregate
+passed and the other code owners approved: failed User Projects don't stop that, nor does a failed Aggregate the
+author explained.
+
+v1 parses dry-run and safe-merge runs, and `/test-public` on a release branch: the bot answers it like the others (🚀
+once the build is triggered, a reply when it can't), and the release Aggregate's status context then reports the
+build. Elsewhere `/test-public` runs the public Aggregate on the public TeamCity, which reports neither a status nor a
+comment: the tool posts it, but has nothing to follow.
 
 **Staleness:** a run triggered before the last push is shown as `outdated`. The result is kept, but greyed out.
 
@@ -206,11 +219,14 @@ type PR struct {
     Issues           []Issue    // {ID, URL, Source: trailer|branch|title, Resolution: fixed|obsolete|""}, primary first
     LastPush         time.Time
     DryRun, SafeMerge Run       // latest of each kind
+    QualityGate      Run        // a release branch's gates as one run (§6)
     Runs             []Run      // history, newest first
     Reviewers        []Reviewer
     CodeOwners       CodeOwnersStatus // OK | Missing(rules…) | Unknown
     UnresolvedThreads int
-    Next             NextAction // Me | Reviewers | CI | Author | Done
+    Base             string
+    Release          bool       // Base is a release branch (§3)
+    Next             NextAction // Me | Reviewers | CI | Author | Release | Done
     Reasons          []Reason   // {Text, URL}: human-readable, first = primary; URL = the page that shows it
 }
 ```
@@ -273,9 +289,51 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
    since my push), or "waiting: code owners" when the check fails and nothing else names anyone (and 2c doesn't fire).
 8. **Me:** none of the above, for example no dry-run yet → "no dry-run yet".
 
+**Mine on a release branch** (§3): no dry-run or safe-merge, so rules 1, 5, 6 and 8 work on the gates, the head
+commit's status contexts, instead. Only the release Aggregate (`Aggregate (<version>) (<version>)`, the one
+`/test-public` reruns) blocks: the release engineers merge with the User Projects red and nobody answering, so those
+are hints, "quality gate failed: … (not blocking)", "quality gate running: … (not blocking)". The reviewers don't
+wait for CI (2a and 2c set `Next` while the Aggregate runs): it starts on every push and runs for hours. A gate
+*fails* in `FAILURE` or `ERROR` and *runs* in `PENDING` or `EXPECTED`.
+1. **Me:** the Aggregate failed and I (the author) haven't commented (or replied in a thread, or reviewed) since its
+   `createdAt` → "quality gate failed: Aggregate (2.5.0) (2.5.0)", linked to its build. Commenting answers it: it
+   stays as a hint, "… (commented since)", and doesn't block 6. A push answers it too, the new head commit having
+   gates of its own, and so does a `/test-public` ("… (/test-public since)"). A rejected dry-run or safe-merge, or
+   one with no response (typed by hand), is only a hint.
+1′. **Me:** my latest `/test-public` was rejected or got no response → "test-public rejected: <reason>",
+    "test-public requested 15m ago, no response".
+1a. **Me:** conflicts, as above ("conflicts with 2.5.0, rebase").
+1b. **Me:** no gate, and the branch starts with none of the `releaseRunPrefixes` → "no quality gates: the branch
+    doesn't start with rrr/2.5.0/ or rrrn/2.5.0/". Gates on another branch (started by hand) count as gates.
+2–4. As above.
+5. **CI:** my `/test-public` is requested or accepted → "test-public accepted 5m ago"; the Aggregate runs →
+   "quality gate running: Aggregate (2.5.0) (2.5.0)"; or it hasn't reported yet, on a release-run branch or with
+   other gates → "the Aggregate hasn't started, pushed 5m ago". A test-public run ends when the Aggregate reports
+   after it: it takes the Aggregate's state and build.
+6. **Release:** what's left is the release engineer's (*ready for release*): the Aggregate passed, or failed and I
+   answered, no test-public waits, at least one approval, no changes requested since my push, no conflicts, and every
+   code-owner rule approved but the `releaseTeam`'s (`kotlin-release`, `*`): their approval is part of the code
+   owners, so the check stays red until they give it, right before merging → "waiting for the release engineer:
+   olivia_user" (the release rule's assignees), or once they approved, "approved, waiting for the release engineer to
+   merge".
+7. **Reviewers:** as above, unless 6 says it.
+8. **Me:** none of the above → "no approvals and no pending requests", "code owners unknown, try /codeowners" or
+   "check the PR".
+
 **Review:** only a request brings a PR to me. Author pushes, author replies and thread replies don't: they arrive by email.
 `show` still lists the threads, for information.
 1. **Me:** requested from me personally, and I have no review after the latest request event. This covers re-requests.
+A release engineer's review (on a release branch, a member of the `releaseTeam` team in a rule of the code-owners
+table) goes by readiness instead of the request: their approval is the last one and they merge right after it, so
+requested or not, it's theirs once the PR is ready for release (Mine's 6 on a release branch), and until then it
+waits, hidden, whatever a request says. These come first:
+- **Me:** ready → "ready to approve and merge", or "approved, ready to merge", linked to the PR, whose button
+  merges it.
+- **CI** (hidden): not ready, the Aggregate or a `/test-public` still running → as Mine's 5.
+- **Author** (hidden): not ready, a failed Aggregate the author didn't answer (a comment of theirs; mine doesn't
+  count), conflicts or changes requested.
+- **Reviewers** (hidden): not ready otherwise → "not ready to merge yet: waiting for the other reviewers".
+- The gates' hints, as in Mine, for them to judge.
 2. **Done:** I approved. Hidden until I'm re-requested, whatever happened since.
 3. **Author:** anything else, e.g. I commented or requested changes and wasn't re-requested. Hidden unless `--all`.
 
@@ -290,7 +348,7 @@ gh kotlin-prs list [--mine|--review] [--waiting-on-me] [--all] [--no-teams] [--n
 gh kotlin-prs show <number> [--max-age DURATION]  # details: reviewers, run history, threads, reasons
 gh kotlin-prs config [path|init [--force]]  # effective config with sources, its path, a commented template
 gh kotlin-prs run <number> <command> [--yes]  # post a bot command (§8): dry-run, dry-run-retry, safe-merge,
-                                              # cancel-coordinator, fixup, codeowners
+                                              # cancel-coordinator, fixup, codeowners, test-public
 gh kotlin-prs run <number> request-review [login...] [--yes]  # request a review from code owners (§8)
 gh kotlin-prs swiftbar install [--dir D] [--interval 30s] [--max-age 3m] [--force]  # the menu-bar plugin (§15)
 gh kotlin-prs swiftbar script [--interval 30s] [--max-age 3m]  # its script, for a manual install
@@ -302,7 +360,10 @@ gh kotlin-prs open <number>        # browser
   Review rows have the author after the title (cut at 12, linked to the profile), in `list`, the TUI and the menu-bar
   plugin alike; the title keeps its width, so those rows are wider.
   The issue column is the primary issue plus how many more; `show` lists them all: `KT-1 (fixed) ∙ KT-2 (related) ∙ KT-3 (branch)`.
-  `1/2 ✓` is approvals out of the people reviewing, then the code-owners verdict.
+  `1/2 ✓` is approvals out of the people reviewing, then the code-owners verdict. On a release branch `QG ✗` takes the
+  DR cell and SM stays empty: the Aggregate, the gate that blocks, as one run (`qualityGate`), as the rules see it
+  (§5): failed while that isn't answered, else the waiting test-public, running, failed (answered), passed, or `-`
+  before it reports; linked to its build.
 - Symbols are single-width text characters only: no emoji, nothing East-Asian-ambiguous, since terminals draw those
   double-width and break the columns. `--icons ascii` (config `icons`) switches to pure ASCII. The legend is in `--help`
   and the README.
@@ -344,10 +405,10 @@ gh kotlin-prs open <number>        # browser
   next/previous section, `a` toggle `--all`,
   `?` help with the symbol legend (scrollable), `q` quit; `ctrl+c` always quits. The commands of §8, in the list and
   in the details: `D` dry-run, `R` dry-run --retry, `M` safe-merge, `C` cancel-coordinator, `F` fixup, `O` codeowners,
-  and `x` for a menu of the ones that can be posted now; `A` requests a review (§8). Config `keys` rebinds them by action
+  `T` test-public, and `x` for a menu of the ones that can be posted now; `A` requests a review (§8). Config `keys` rebinds them by action
   (`config.Actions`: up, down, first, last, pageUp, pageDown, nextSection, previousSection, details, back, filter, all,
   open, build, copy, copyBranch, actions, dryRun, dryRunRetry, safeMerge, cancelCoordinator, fixup, codeowners,
-  requestReview, refresh, help, quit): a key or a list replaces that action's keys. An unknown action, an action without keys, or a key bound twice is a config error.
+  testPublic, requestReview, refresh, help, quit): a key or a list replaces that action's keys. An unknown action, an action without keys, or a key bound twice is a config error.
   Inside the filter, enter and esc are fixed.
 - **Refresh:** in the background every `refresh` (3m) and on `r`. The UI never blocks while a fetch runs; a spinner
   shows it. One fetch at a time: `r` during a refresh only notes "already refreshing", and the timer waits for it. `r`
@@ -373,11 +434,13 @@ gh kotlin-prs open <number>        # browser
   | `cancel-coordinator` | `/cancel-coordinator` | cancels the dry-run or safe-merge build that's running |
   | `fixup` | `/fixup` | squashes `fixup!` commits into their targets and force-pushes the branch, no checks |
   | `codeowners` | `/codeowners` | re-runs the code-owners check and refreshes its table comment |
+  | `test-public` | `/test-public` | runs the public Aggregate on the PR's head without rebasing; on a release branch, its Aggregate (§3) |
 
-  Not in scope: `/safe-squash-merge`, `/cherry-pick`, `/test-public`, `/test-private`, `/review`, and `/safe-merge`'s
-  `--fixup=false`: they need extra input or report differently.
+  Not in scope: `/safe-squash-merge`, `/cherry-pick`, `/test-private`, `/review`, and `/safe-merge`'s `--fixup=false`: they need extra input or report differently.
 - Checked before posting (`actions.Check`), each refusal with its reason:
   - only on your own PRs, open (not merged, not closed);
+  - a dry-run or safe-merge never on a release branch (§3): the bot rejects them there ("#N merges into the release
+    branch 2.5.0, where the bot runs no dry-run");
   - a dry-run or safe-merge only while no dry-run or safe-merge is requested or running: the bot runs one
     coordinator build per PR and rejects a second one ("A Coordinator build is already in progress"). A request the bot
     never answered ("no response") doesn't count, so it can be posted again;
@@ -387,7 +450,10 @@ gh kotlin-prs open <number>        # browser
   - `/safe-merge` only on a PR that isn't a draft and is approved: at least one approval and a green
     `Code Owners Approval`. A draft takes every other command;
   - `/cancel-coordinator` only while a dry-run or safe-merge is requested or running;
-  - `/codeowners` only while its check is missing or failing.
+  - `/codeowners` only while its check is missing or failing;
+  - `/test-public` anywhere; on a release branch neither while a test-public is requested or accepted nor while its
+    Aggregate runs ("Aggregate (2.5.0) (2.5.0) is already running on #N"). Elsewhere nothing tracks it, so only the
+    TUI's "just posted" guard stops a second one.
   The bot still has the last word (conflicts GitHub hasn't computed yet, stacked PRs, `amend!` / `squash!` commits); its rejection shows as the
   run's state.
 - CLI: `run <number> <command>` fetches the PR live, checks the command, prints the PR's number and title and the exact
@@ -457,6 +523,9 @@ repo: JetBrains/kotlin
 bots: [KotlinBuild, kotlin-safemerge, kodee-bot]
 gateBot: KotlinBuild
 ownersBot: kotlin-safemerge
+releaseBranches: '(?i)^\d+\.\d+\.\d+(?:-(?:RC|Beta)\d*)?$'   # release branches (§3)
+releaseRunPrefixes: [rrr/{base}/, rrrn/{base}/]   # their quality gates run on pushes to these
+releaseTeam: kotlin-release   # its members merge them
 teams: []                 # slugs for --teams
 refresh: 3m
 startupMaxAge: 30m        # the TUI starts from cached data at most this old

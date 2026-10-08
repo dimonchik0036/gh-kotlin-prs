@@ -21,6 +21,15 @@ type Config struct {
 	Bots      []string `yaml:"bots"`
 	GateBot   string   `yaml:"gateBot"`
 	OwnersBot string   `yaml:"ownersBot"`
+	// ReleaseBranches matches the base branches the bot treats as release branches: no
+	// coordinator there, the quality gates run on pushes to ReleaseRunPrefixes.
+	ReleaseBranches string `yaml:"releaseBranches"`
+	// ReleaseRunPrefixes are the branch prefixes whose pushes run a release branch's quality
+	// gates; {base} is the release branch.
+	ReleaseRunPrefixes []string `yaml:"releaseRunPrefixes"`
+	// ReleaseTeam is the code-owner team of the release engineers, who merge a release
+	// branch's PRs; empty: nobody is.
+	ReleaseTeam string `yaml:"releaseTeam"`
 	// Teams restricts the "Team requests" section to these team slugs. Empty means all teams.
 	Teams []string `yaml:"teams"`
 	// Refresh is how often the TUI refreshes in the background.
@@ -56,19 +65,22 @@ func (d *Duration) UnmarshalYAML(node *yaml.Node) error {
 
 func Default() Config {
 	return Config{
-		Repo:             "JetBrains/kotlin",
-		Bots:             []string{"KotlinBuild", "kotlin-safemerge", "kodee-bot"},
-		GateBot:          "KotlinBuild",
-		OwnersBot:        "kotlin-safemerge",
-		Refresh:          Duration(3 * time.Minute),
-		StartupMaxAge:    Duration(30 * time.Minute),
-		RequestedTimeout: Duration(10 * time.Minute),
-		Icons:            "unicode",
-		IssueProjects:    []string{"KT", "KTIJ", "KTI"},
-		IssueURL:         "https://youtrack.jetbrains.com/issue/{id}",
-		Hyperlinks:       "auto",
-		Keys:             DefaultKeys(),
-		Notify:           DefaultNotify(),
+		Repo:               "JetBrains/kotlin",
+		Bots:               []string{"KotlinBuild", "kotlin-safemerge", "kodee-bot"},
+		GateBot:            "KotlinBuild",
+		OwnersBot:          "kotlin-safemerge",
+		ReleaseBranches:    `(?i)^\d+\.\d+\.\d+(?:-(?:RC|Beta)\d*)?$`,
+		ReleaseRunPrefixes: []string{"rrr/{base}/", "rrrn/{base}/"},
+		ReleaseTeam:        "kotlin-release",
+		Refresh:            Duration(3 * time.Minute),
+		StartupMaxAge:      Duration(30 * time.Minute),
+		RequestedTimeout:   Duration(10 * time.Minute),
+		Icons:              "unicode",
+		IssueProjects:      []string{"KT", "KTIJ", "KTI"},
+		IssueURL:           "https://youtrack.jetbrains.com/issue/{id}",
+		Hyperlinks:         "auto",
+		Keys:               DefaultKeys(),
+		Notify:             DefaultNotify(),
 	}
 }
 
@@ -109,6 +121,14 @@ func Parse(data []byte) (Config, error) {
 	}
 	if _, _, ok := strings.Cut(cfg.Repo, "/"); !ok {
 		return cfg, fmt.Errorf("config: repo must be owner/name, got %q", cfg.Repo)
+	}
+	if _, err := regexp.Compile(cfg.ReleaseBranches); err != nil {
+		return cfg, fmt.Errorf("config: releaseBranches: %w", err)
+	}
+	for _, p := range cfg.ReleaseRunPrefixes {
+		if !strings.Contains(p, "{base}") {
+			return cfg, fmt.Errorf("config: releaseRunPrefixes must contain {base}, got %q", p)
+		}
 	}
 	if cfg.Refresh <= 0 {
 		return cfg, fmt.Errorf("config: refresh must be positive, got %s", time.Duration(cfg.Refresh))
@@ -180,6 +200,33 @@ func (c Config) projects() string {
 // IssueLink is the URL of an issue.
 func (c Config) IssueLink(id string) string {
 	return strings.ReplaceAll(c.IssueURL, "{id}", id)
+}
+
+// IsReleaseBranch reports whether branch is a release branch (ReleaseBranches); none with
+// an empty or invalid pattern.
+func (c Config) IsReleaseBranch(branch string) bool {
+	if c.ReleaseBranches == "" {
+		return false
+	}
+	re, err := regexp.Compile(c.ReleaseBranches)
+	return err == nil && re.MatchString(branch)
+}
+
+// ReleaseRunBranch reports whether pushes to branch run the quality gates of the release
+// branch base (ReleaseRunPrefixes).
+func (c Config) ReleaseRunBranch(branch, base string) bool {
+	return slices.ContainsFunc(c.ReleaseRunPrefixes, func(p string) bool {
+		return strings.HasPrefix(branch, strings.ReplaceAll(p, "{base}", base))
+	})
+}
+
+// ReleaseRunPrefixesOf are ReleaseRunPrefixes for the release branch base.
+func (c Config) ReleaseRunPrefixesOf(base string) []string {
+	out := make([]string, len(c.ReleaseRunPrefixes))
+	for i, p := range c.ReleaseRunPrefixes {
+		out[i] = strings.ReplaceAll(p, "{base}", base)
+	}
+	return out
 }
 
 func (c Config) Owner() string {

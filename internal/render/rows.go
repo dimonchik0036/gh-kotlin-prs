@@ -110,8 +110,8 @@ func textCell(column Column, url string, segments ...segment) Cell {
 }
 
 // NewRow builds the cells of a PR: who has the move, the number, the issue, the title,
-// the author in Review, then for open PRs the dry-run and safe-merge, the reviews and threads, and the
-// primary reason.
+// the author in Review, then for open PRs the dry-run and safe-merge (on a release branch,
+// the quality gates), the reviews and threads, and the primary reason.
 func NewRow(pr model.PR, icons Icons) Row {
 	title := trimIssuePrefix(pr.Title, pr.Issues)
 	if pr.Draft {
@@ -143,9 +143,14 @@ func NewRow(pr model.PR, icons Icons) Row {
 		author.Max, author.ellipsis = authorWidth, icons.Ellipsis
 		cells = append(cells, author)
 	}
+	// A release branch has no dry-run or safe-merge: its quality gates take their place.
+	dryRun, safeMerge := runCell(ColumnDryRun, "DR", pr.DryRun, icons), runCell(ColumnSafeMerge, "SM", pr.SafeMerge, icons)
+	if pr.Release {
+		dryRun, safeMerge = runCell(ColumnDryRun, "QG", pr.QualityGate, icons), Cell{Column: ColumnSafeMerge}
+	}
 	return Row{PR: pr, Cells: append(cells,
-		runCell(ColumnDryRun, "DR", pr.DryRun, icons),
-		runCell(ColumnSafeMerge, "SM", pr.SafeMerge, icons),
+		dryRun,
+		safeMerge,
 		reviewCell(pr, icons),
 		threads,
 		reason,

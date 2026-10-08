@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"cmp"
 	"fmt"
 	"time"
 
@@ -101,10 +102,10 @@ func (m *Model) openMenu() {
 		return
 	}
 	var items []actions.Command
-	var why error
+	var why error // the first refusal: the later commands are the more specific ones
 	for _, c := range actions.Commands {
 		if err := m.refusal(c, pr); err != nil {
-			why = err
+			why = cmp.Or(why, err)
 		} else {
 			items = append(items, c)
 		}

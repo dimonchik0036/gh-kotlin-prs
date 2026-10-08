@@ -2,7 +2,10 @@
 // the contract for every UI.
 package model
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // Version of the JSON output.
 const Version = 1
@@ -21,7 +24,16 @@ type RunKind string
 const (
 	DryRun    RunKind = "dry-run"
 	SafeMerge RunKind = "safe-merge"
+	// TestPublic is a /test-public on a release branch, which reruns its Aggregate: once
+	// the Aggregate reports after it, the run takes the Aggregate's state and build.
+	TestPublic RunKind = "test-public"
+	// QualityGate sums a release branch's gates up, in place of the dry-run and safe-merge.
+	QualityGate RunKind = "quality-gate"
 )
+
+// IsReleaseAggregate reports whether a status context is a release branch's Aggregate,
+// the gate /test-public reruns: the bot names it "Aggregate (<version>) (<version>)".
+func IsReleaseAggregate(name string) bool { return strings.HasPrefix(name, "Aggregate (") }
 
 type RunState string
 
@@ -220,6 +232,8 @@ type Check struct {
 	Name  string `json:"name"`
 	State string `json:"state"`
 	URL   string `json:"url,omitempty"`
+	// At is when a status context got its state; zero for check runs.
+	At time.Time `json:"at,omitzero"`
 }
 
 type NextAction string
@@ -229,7 +243,9 @@ const (
 	NextReviewers NextAction = "reviewers"
 	NextCI        NextAction = "ci"
 	NextAuthor    NextAction = "author"
-	NextDone      NextAction = "done"
+	// NextRelease: approved on a release branch, the release engineer merges it.
+	NextRelease NextAction = "release"
+	NextDone    NextAction = "done"
 )
 
 type PR struct {
@@ -239,8 +255,11 @@ type PR struct {
 	Author string `json:"author"`
 	Branch string `json:"branch"`
 	// Base is the branch the PR merges into.
-	Base  string `json:"base,omitempty"`
-	Draft bool   `json:"draft,omitempty"`
+	Base string `json:"base,omitempty"`
+	// Release: Base is a release branch (config releaseBranches): no dry-run or safe-merge
+	// there, the quality gates are the status contexts of the head commit.
+	Release bool `json:"release,omitempty"`
+	Draft   bool `json:"draft,omitempty"`
 	// Conflicts: GitHub found conflicts with the base branch. Not while it's still checking.
 	Conflicts bool    `json:"conflicts,omitempty"`
 	Section   Section `json:"section"`
@@ -253,6 +272,9 @@ type PR struct {
 	Closed    bool `json:"closed,omitempty"`
 	DryRun    Run  `json:"dryRun"`
 	SafeMerge Run  `json:"safeMerge"`
+	// QualityGate, on a release branch, is its gates as one run: failed while a failure
+	// isn't answered, else waiting for a test-public, running, failed, passed or none.
+	QualityGate Run `json:"qualityGate,omitzero"`
 	// Runs is the history, newest first.
 	Runs       []Run            `json:"runs,omitempty"`
 	Reviewers  []Reviewer       `json:"reviewers,omitempty"`

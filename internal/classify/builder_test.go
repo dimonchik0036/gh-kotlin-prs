@@ -42,6 +42,32 @@ func newPR(author string) *prBuilder {
 	return b
 }
 
+// release makes it a PR into the release branch 2.5.0, from a branch whose pushes run its
+// quality gates.
+func (b *prBuilder) release() *prBuilder {
+	b.pr.BaseRefName = "2.5.0"
+	b.pr.HeadRefName = "rrr/2.5.0/" + b.pr.HeadRefName
+	return b
+}
+
+func (b *prBuilder) branch(name string) *prBuilder {
+	b.pr.HeadRefName = name
+	return b
+}
+
+// status reports a status context, a TeamCity build, on the head commit.
+func (b *prBuilder) status(context, state string, t time.Time) *prBuilder {
+	c := &b.pr.Commits.Nodes[0].Commit
+	if c.StatusCheckRollup == nil {
+		c.StatusCheckRollup = &github.StatusCheckRollup{}
+	}
+	c.StatusCheckRollup.Contexts.Nodes = append(c.StatusCheckRollup.Contexts.Nodes, github.CheckContext{
+		Typename: "StatusContext", Context: context, State: state, CreatedAt: t,
+		TargetURL: fmt.Sprintf("https://buildserver.labs.intellij.net/build/%d", 500+len(c.StatusCheckRollup.Contexts.Nodes)),
+	})
+	return b
+}
+
 func user(login string) *github.Actor { return &github.Actor{Typename: "User", Login: login} }
 
 func botActor(login string) *github.Actor { return &github.Actor{Typename: "Bot", Login: login} }

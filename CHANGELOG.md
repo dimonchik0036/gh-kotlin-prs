@@ -6,6 +6,16 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- PRs into a release branch (`2.5.0`, `2.5.0-RC`, …) follow the release workflow: no dry-run or safe-merge offered,
+  the quality gates are the TeamCity builds on the head commit, of which only the release Aggregate blocks (a failed
+  one is your move until you comment or push; the User Projects are hints), and once it passed and the other code
+  owners approved, the move is the release engineer's (new `"next": "release"` in the JSON, "Waiting on the release
+  engineer" in the menu-bar plugin). Their rows show the Aggregate as `QG ✗` in place of `DR` and `SM`
+  (`qualityGate` in the JSON). A release engineer sees one in Review as "ready to approve and merge" only then. New
+  config keys `releaseBranches`, `releaseRunPrefixes` and `releaseTeam`.
+- `test-public` (`T` in the interactive view) posts `/test-public`: the public Aggregate without rebasing, whose result
+  GitHub doesn't show. On a release branch it reruns the release Aggregate, and the run shows as requested, accepted,
+  then with the Aggregate's result, and answers a failed Aggregate.
 - The menu-bar plugin's "by … ∙ pushed …" line uses the icon set's separator, like the rest of the menu: it had a
   `·`, which may render double-width.
 

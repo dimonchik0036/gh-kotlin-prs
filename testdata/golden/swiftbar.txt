@@ -27,6 +27,7 @@ Mine (3) | font=Menlo-Bold size=12
 --/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
 --/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
 --/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90006 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
 ❯  #90006  KT-990004 +1  Example change  DR ✗  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90006
 ❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 terminal=true
 --KT-990001: Example change | color=gray trim=false emojize=false symbolize=false
@@ -52,6 +53,7 @@ Mine (3) | font=Menlo-Bold size=12
 --/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
 --/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
 --/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90007 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
 ❯  #90007  KT-990001 +1  Example change  DR ⊘  SM -  0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90007
 ∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 terminal=true
 --KT-990003: Example change | color=gray trim=false emojize=false symbolize=false
@@ -77,6 +79,7 @@ Mine (3) | font=Menlo-Bold size=12
 --/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
 --/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
 --/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=90005 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
 ∙  #90005  KT-990003 +1  Example change  DR ✓  SM -  1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/90005
 Review (0) | font=Menlo-Bold size=12
   +2 reviews not waiting on you, 1 draft (in the interactive view, a) | size=11 color=gray trim=false

@@ -35,7 +35,10 @@ type pendingCommand struct {
 //
 // A command its author minimized issues nothing, and the bot's reply to it goes with it;
 // a minimized rejection drops the rejected run: the author dismissed it.
-func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model.Run {
+//
+// On a release branch, a /test-public is a run too (model.TestPublic): it waits for the bot
+// like the others, and withAggregate ends it.
+func (c *Classifier) runs(comments []github.Comment, lastPush time.Time, release bool) []model.Run {
 	comments = slices.Clone(comments)
 	slices.SortStableFunc(comments, func(a, b github.Comment) int { return a.CreatedAt.Compare(b.CreatedAt) })
 
@@ -101,6 +104,9 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model
 			}
 			p := pendingCommand{cmd: cmd, at: cm.CreatedAt, accepted: c.hasBotRocket(cm), url: cm.URL, dismissed: cm.IsMinimized}
 			p.kind, _ = cmd.RunKind()
+			if cmd == CmdTestPublic && release {
+				p.kind = model.TestPublic
+			}
 			if cmd == CmdCancel && p.accepted {
 				// Dispatched, so no reply comes; a minimized one cancels nothing.
 				if !p.dismissed {
@@ -154,6 +160,33 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time) []model
 		}
 	}
 	slices.SortStableFunc(runs, func(a, b model.Run) int { return b.Started.Compare(a.Started) })
+	return runs
+}
+
+// withAggregate ends the /test-public runs the release Aggregate reported after: the run
+// takes the gate's state and build, and is outdated when the PR was pushed since. Until
+// then the run is requested or accepted.
+func (f *facts) withAggregate(runs []model.Run) []model.Run {
+	agg, ok := f.aggregate()
+	if !ok {
+		return runs
+	}
+	for i := range runs {
+		r := &runs[i]
+		if r.Kind != model.TestPublic || r.State != model.RunRequested && r.State != model.RunAccepted || !agg.CreatedAt.After(r.Started) {
+			continue
+		}
+		switch {
+		case runningGate(agg.State):
+			r.State = model.RunRunning
+		case failedGate(agg.State):
+			r.State = model.RunFailed
+		default:
+			r.State = model.RunPassed
+		}
+		r.BuildURL, r.Updated, r.NoResponse = agg.TargetURL, agg.CreatedAt, false
+		r.Outdated = r.Started.Before(f.lastPush)
+	}
 	return runs
 }
 

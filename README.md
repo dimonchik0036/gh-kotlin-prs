@@ -39,14 +39,15 @@ gh kotlin-prs show <number>   # reviewers, code owners, runs, threads and all re
 `run` posts one of the bot's commands on a PR of yours, as a regular comment, after showing it and asking:
 
 ```sh
-gh kotlin-prs run 90006 dry-run        # /dry-run; also dry-run-retry, safe-merge, cancel-coordinator, fixup, codeowners
+gh kotlin-prs run 90006 dry-run        # /dry-run; also dry-run-retry, safe-merge, cancel-coordinator, fixup, codeowners,
+                                       # test-public
 gh kotlin-prs run 90006 safe-merge --yes
 ```
 
 It refuses what the bot would refuse or what makes no sense now: someone else's PR, a closed one, a second
 dry-run or safe-merge while one is requested or running, a safe-merge on a draft or before approval,
-`cancel-coordinator` with nothing running, `codeowners` while its check is green. Without a terminal it needs
-`--yes`. The interactive view posts the same commands (below).
+`cancel-coordinator` with nothing running, `codeowners` while its check is green, a dry-run or safe-merge on a
+release branch, `test-public` while a release branch's Aggregate runs. Without a terminal it needs `--yes`. The interactive view posts the same commands (below).
 
 `run <number> request-review` requests a review from code owners, only people of the bot's code-owners table, never a
 team, in one request:
@@ -70,7 +71,8 @@ j/k, up/down  select            enter  details (esc: back)     o  open the PR   
 tab           next section      /      filter                  b  open its build    ?  help and symbols
 a             toggle --all      g/G    first / last            y  copy its URL      q  quit
                                                                Y  copy its branch
-x             commands for it: D dry-run, R dry-run --retry, M safe-merge, C cancel-coordinator, F fixup, O codeowners
+x             commands for it: D dry-run, R dry-run --retry, M safe-merge, C cancel-coordinator, F fixup, O codeowners,
+              T test-public
 A             request a review from code owners
 ```
 
@@ -142,11 +144,20 @@ A row reads:
 ```
 
 The first column is whose move it is, then the issue, the title (in Review followed by the PR's author), the latest
-dry-run (`DR`) and safe-merge (`SM`), approvals out of the people reviewing with the code-owners verdict, unresolved
+dry-run (`DR`) and safe-merge (`SM`) (on a release branch, its Aggregate instead: `QG`), approvals out of the people reviewing with the code-owners verdict, unresolved
 threads and the main reason. `show` lists every reason.
 
 Issues come from `^KT-123 Fixed` / `^KT-123 Obsolete` / `^KT-123` trailers in the PR's commit messages, then the branch
 name and the title. The row shows the primary one (fixed first) and how many more: `KT-990003 +1`; `show` lists them all.
+
+A PR into a release branch (`2.5.0`, `2.5.0-RC`, …) has no dry-run or safe-merge: its quality gates are the TeamCity
+builds a push to `rrr/2.5.0/…` or `rrrn/2.5.0/…` starts, shown on its head commit, and the release engineer merges it.
+Only the release Aggregate blocks it: a failed one is your move until you push, comment on it (a failure unrelated to
+the change happens), or post `test-public` to rerun it; the User Projects builds are only hints, as the release
+engineers merge with them red. Once the Aggregate passed and the other code owners approved, the move is the release
+engineer's: their approval (the `*` rule of `kotlin-release`, config `releaseTeam`) is the last one, right before
+they merge. A release engineer sees such a PR in Review as "ready to approve and merge" only then, whenever they
+were requested.
 
 Review lists only PRs where your review is requested and you haven't answered it yet; the rest is counted in a
 `+4 reviews not waiting on you, 1 draft (--all)` line and shown with `--all`.
@@ -154,16 +165,18 @@ Review lists only PRs where your review is requested and you haven't answered it
 Symbols are single-width text characters, so the columns line up in any terminal (`--help` prints the same legend):
 
 ```
-  next move:   ❯ yours, ⟳ CI, ∙ reviewers or author, ✓ done
+  next move:   ❯ yours, ⟳ CI, ∙ others, ✓ done
   DR / SM:     - none, ? requested, ! no response, ⋯ accepted, ⟳ running, ✓ passed, ✗ failed, ⊘ rejected, ⨯ cancelled, ~ prefix: older than the last push
+  QG:          the same for a release branch's Aggregate, in place of DR / SM
   approvals:   A/R approved/reviewing, ✓ code owners ok, ✗ code owners missing, ? unknown
 ```
 
 With `--icons ascii` (or `icons: ascii` in the config):
 
 ```
-  next move:   ! yours, > CI, . reviewers or author, + done
+  next move:   ! yours, > CI, . others, + done
   DR / SM:     - none, ? requested, ! no response, ^ accepted, > running, + passed, x failed, / rejected, c cancelled, ~ prefix: older than the last push
+  QG:          the same for a release branch's Aggregate, in place of DR / SM
   approvals:   A/R approved/reviewing, + code owners ok, x code owners missing, ? unknown
 ```
 
@@ -245,6 +258,9 @@ repo: JetBrains/kotlin
 bots: [KotlinBuild, kotlin-safemerge, kodee-bot]
 gateBot: KotlinBuild
 ownersBot: kotlin-safemerge
+releaseBranches: '(?i)^\d+\.\d+\.\d+(?:-(?:RC|Beta)\d*)?$'   # base branches with the release workflow
+releaseRunPrefixes: [rrr/{base}/, rrrn/{base}/]   # pushes to these run a release branch's quality gates
+releaseTeam: kotlin-release   # the release engineers, who merge them
 teams: []                 # only show team requests to these teams; empty means all
 refresh: 3m
 startupMaxAge: 30m        # the TUI starts from cached data at most this old

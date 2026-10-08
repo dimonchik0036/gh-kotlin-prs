@@ -298,6 +298,7 @@ var nextWords = map[model.NextAction]string{
 	model.NextCI:        "Waiting on CI",
 	model.NextReviewers: "Waiting on reviewers",
 	model.NextAuthor:    "Waiting on the author",
+	model.NextRelease:   "Waiting on the release engineer",
 	model.NextDone:      "Done",
 }
 

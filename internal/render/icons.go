@@ -61,10 +61,11 @@ func (i Icons) Legend() string {
 		return fmt.Sprintf("  %-12s %s\n", title, strings.Join(parts, ", "))
 	}
 	var b strings.Builder
-	b.WriteString(line("next move:", i.NextMe, "yours", i.NextCI, "CI", i.NextOther, "reviewers or author", i.NextDone, "done"))
+	b.WriteString(line("next move:", i.NextMe, "yours", i.NextCI, "CI", i.NextOther, "others", i.NextDone, "done"))
 	b.WriteString(line("DR / SM:", i.RunNone, "none", i.RunRequested, "requested", i.RunNoResponse, "no response",
 		i.RunAccepted, "accepted", i.RunRunning, "running", i.RunPassed, "passed", i.RunFailed, "failed",
 		i.RunRejected, "rejected", i.RunCancelled, "cancelled", i.Outdated, "prefix: older than the last push"))
+	b.WriteString(line("QG:", "the same", "for a release branch's Aggregate, in place of DR / SM"))
 	b.WriteString(line("approvals:", "A/R", "approved/reviewing", i.OwnersOK, "code owners ok", i.OwnersMissing, "code owners missing", i.OwnersUnknown, "unknown"))
 	return b.String()
 }

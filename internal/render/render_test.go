@@ -670,6 +670,25 @@ func TestBlocks(t *testing.T) {
 	}
 }
 
+// On a release branch the quality gates take the dry-run's column, and the safe-merge's
+// stays empty, so the columns still line up.
+func TestRowQualityGate(t *testing.T) {
+	pr := loadModel(t, "pr-90006.json")
+	pr.Release = true
+	pr.QualityGate = model.Run{Kind: model.QualityGate, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/7"}
+	row := NewRow(pr, Unicode)
+	cells := map[Column]Cell{}
+	for _, c := range row.Cells {
+		cells[c.Column] = c
+	}
+	if qg := cells[ColumnDryRun]; qg.Text() != "QG ✗" || qg.URL() != pr.QualityGate.BuildURL {
+		t.Errorf("QG cell %q → %q", qg.Text(), qg.URL())
+	}
+	if sm := cells[ColumnSafeMerge]; sm.Text() != "" || sm.URL() != "" {
+		t.Errorf("SM cell %q → %q", sm.Text(), sm.URL())
+	}
+}
+
 // A row's cells name their column and link target, the same in every renderer.
 func TestRowCells(t *testing.T) {
 	pr := loadModel(t, "pr-90006.json")

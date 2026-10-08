@@ -63,7 +63,7 @@ fragment PR on PullRequest {
             nodes {
               __typename
               ... on CheckRun { name conclusion status detailsUrl title summary }
-              ... on StatusContext { context state targetUrl }
+              ... on StatusContext { context state targetUrl createdAt }
             }
           }
         }

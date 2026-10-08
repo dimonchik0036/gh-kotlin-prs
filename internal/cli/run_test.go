@@ -179,7 +179,7 @@ func TestStartFlags(t *testing.T) {
 		{[]string{"--post", "fixup"}, true, "--post needs --pr"},
 		{[]string{"--post", "request-review"}, true, "--post needs --pr"},
 		{[]string{"--pr", "90006", "--post", "safe-squash-merge"}, true, `unknown command "safe-squash-merge" for --post, want one of dry-run, ` +
-			`dry-run-retry, safe-merge, cancel-coordinator, fixup, codeowners, request-review`},
+			`dry-run-retry, safe-merge, cancel-coordinator, fixup, codeowners, test-public, request-review`},
 		{[]string{"--pr", "90006"}, false, "the interactive view needs a terminal"},
 		{[]string{"--pr", "-3"}, true, "not a PR number: -3"},
 	} {

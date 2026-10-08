@@ -84,6 +84,8 @@ type CheckContext struct {
 	Context    string `json:"context,omitempty"`
 	State      string `json:"state,omitempty"`
 	TargetURL  string `json:"targetUrl,omitempty"`
+	// CreatedAt is when a status context got its state.
+	CreatedAt time.Time `json:"createdAt,omitzero"`
 }
 
 type StatusCheckRollup struct {

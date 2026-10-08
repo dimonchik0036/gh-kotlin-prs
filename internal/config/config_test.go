@@ -43,10 +43,38 @@ func TestParsePartial(t *testing.T) {
 }
 
 func TestParseErrors(t *testing.T) {
-	for _, data := range []string{"refresh: soon\n", "refresh: 0s\n", "startupMaxAge: -1m\n", "repo: kotlin\n", "bots: {\n", "icons: emoji\n", "issueProjects: [KT-1]\n", "issueURL: https://example.org/\n", "hyperlinks: sometimes\n"} {
+	for _, data := range []string{"refresh: soon\n", "refresh: 0s\n", "startupMaxAge: -1m\n", "repo: kotlin\n", "bots: {\n", "icons: emoji\n", "issueProjects: [KT-1]\n", "issueURL: https://example.org/\n", "hyperlinks: sometimes\n", "releaseBranches: '('\n", "releaseRunPrefixes: [rrr/]\n"} {
 		if _, err := Parse([]byte(data)); err == nil {
 			t.Errorf("Parse(%q) succeeded", data)
 		}
+	}
+}
+
+// The defaults are the bot's: its release-branch regex, and the prefixes TeamCity's release
+// project triggers its quality gates on.
+func TestReleaseBranches(t *testing.T) {
+	cfg := Default()
+	for branch, want := range map[string]bool{
+		"2.5.0": true, "2.4.20": true, "2.5.0-Beta1": true, "2.5.0-RC": true, "2.5.0-rc2": true,
+		"master": false, "1.9": false, "kt-261": false, "rrr/2.5.0/x": false, "2.5.0-M1": false,
+	} {
+		if got := cfg.IsReleaseBranch(branch); got != want {
+			t.Errorf("IsReleaseBranch(%q) = %v, want %v", branch, got, want)
+		}
+	}
+	for branch, want := range map[string]bool{
+		"rrr/2.5.0/alice_user/fix": true, "rrrn/2.5.0/perf/fix": true,
+		"rrr/2.5.20/fix": false, "rr/fix": false, "alice_user/fix": false, "rrr/2.5.0": false,
+	} {
+		if got := cfg.ReleaseRunBranch(branch, "2.5.0"); got != want {
+			t.Errorf("ReleaseRunBranch(%q, 2.5.0) = %v, want %v", branch, got, want)
+		}
+	}
+	if got := cfg.ReleaseRunPrefixesOf("2.5.0"); !slices.Equal(got, []string{"rrr/2.5.0/", "rrrn/2.5.0/"}) {
+		t.Errorf("ReleaseRunPrefixesOf = %q", got)
+	}
+	if (Config{}).IsReleaseBranch("2.5.0") {
+		t.Error("an empty pattern matches")
 	}
 }
 

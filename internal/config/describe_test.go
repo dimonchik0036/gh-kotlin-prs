@@ -89,8 +89,8 @@ func TestDescribe(t *testing.T) {
 		"\n  events: [merged]  # file\n",
 		"\n  terminal: auto    # default\n",
 		"\n  swiftbar: false   # file\n",
-		"\nrepo: JetBrains/kotlin                               # default\n",
-		"\nissueURL: https://youtrack.jetbrains.com/issue/{id}  # default\n",
+		"\nrepo: JetBrains/kotlin                                    # default\n",
+		"\nissueURL: https://youtrack.jetbrains.com/issue/{id}       # default\n",
 	} {
 		if !strings.Contains("\n"+out, want) {
 			t.Errorf("the description lacks %q:\n%s", want, out)

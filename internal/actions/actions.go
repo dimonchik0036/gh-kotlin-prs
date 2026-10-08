@@ -37,10 +37,12 @@ var (
 		Doc: "squash fixup! commits into their targets and force-push the branch, without the checks"}
 	CodeOwners = Command{Name: "codeowners", Action: "codeowners", Text: "/codeowners",
 		Doc: "re-run the code-owners check and refresh the bot's table"}
+	TestPublic = Command{Name: "test-public", Action: "testPublic", Text: "/test-public",
+		Doc: "run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"}
 )
 
 // Commands lists every command.
-var Commands = []Command{DryRun, DryRunRetry, SafeMerge, CancelCoordinator, Fixup, CodeOwners}
+var Commands = []Command{DryRun, DryRunRetry, SafeMerge, CancelCoordinator, Fixup, CodeOwners, TestPublic}
 
 // Find returns the command named name.
 func Find(name string) (Command, bool) {
@@ -61,13 +63,15 @@ func Names() string {
 	return strings.Join(names, ", ")
 }
 
-// Kind is the run a command starts: dry-run or safe-merge, "" for the others.
+// Kind is the run a command starts: dry-run, safe-merge or test-public, "" for the others.
 func (c Command) Kind() model.RunKind {
 	switch c {
 	case DryRun, DryRunRetry:
 		return model.DryRun
 	case SafeMerge:
 		return model.SafeMerge
+	case TestPublic:
+		return model.TestPublic
 	}
 	return ""
 }
@@ -80,11 +84,13 @@ func refuse(format string, args ...any) error {
 }
 
 // Check says why the command can't be posted on the PR by viewer now, or nil when it can:
-// only on the viewer's own open PRs, a dry-run or safe-merge only while no run is
+// only on the viewer's own open PRs, a dry-run or safe-merge never on a release branch
+// (the bot rejects them there) and only while no run is
 // requested or running (the bot runs one at a time), a safe-merge only on a PR that
 // isn't a draft and is approved, /cancel-coordinator only while a run is requested or
-// running, and
-// /codeowners only while its check is missing or failing. A request the bot never
+// running,
+// /codeowners only while its check is missing or failing, and /test-public, on a release
+// branch, only while neither it nor the Aggregate runs. A request the bot never
 // answered ("no response") doesn't count as running: it may be posted again.
 func Check(c Command, pr model.PR, viewer string) error {
 	if err := CheckOwnOpen(pr, viewer); err != nil {
@@ -93,6 +99,9 @@ func Check(c Command, pr model.PR, viewer string) error {
 	running, active := activeRun(pr)
 	switch c {
 	case DryRun, DryRunRetry, SafeMerge:
+		if pr.Release {
+			return refuse("#%d merges into the release branch %s, where the bot runs no %s", pr.Number, pr.Base, c.Kind())
+		}
 		if active {
 			return refuse("a %s is already %s on #%d", running.Kind, running.State, pr.Number)
 		}
@@ -113,8 +122,30 @@ func Check(c Command, pr model.PR, viewer string) error {
 		if pr.CodeOwners.Check == "SUCCESS" {
 			return refuse("the code-owners check of #%d is already green", pr.Number)
 		}
+	case TestPublic:
+		if !pr.Release {
+			break // the public Aggregate reports nowhere the tool reads: nothing to wait for
+		}
+		if run, ok := latestTestPublic(pr); ok && run.State.InProgress() && !run.NoResponse {
+			return refuse("a test-public is already %s on #%d", run.State, pr.Number)
+		}
+		for _, check := range pr.Checks {
+			if model.IsReleaseAggregate(check.Name) && (check.State == "PENDING" || check.State == "EXPECTED") {
+				return refuse("%s is already running on #%d", check.Name, pr.Number)
+			}
+		}
 	}
 	return nil
+}
+
+// latestTestPublic is the newest test-public run; runs are sorted newest first.
+func latestTestPublic(pr model.PR) (model.Run, bool) {
+	for _, r := range pr.Runs {
+		if r.Kind == model.TestPublic {
+			return r, true
+		}
+	}
+	return model.Run{}, false
 }
 
 // CheckOwnOpen refuses a PR that isn't the viewer's or isn't open.
@@ -165,17 +196,18 @@ func activeRun(pr model.PR) (model.Run, bool) {
 }
 
 // Requested is pr as it looks right after c was posted at at, until the next refresh
-// sees the comment: a dry-run or safe-merge requested by the comment at url, the move
-// CI's. Other commands start no run: pr stays as it is.
+// sees the comment: a dry-run, safe-merge or (on a release branch) test-public requested
+// by the comment at url, the move CI's. Other commands start no run: pr stays as it is.
 func Requested(c Command, pr model.PR, url string, at time.Time) model.PR {
 	kind := c.Kind()
-	if kind == "" {
+	if kind == "" || kind == model.TestPublic && !pr.Release {
 		return pr
 	}
 	run := model.Run{Kind: kind, State: model.RunRequested, Started: at, Updated: at, CommentURL: url}
-	if kind == model.DryRun {
+	switch kind {
+	case model.DryRun:
 		pr.DryRun = run
-	} else {
+	case model.SafeMerge:
 		pr.SafeMerge = run
 	}
 	pr.Runs = append([]model.Run{run}, pr.Runs...)

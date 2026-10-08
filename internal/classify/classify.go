@@ -28,7 +28,11 @@ func (c *Classifier) PR(raw *github.PullRequest, section model.Section) model.PR
 	f := c.facts(raw, section)
 	switch section {
 	case model.SectionMine:
-		applyRules(f, mineRules)
+		if f.pr.Release {
+			applyRules(f, releaseRules)
+		} else {
+			applyRules(f, mineRules)
+		}
 	case model.SectionTeams:
 		applyRules(f, teamRules)
 	default:
@@ -75,6 +79,7 @@ func (c *Classifier) basics(raw *github.PullRequest, section model.Section) mode
 		Author:    raw.Author.LoginOrEmpty(),
 		Branch:    raw.HeadRefName,
 		Base:      raw.BaseRefName,
+		Release:   c.Config.IsReleaseBranch(raw.BaseRefName),
 		Draft:     raw.IsDraft,
 		Conflicts: raw.Mergeable == "CONFLICTING",
 		Section:   section,
@@ -136,7 +141,10 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 	f.lastPush = lastPush(raw)
 	pr.LastPush = f.lastPush
 
-	pr.Runs = c.runs(raw.Comments.Nodes, f.lastPush)
+	pr.Runs = c.runs(raw.Comments.Nodes, f.lastPush, pr.Release)
+	if pr.Release {
+		pr.Runs = f.withAggregate(pr.Runs)
+	}
 	pr.DryRun = latestOfKind(pr.Runs, model.DryRun)
 	pr.SafeMerge = latestOfKind(pr.Runs, model.SafeMerge)
 
@@ -203,6 +211,9 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 		}
 	}
 	pr.Threads, pr.UnresolvedThreads = c.threads(raw)
+	if pr.Release {
+		pr.QualityGate = f.qualityGate()
+	}
 	return f
 }
 
@@ -261,7 +272,7 @@ func checks(raw *github.PullRequest) []model.Check {
 				}
 				out = append(out, model.Check{Name: ctx.Name, State: state, URL: ctx.DetailsURL})
 			case "StatusContext":
-				out = append(out, model.Check{Name: ctx.Context, State: ctx.State, URL: ctx.TargetURL})
+				out = append(out, model.Check{Name: ctx.Context, State: ctx.State, URL: ctx.TargetURL, At: ctx.CreatedAt})
 			}
 		}
 	}
