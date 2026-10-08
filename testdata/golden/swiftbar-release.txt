@@ -1,0 +1,154 @@
+4 | sfimage=arrow.triangle.pull
+---
+Your move: 4 ∙ updated 1m ago
+---
+Mine (5) | font=Menlo-Bold size=12
+❯  #904    Example change          DR -  SM -  1/1 ✓ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 terminal=true
+--Example change | color=gray trim=false emojize=false symbolize=false
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 terminal=true
+--Your move | color=gray
+--  ready to /safe-merge | trim=false emojize=false symbolize=false
+--  no fresh dry-run | trim=false emojize=false symbolize=false
+-----
+--Runs: none | color=gray
+--Reviewers (1 approved) | color=gray
+--  bob_user approved (code owner) | trim=false
+--Code owners: ok | color=gray
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/904
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/904 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=topic/example-904 terminal=false
+-----
+--/dry-run⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 param5=--post param6=dry-run terminal=true tooltip="run the checks on the PR rebased onto the latest master, without merging"
+--/dry-run --retry⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 param5=--post param6=dry-run-retry terminal=true tooltip="a dry-run that restarts once on a failure"
+--/safe-merge⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 param5=--post param6=safe-merge terminal=true tooltip="run the checks, then rebase-merge into master (fixup! commits are squashed first)"
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=904 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
+❯  #904    Example change          DR -  SM -  1/1 ✓ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/904
+❯  #903    [2.5.0] Example change  QG ⟳        0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=903 terminal=true
+--[2.5.0] Example change | color=gray trim=false emojize=false symbolize=false
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=903 terminal=true
+--Your move | color=gray
+--  assign reviewers for * | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/903
+--  quality gate running: Aggregate (2.5.0) (2.5.0) | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/731
+--  waiting: bob_user | trim=false emojize=false symbolize=false
+-----
+--Runs: none | color=gray
+--Reviewers (0 approved) | color=gray
+--  bob_user pending (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ /compiler/fir/: bob_user | trim=false
+--  ✗ * | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/903
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/903 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=rrrn/2.5.0/topic/example-903 terminal=false
+-----
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=903 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=903 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--Assign reviewers⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=903 param5=--post param6=request-review terminal=true tooltip="pick the code owners in the interactive view"
+❯  #903    [2.5.0] Example change  QG ⟳        0/1 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/903
+❯  #901    [2.5.0] Example change  QG ✗        1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=901 terminal=true
+--[2.5.0] Example change | color=gray trim=false emojize=false symbolize=false
+--Cherry-pick of #801 | href=https://github.com/JetBrains/kotlin/pull/801
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=901 terminal=true
+--Your move | color=gray
+--  quality gate failed: Aggregate (2.5.0) (2.5.0) | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/711
+--  waiting: olivia_user | trim=false emojize=false symbolize=false
+--  quality gate failed: K2 All Projects (External) (User Projects) (not blocking) | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/712
+-----
+--Runs: none | color=gray
+--Reviewers (1 approved) | color=gray
+--  olivia_user pending (code owner) | trim=false
+--  bob_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ *: olivia_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/901
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/901 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=rrr/2.5.0/topic/example-901 terminal=false
+-----
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=901 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=901 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=901 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
+❯  #901    [2.5.0] Example change  QG ✗        1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/901
+∙  #909    [2.5.0] Example change  QG ✓        1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=909 terminal=true
+--[2.5.0] Example change | color=gray trim=false emojize=false symbolize=false
+--Cherry-pick of #809 by erin_user | href=https://github.com/JetBrains/kotlin/pull/809
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=909 terminal=true
+--Waiting on the release engineer | color=gray
+--  waiting for the release engineer: olivia_user | trim=false emojize=false symbolize=false
+-----
+--Runs: none | color=gray
+--Reviewers (1 approved) | color=gray
+--  olivia_user pending (code owner) | trim=false
+--  bob_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ *: olivia_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/909
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/909 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=rrr/2.5.0/topic/example-909 terminal=false
+-----
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=909 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=909 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=909 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
+∙  #909    [2.5.0] Example change  QG ✓        1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/909
+∙  #902    [2.5.0] Example change  QG ✓        1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=902 terminal=true
+--[2.5.0] Example change | color=gray trim=false emojize=false symbolize=false
+--Cherry-pick of #802 | href=https://github.com/JetBrains/kotlin/pull/802
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=902 terminal=true
+--Waiting on the release engineer | color=gray
+--  waiting for the release engineer: olivia_user | trim=false emojize=false symbolize=false
+--  quality gate failed: K2 All Projects (External) (User Projects) (not blocking) | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/722
+-----
+--Runs: none | color=gray
+--Reviewers (1 approved) | color=gray
+--  olivia_user pending (code owner) | trim=false
+--  bob_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ *: olivia_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/902
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/902 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=rrr/2.5.0/topic/example-902 terminal=false
+-----
+--/fixup⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=902 param5=--post param6=fixup terminal=true tooltip="squash fixup! commits into their targets and force-push the branch, without the checks"
+--/codeowners⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=902 param5=--post param6=codeowners terminal=true tooltip="re-run the code-owners check and refresh the bot's table"
+--/test-public⋯ | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=902 param5=--post param6=test-public terminal=true tooltip="run the public Aggregate on the PR's head, without rebasing (the release Aggregate on a release branch)"
+∙  #902    [2.5.0] Example change  QG ✓        1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/902
+Review (1) | font=Menlo-Bold size=12
+❯  #905    [2.5.0] Example change  carol_user  QG ✓    1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=905 terminal=true
+--[2.5.0] Example change | color=gray trim=false emojize=false symbolize=false
+--Cherry-pick of #805 | href=https://github.com/JetBrains/kotlin/pull/805
+--by carol_user ∙ pushed 5h ago | color=gray trim=false
+--Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=905 terminal=true
+--Your move | color=gray
+--  ready to approve and merge | trim=false emojize=false symbolize=false href=https://github.com/JetBrains/kotlin/pull/905
+--  quality gate failed: K2 All Projects (External) (User Projects) (not blocking) | trim=false emojize=false symbolize=false href=https://buildserver.labs.intellij.net/build/752
+-----
+--Runs: none | color=gray
+--Reviewers (1 approved) | color=gray
+--  alice_user pending (code owner) | trim=false
+--  bob_user approved (code owner) | trim=false
+--Code owners: missing | color=gray
+--  ✗ *: alice_user | trim=false
+-----
+--Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/905
+--Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/905 terminal=false
+--Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=rrr/2.5.0/topic/example-905 terminal=false
+❯  #905    [2.5.0] Example change  carol_user  QG ✓    1/2 ✗ | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/905
+  +1 review not waiting on you (in the interactive view, a) | size=11 color=gray trim=false
+Recently merged (24h) (1) | font=Menlo-Bold size=12 href=.
+--✓  #907    [2.5.0] Example change | font=Menlo size=12 trim=false emojize=false symbolize=false bash=exec param1=gh param2=kotlin-prs param3=--pr param4=907 terminal=true
+----[2.5.0] Example change | color=gray trim=false emojize=false symbolize=false
+----Cherry-pick of #807 | href=https://github.com/JetBrains/kotlin/pull/807
+----Details in the interactive view | bash=exec param1=gh param2=kotlin-prs param3=--pr param4=907 terminal=true
+-------
+----Open on GitHub | href=https://github.com/JetBrains/kotlin/pull/907
+----Copy link | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=https://github.com/JetBrains/kotlin/pull/907 terminal=false
+----Copy branch | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=copy param2=rrr/2.5.0/topic/example-907 terminal=false
+--✓  #907    [2.5.0] Example change | font=Menlo size=12 trim=false emojize=false symbolize=false alternate=true href=https://github.com/JetBrains/kotlin/pull/907
+---
+Refresh now | bash="/Users/alice_user/Library/Application Support/SwiftBar/Plugins/kotlin-prs.2m.sh" param1=refresh terminal=false refresh=true
+Open the interactive view | bash=exec param1=gh param2=kotlin-prs terminal=true
