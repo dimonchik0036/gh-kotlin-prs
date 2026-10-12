@@ -21,8 +21,15 @@ var (
 	// "Quality gate failed ❌. See <url> to get full insight." (without ❌ before 2026-10-12).
 	gateFailed = regexp.MustCompile(`Quality gate failed\b`)
 	gateRetry  = regexp.MustCompile(`Triggered a \[retry attempt]\((\S+?)\) №(\d+) out of (\d+)`)
+	// The coordinator posts one comment per run and appends each of its messages to it.
+	gateSeparator = "\n\n---\n\n"
 	// An error after the result: the bot couldn't finish the run's job, like the merge.
 	gateError = regexp.MustCompile(`(?m)^Error:[ \t]*(\S.*?)\s*$`)
+	// Errors that only say the coordinator gave up on a call to GitHub or TeamCity: after
+	// its retries, or on an error it doesn't retry, like a 4xx.
+	gateGenericErrors = []string{"Failed all ", "Unretryable error occurred"}
+	gateGenericError  = "the coordinator gave up on a GitHub or TeamCity call"
+	markdownLink      = regexp.MustCompile(`\[([^\]]*)]\([^)\s]*\)`)
 	// The PR an error names says nothing on the PR's own page.
 	gateErrorPR = regexp.MustCompile(`^Failed to merge PR #\d+: `)
 	// Runs started by a Safe-Merge in the ultimate repository rather than by a command on this PR.
@@ -33,8 +40,10 @@ var (
 	// conflicts, fixup!/amend!/squash! commits, a draft, a coordinator build, the unknown.
 	reviewersRejections = []string{"Missing code owners approval"}
 	// Rejections and errors for conflicts with the base branch: "Pull request has conflicts
-	// with the base branch …", "rebase-merge failed: Pull Request has merge conflicts".
-	conflictsReason  = regexp.MustCompile(`(?i)\bhas (?:merge )?conflicts\b`)
+	// with the base branch …", "rebase-merge failed: Pull Request has merge conflicts",
+	// "… can't be rebased onto master due to conflicts.", "Either new conflicts appeared while
+	// the quality gate was running …".
+	conflictsReason  = regexp.MustCompile(`(?i)\b(?:has (?:merge )?conflicts|due to conflicts|new conflicts appeared)\b`)
 	codeOwnersMarker = "<!-- CODE_OWNERS_REVIEW_COMMENT -->"
 	// Replies of the code-owners bot that report success rather than a failure.
 	successReplies = []string{"Private aggregate run triggered at ", "Cherry-pick to `"}
@@ -161,10 +170,48 @@ func ParseGate(body string) (GateReport, bool) {
 	case gateFailed.MatchString(body):
 		r.State = model.RunFailed
 	}
-	if m := gateError.FindStringSubmatch(body); m != nil {
-		r.State, r.Error = model.RunFailed, gateErrorPR.ReplaceAllString(m[1], "")
+	if reason, ok := gateFailure(body); ok {
+		r.State, r.Error = model.RunFailed, reason
 	}
 	return r, true
+}
+
+// gateFailure is the reason of the coordinator's `Error:` line. A message it posted right
+// before the error says it best ("Either new conflicts appeared while the quality gate was
+// running …", where the error is the failed git command); otherwise the error itself.
+func gateFailure(body string) (string, bool) {
+	parts := strings.Split(body, gateSeparator)
+	for i, part := range parts {
+		m := gateError.FindStringSubmatch(part)
+		if m == nil {
+			continue
+		}
+		if i > 0 && isCoordinatorMessage(parts[i-1]) {
+			return firstSentence(parts[i-1]), true
+		}
+		reason := gateErrorPR.ReplaceAllString(m[1], "")
+		if slices.ContainsFunc(gateGenericErrors, func(prefix string) bool { return strings.HasPrefix(reason, prefix) }) {
+			reason = gateGenericError
+		}
+		return reason, true
+	}
+	return "", false
+}
+
+// isCoordinatorMessage: a part of the gate comment that is none of the gate's own lines.
+func isCoordinatorMessage(part string) bool {
+	return strings.TrimSpace(part) != "" && !strings.Contains(part, dryRunBanner) &&
+		!slices.ContainsFunc([]*regexp.Regexp{gateStarted, gateRetry, gatePassed, gateFailed, gateError},
+			func(re *regexp.Regexp) bool { return re.MatchString(part) })
+}
+
+// firstSentence is a message's first sentence as plain text: its links become their text.
+func firstSentence(message string) string {
+	text := strings.Join(strings.Fields(markdownLink.ReplaceAllString(message, "$1")), " ")
+	if i := strings.Index(text, ". "); i >= 0 {
+		return text[:i+1]
+	}
+	return text
 }
 
 // ParseRejection returns the reason of a `Command rejected:` reply. Some reasons span

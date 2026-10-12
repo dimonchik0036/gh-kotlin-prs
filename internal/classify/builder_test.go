@@ -162,6 +162,10 @@ func gateBody(kind model.RunKind, build int, result string) string {
 	return s.String()
 }
 
+// newConflicts is what the coordinator says when it can't rebase the PR after the gate.
+const newConflicts = "Either new conflicts appeared while the quality gate was running or the fixup! commits can't be squashed properly. " +
+	"Please rebase this branch and/or squash fixup! commits and try again."
+
 const mergeError = "Error: Failed to merge PR #1: rebase-merge failed: Pull Request has merge conflicts"
 
 func (b *prBuilder) rejected(reason string, t time.Time, opts ...commentOpt) *prBuilder {

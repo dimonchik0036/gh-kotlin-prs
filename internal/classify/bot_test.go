@@ -81,6 +81,32 @@ func TestParseGateError(t *testing.T) {
 			body: commentBody(t, "90005", "KotlinBuild", "build/1076451184") + "\n\n---\n\nError: Something new.\n",
 			want: GateReport{Kind: model.DryRun, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076451184",
 				Error: "Something new."},
+		}, {
+			name: "the message before the error is the reason",
+			body: commentBody(t, "90005", "KotlinBuild", "build/1076451184") + "\n\n---\n\n" +
+				newConflicts + "\n\n---\n\n" +
+				"Error: Command failed with exit code 1: git rebase --autosquash master feature\nCONFLICT (content): Merge conflict in A.kt\n",
+			want: GateReport{Kind: model.DryRun, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076451184",
+				Error: "Either new conflicts appeared while the quality gate was running or the fixup! commits can't be squashed properly."},
+		},
+		{
+			name: "a merge failed in the linked Merge-Request",
+			body: commentBody(t, "90004", "KotlinBuild", "build/1076441911") + "\n\n---\n\n" +
+				"Merge of the [corresponding Merge-Request](https://jetbrains.team/p/ij/reviews/1/timeline) failed.\n\n---\n\nError: Something new.",
+			want: GateReport{Kind: model.SafeMerge, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076441911",
+				Error: "Merge of the corresponding Merge-Request failed."},
+		},
+		{
+			name: "the coordinator gave up after its retries",
+			body: commentBody(t, "90004", "KotlinBuild", "build/1076441911") + "\n\n---\n\nError: Failed all 5 attempts, see nested exception for details",
+			want: GateReport{Kind: model.SafeMerge, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076441911",
+				Error: "the coordinator gave up on a GitHub or TeamCity call"},
+		},
+		{
+			name: "the coordinator met an error it doesn't retry",
+			body: commentBody(t, "90004", "KotlinBuild", "build/1076441911") + "\n\n---\n\nError: Unretryable error occurred, not trying more, see nested exception for details",
+			want: GateReport{Kind: model.SafeMerge, State: model.RunFailed, BuildURL: "https://buildserver.labs.intellij.net/build/1076441911",
+				Error: "the coordinator gave up on a GitHub or TeamCity call"},
 		},
 	}
 	for _, tt := range tests {

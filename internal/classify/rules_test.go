@@ -198,6 +198,13 @@ func TestMineRule1aConflicts(t *testing.T) {
 			absent: []string{"conflicts with master"},
 		},
 		{
+			name: "conflicts found after the gate say it once",
+			pr: readyPR().mergeable("CONFLICTING").says(me, "/safe-merge", at(90), rocket).
+				comment(user("KotlinBuild"), gateBody(model.SafeMerge, 100, "passed")+"\n\n---\n\n"+newConflicts+"\n\n---\n\nError: Command failed with exit code 1: git rebase", at(91)),
+			next: model.NextMe, reason: "safe-merge failed: Either new conflicts appeared while the quality gate was running or the fixup! commits can't be squashed properly.",
+			absent: []string{"conflicts with master"},
+		},
+		{
 			name: "a rejection for another cause keeps both",
 			pr: readyPR().mergeable("CONFLICTING").says(me, "/safe-merge", at(100)).
 				rejected("GitHub has not yet finished checking for conflicts with the base branch.", at(101)),

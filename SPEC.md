@@ -80,9 +80,16 @@ KotlinBuild posts one comment per quality-gate run and **edits it** when the run
     gate](<url>)` → passed: the main build failed, a retry or the auxiliary gate covered its failures;
   - `Quality gate failed ❌. See <url> …` → failed;
   - neither → running.
+- The comment is the coordinator's messages joined by `\n\n---\n\n`, appended as the run goes.
 - An `Error:` section after the result, like `Error: Failed to merge PR #N: rebase-merge failed: Pull Request has merge
   conflicts` under a passed safe-merge, means the bot couldn't act on the result: the run failed, whatever the result
-  line says. Any `Error:` line counts; its text (`Run.Error`, without `Failed to merge PR #N: `) is the reason.
+  line says. Any `Error:` line counts. The reason (`Run.Error`) is the first sentence of the message the coordinator
+  posted right before it, when there is one, without its links' URLs: "Either new conflicts appeared while the quality
+  gate was running or the fixup! commits can't be squashed properly." (the error is then the git command that failed),
+  "Merge of the corresponding Merge-Request failed.". Otherwise it's the error's first line, without `Failed to merge
+  PR #N: `. "Failed all 5 attempts, see nested exception for details" and "Unretryable error occurred, …" only say
+  the coordinator gave up on a GitHub or TeamCity call; they read "the coordinator gave up on a GitHub or TeamCity
+  call".
 
 kotlin-safemerge posts the code-owners table and answers commands.
 
@@ -291,7 +298,8 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
    on whose move it leaves.
 1a. **Me:** GitHub reports conflicts with the base branch (`mergeable: CONFLICTING`; `UNKNOWN` means it's still
     computing and is ignored) → "conflicts with master, rebase". Not when rule 1 already says it: a rejection or a gate
-    error for the conflicts ("has conflicts with the base branch", "has merge conflicts"; `classify.ForConflicts`).
+    error for the conflicts ("has conflicts with the base branch", "has merge conflicts", "due to conflicts", "new
+    conflicts appeared"; `classify.ForConflicts`).
 2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED, newer than my last push, and they weren't
    re-requested since (a re-request without a push says "I answered, your turn").
 2a. **Me** (after a run going on): a code owner is marked `🔄` (commented and needs a re-request), or an assignee of a
