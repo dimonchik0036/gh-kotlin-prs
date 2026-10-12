@@ -316,6 +316,7 @@ func TestMineReRequestHandsTheMove(t *testing.T) {
 
 func TestMineRule2aReRequest(t *testing.T) {
 	commented := ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"dave_user", "erin_user"}, mark: "🔄", assignees: []string{"dave_user"}}
+	changes := ownerRow{path: "/compiler/fir/", team: "kotlin-frontend", members: []string{"dave_user", "erin_user"}, mark: "🔴", assignees: []string{"dave_user"}}
 	runRuleCases(t, model.SectionMine, []ruleCase{
 		{
 			name: "🔄 code owner",
@@ -334,6 +335,32 @@ func TestMineRule2aReRequest(t *testing.T) {
 			pr:   newPR(me).ownersRed().owners(commented).reviewed("dave_user", "COMMENTED", at(-20)).request("dave_user"),
 			next: model.NextReviewers, reason: "waiting: dave_user",
 			absent: []string{"re-request"},
+		},
+		{
+			// The bot keeps 🔴 after the push: the change request stays, nobody is asked again.
+			name: "changes requested, then a push",
+			pr:   newPR(me).ownersRed().owners(changes).reviewed("dave_user", "CHANGES_REQUESTED", at(-20)),
+			next: model.NextMe, reason: "re-request review from dave_user",
+			absent: []string{"waiting", "changes requested"},
+		},
+		{
+			name: "changes requested, a push, then a re-request",
+			pr:   newPR(me).ownersRed().owners(changes).reviewed("dave_user", "CHANGES_REQUESTED", at(-20)).request("dave_user"),
+			next: model.NextReviewers, reason: "waiting: dave_user",
+			absent: []string{"re-request"},
+		},
+		{
+			name: "changes requested, no push since",
+			pr:   newPR(me).ownersRed().owners(changes).reviewed("dave_user", "CHANGES_REQUESTED", at(20)),
+			next: model.NextMe, reason: "changes requested by dave_user",
+			absent: []string{"re-request", "waiting"},
+		},
+		{
+			name: "changes requested, a push, a dry-run going on",
+			pr: newPR(me).ownersRed().owners(changes).reviewed("dave_user", "CHANGES_REQUESTED", at(-20)).
+				says(me, "/dry-run", at(10), rocket).gate(model.DryRun, 100, "", at(12)),
+			next: model.NextCI, reason: "dry-run running 1h ago",
+			extra: []string{"re-request review from dave_user"},
 		},
 	})
 }

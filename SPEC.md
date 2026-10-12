@@ -291,8 +291,10 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
     error for the conflicts ("has conflicts with the base branch", "has merge conflicts"; `classify.ForConflicts`).
 2. **Me:** a reviewer's latest opinionated review is CHANGES_REQUESTED, newer than my last push, and they weren't
    re-requested since (a re-request without a push says "I answered, your turn").
-2a. **Me** (after a run going on): a code owner is marked `🔄` (commented and needs a re-request) → "re-request review from alice_user"; one
-    reason lists every such owner: "re-request review from alice_user, bob_user".
+2a. **Me** (after a run going on): a code owner is marked `🔄` (commented and needs a re-request), or an assignee of a
+    missing rule requested changes before my last push and isn't requested now (the bot keeps `🔴` after the push,
+    and GitHub doesn't ask them again) → "re-request review from alice_user"; one reason lists every such owner:
+    "re-request review from alice_user, bob_user".
 2b. **Me:** a missing code-owner rule where every listed owner who hasn't reviewed is `⏳` → "all owners for /analysis/ unavailable".
 2c. **Me** (after a run going on): a missing code-owner rule nobody was asked for: the bot shows `UNASSIGNED`, the rule has owners besides me,
     and none of them, nor a team of it, is requested now (the table lags behind a request, so the live requests
@@ -309,8 +311,9 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
 6. **Me (ready):** `Code Owners Approval` is green, there's at least one approval, and no run is requested or running → "ready to /safe-merge".
    A missing or outdated green dry-run doesn't block this (CI isn't a gate), but it's added as a hint: "no fresh dry-run".
 7. **Reviewers:** pending requests or missing code owners → "waiting: alice_user, bob_user": the requested people and
-   teams, then the assignees of the missing rules (not the `🔄` ones of 2a, nor the ones of 2 who requested changes
-   since my push), or "waiting: code owners" when the check fails and nothing else names anyone (and 2c doesn't fire).
+   teams, then the assignees of the missing rules (not the ones of 2a, nor the ones of 2 who requested changes
+   since my push), or "waiting: code owners" when the check fails and nothing else names anyone, the missing rules'
+   assignees included (and 2c doesn't fire).
 8. **Me:** none of the above, for example no dry-run yet → "no dry-run yet".
 
 **Mine on a release branch** (§3): no dry-run or safe-merge, so rules 1, 5, 6 and 8 work on the gates, the head

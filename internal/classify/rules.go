@@ -168,16 +168,14 @@ func mineChangesRequested(f *facts) []model.Reason {
 	return linked("changes requested by "+strings.Join(logins, ", "), url)
 }
 
-// 2a. A code owner is marked 🔄 and isn't re-requested yet. While a run goes on, after it
-// (afterRuns).
+// 2a. A code owner is marked 🔄, or requested changes before my last push (the bot keeps
+// 🔴 after it), and isn't re-requested yet. While a run goes on, after it (afterRuns).
 func mineReRequest(f *facts) []model.Reason {
 	var logins []string
 	for _, rule := range f.missingRules() {
-		if rule.Mark != model.MarkReRequest {
-			continue
-		}
 		for _, a := range rule.Assignees {
-			if !f.requestedUsers[strings.ToLower(a.Login)] && !sameLogin(a.Login, f.author) {
+			commented := rule.Mark == model.MarkReRequest && !f.requestedUsers[strings.ToLower(a.Login)] && !sameLogin(a.Login, f.author)
+			if commented || f.changesRequestedBeforePush(a.Login) {
 				logins = appendUnique(logins, a.Login)
 			}
 		}
@@ -327,18 +325,20 @@ func mineWaiting(f *facts) []model.Reason {
 			names = appendUnique(names, r.Login)
 		}
 	}
+	assigned := false // the table names someone, whose move it may be mine to answer (2, 2a)
 	for _, rule := range f.missingRules() {
+		assigned = assigned || len(rule.Assignees) > 0
 		if rule.Mark == model.MarkReRequest {
 			continue // the move is mine, see 2a
 		}
 		// UNASSIGNED rules are mine (2c), or wait on a request listed above.
 		for _, a := range rule.Assignees {
-			if !f.changesRequestedSincePush(a.Login) { // the move is mine, see 2
+			if !f.changesRequestedSincePush(a.Login) && !f.changesRequestedBeforePush(a.Login) { // the move is mine, see 2 and 2a
 				names = appendUnique(names, a.Login)
 			}
 		}
 	}
-	if len(names) == 0 && f.pr.CodeOwners.State == model.CodeOwnersMissing && mineAssignReviewers(f) == nil {
+	if len(names) == 0 && !assigned && f.pr.CodeOwners.State == model.CodeOwnersMissing && mineAssignReviewers(f) == nil {
 		names = append(names, "code owners")
 	}
 	if len(names) == 0 {
@@ -784,6 +784,14 @@ func (f *facts) missingRules() []model.CodeOwnerRule {
 func (f *facts) changesRequestedSincePush(login string) bool {
 	r, ok := f.opinions[strings.ToLower(login)]
 	return ok && r.State == "CHANGES_REQUESTED" && r.SubmittedAt.After(f.lastPush) && !f.reRequestedSince(login, r.SubmittedAt)
+}
+
+// changesRequestedBeforePush: login's latest opinion requests changes, and I pushed since
+// without requesting them again: the change request stays, but they wait for a re-request.
+func (f *facts) changesRequestedBeforePush(login string) bool {
+	r, ok := f.opinions[strings.ToLower(login)]
+	return ok && r.State == "CHANGES_REQUESTED" && !r.SubmittedAt.After(f.lastPush) &&
+		!f.requestedUsers[strings.ToLower(login)] && !sameLogin(login, f.author)
 }
 
 func (f *facts) reviewed(login string) bool {
