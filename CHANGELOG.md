@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.11.0 — 2026-10-12
+
+Word of a new release, in the menu bar and the interactive view. The JSON output is unchanged (`"version": 1`).
+
 - The menu-bar plugin and the interactive view tell you when a new release is out: the menu ends with "Upgrade to
   vX.Y.Z" (it runs `gh extension upgrade kotlin-prs` in the terminal) and "What's new in vX.Y.Z", the interactive
   view names it on a faint line above its status bar, and the first of the two to see it notifies you once, through
