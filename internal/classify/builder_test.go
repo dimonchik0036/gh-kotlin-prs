@@ -162,6 +162,11 @@ func gateBody(kind model.RunKind, build int, result string) string {
 	return s.String()
 }
 
+// rebaseConflicts is the coordinator's comment when it can't rebase the PR to start a build.
+const rebaseConflicts = "Changes in the [corresponding Merge-Request](https://github.com/JetBrains/kotlin/pull/1) can't be rebased onto master due to conflicts. " +
+	"Please rebase the corresponding changes manually and trigger Safe-Merge again.\n\n---\n\n" +
+	"Error: Command failed with exit code 1: git rebase --autosquash master feature\nCONFLICT (content): Merge conflict in A.kt"
+
 // newConflicts is what the coordinator says when it can't rebase the PR after the gate.
 const newConflicts = "Either new conflicts appeared while the quality gate was running or the fixup! commits can't be squashed properly. " +
 	"Please rebase this branch and/or squash fixup! commits and try again."

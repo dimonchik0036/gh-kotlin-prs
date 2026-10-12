@@ -29,7 +29,9 @@ var (
 	// its retries, or on an error it doesn't retry, like a 4xx.
 	gateGenericErrors = []string{"Failed all ", "Unretryable error occurred"}
 	gateGenericError  = "the coordinator gave up on a GitHub or TeamCity call"
-	markdownLink      = regexp.MustCompile(`\[([^\]]*)]\([^)\s]*\)`)
+	// The end of the coordinator's messages for a run it couldn't start (ParseAbort).
+	gateAbort    = "trigger Safe-Merge again."
+	markdownLink = regexp.MustCompile(`\[([^\]]*)]\([^)\s]*\)`)
 	// The PR an error names says nothing on the PR's own page.
 	gateErrorPR = regexp.MustCompile(`^Failed to merge PR #\d+: `)
 	// Runs started by a Safe-Merge in the ultimate repository rather than by a command on this PR.
@@ -174,6 +176,25 @@ func ParseGate(body string) (GateReport, bool) {
 		r.State, r.Error = model.RunFailed, reason
 	}
 	return r, true
+}
+
+// ParseAbort reads a KotlinBuild comment the coordinator posted for a run it couldn't
+// start: no build, so no gate line. Like "Changes in the corresponding Merge-Request can't
+// be rebased onto master due to conflicts. … trigger Safe-Merge again." with the failed git
+// command as `Error: …`, "ultimate contains a branch named …, but an open Merge-Request/PR
+// is not found. … then trigger Safe-Merge again." with no error, or an `Error: …` alone. It
+// returns the reason, read like a gate's error.
+func ParseAbort(body string) (string, bool) {
+	if gateStarted.MatchString(body) {
+		return "", false
+	}
+	if reason, ok := gateFailure(body); ok {
+		return reason, true
+	}
+	if first, _, _ := strings.Cut(body, gateSeparator); strings.Contains(first, gateAbort) {
+		return firstSentence(first), true
+	}
+	return "", false
 }
 
 // gateFailure is the reason of the coordinator's `Error:` line. A message it posted right

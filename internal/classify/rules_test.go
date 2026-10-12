@@ -205,6 +205,13 @@ func TestMineRule1aConflicts(t *testing.T) {
 			absent: []string{"conflicts with master"},
 		},
 		{
+			name: "a run that couldn't start for the conflicts says it once",
+			pr: readyPR().mergeable("CONFLICTING").says(me, "/dry-run", at(90), rocket).
+				comment(user("KotlinBuild"), rebaseConflicts, at(91)),
+			next: model.NextMe, reason: "dry-run failed: Changes in the corresponding Merge-Request can't be rebased onto master due to conflicts.",
+			absent: []string{"conflicts with master"},
+		},
+		{
 			name: "a rejection for another cause keeps both",
 			pr: readyPR().mergeable("CONFLICTING").says(me, "/safe-merge", at(100)).
 				rejected("GitHub has not yet finished checking for conflicts with the base branch.", at(101)),

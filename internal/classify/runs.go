@@ -27,7 +27,8 @@ type pendingCommand struct {
 // rejected: …` or another failure text) and adds no reaction. A reply therefore answers
 // the latest waiting command without 🚀. A dry-run or safe-merge then ends with a gate
 // comment of its kind. Commands still waiting at the end are requested (no 🚀 yet) or
-// accepted (🚀, the build is queued).
+// accepted (🚀, the build is queued). A KotlinBuild comment without a gate line fails the
+// latest accepted one instead: the coordinator couldn't start its build.
 //
 // A gate comment without a result is running only while it is the newest one, isn't
 // minimized (the bot hides older gate comments when it starts a new build) and no
@@ -49,7 +50,13 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time, release
 		switch {
 		case sameLogin(login, c.Config.GateBot):
 			gate, ok := ParseGate(cm.Body)
-			if !ok || gate.External {
+			if !ok {
+				if reason, ok := ParseAbort(cm.Body); ok {
+					pending, runs = aborted(pending, runs, cm, reason)
+				}
+				continue
+			}
+			if gate.External {
 				continue
 			}
 			pending = slices.DeleteFunc(pending, func(p pendingCommand) bool { return p.kind == gate.Kind })
@@ -199,6 +206,29 @@ func answeredCommand(pending []pendingCommand) int {
 		}
 	}
 	return len(pending) - 1
+}
+
+// aborted ends the latest accepted dry-run or safe-merge the coordinator couldn't start a
+// build for: it failed, with the comment's reason. A comment no such command waits for
+// (it fell out of the fetched comments) ends nothing.
+func aborted(pending []pendingCommand, runs []model.Run, cm github.Comment, reason string) ([]pendingCommand, []model.Run) {
+	for i := len(pending) - 1; i >= 0; i-- {
+		p := pending[i]
+		if !p.accepted || p.dismissed || p.kind != model.DryRun && p.kind != model.SafeMerge {
+			continue
+		}
+		runs = append(runs, model.Run{
+			Kind:       p.kind,
+			State:      model.RunFailed,
+			Error:      reason,
+			Started:    cm.CreatedAt,
+			Updated:    cm.UpdatedAt,
+			Minimized:  cm.IsMinimized,
+			CommentURL: cm.URL,
+		})
+		return slices.Delete(pending, i, i+1), runs
+	}
+	return pending, runs
 }
 
 // cancel applies a dispatched /cancel-coordinator: the running build and any queued

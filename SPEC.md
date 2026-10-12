@@ -155,6 +155,12 @@ in reviews, and comments from accounts without write access (no reaction, no rep
 Our states:
 - A `/dry-run` or `/safe-merge` with no reaction and no reply → **requested**; after 10 min → **requested, no response**.
 - 🚀 but no KotlinBuild comment yet → **accepted**.
+- A KotlinBuild comment without `Quality gate is triggered at` is the coordinator's report on a run it couldn't
+  start, so there's no build and no banner: the latest accepted dry-run or safe-merge **failed**, its reason read like
+  a gate error's. It's "Changes in the corresponding Merge-Request can't be rebased onto master due to conflicts."
+  (followed by the failed git command as `Error:`; `fixup!` commits that don't autosquash end up here too), "ultimate
+  contains a branch named <b>, but an open Merge-Request/PR is not found." (no `Error:`; recognized by its
+  "…trigger Safe-Merge again."), or an `Error:` alone. With no accepted command left to end, it's ignored.
 - A gate comment without a result is **running** only while it's the newest one, isn't minimized, and no dispatched
   `/cancel-coordinator` came after it; otherwise **cancelled**. A dispatched `/cancel-coordinator` also cancels an accepted run.
 - Gate comments saying "The quality gate was triggered by Safe-Merge of the [corresponding Merge-Request] in ultimate"

@@ -189,6 +189,63 @@ func TestRunLifecycle(t *testing.T) {
 			},
 		},
 		{
+			name: "a run the coordinator couldn't start failed",
+			pr:   newPR(me).says(me, "/dry-run", at(10), rocket).comment(user("KotlinBuild"), rebaseConflicts, at(12)),
+			want: model.RunFailed,
+			check: func(t *testing.T, run model.Run) {
+				want := model.Run{Kind: model.DryRun, State: model.RunFailed, Started: at(12), Updated: at(12),
+					Error:      "Changes in the corresponding Merge-Request can't be rebased onto master due to conflicts.",
+					CommentURL: "https://github.com/JetBrains/kotlin/pull/1#issuecomment-101"}
+				if run != want {
+					t.Errorf("run = %+v\nwant %+v", run, want)
+				}
+			},
+		},
+		{
+			name: "a run the coordinator couldn't start, without an error",
+			pr: newPR(me).says(me, "/safe-merge", at(10), rocket).comment(user("KotlinBuild"),
+				"ultimate contains a branch named feature, but an open Merge-Request/PR is not found. "+
+					"Create a Merge-Request/PR for this branch in ultimate or delete the branch, then trigger Safe-Merge again.", at(12)),
+			want: model.RunFailed,
+			check: func(t *testing.T, run model.Run) {
+				if run.Kind != model.SafeMerge || run.Error != "ultimate contains a branch named feature, but an open Merge-Request/PR is not found." {
+					t.Errorf("run = %+v", run)
+				}
+			},
+		},
+		{
+			name: "a coordinator error alone fails the accepted run",
+			pr: newPR(me).says(me, "/dry-run", at(10), rocket).
+				comment(user("KotlinBuild"), "Error: Failed all 5 attempts, see nested exception for details", at(12)),
+			want: model.RunFailed,
+			check: func(t *testing.T, run model.Run) {
+				if run.Error != "the coordinator gave up on a GitHub or TeamCity call" {
+					t.Errorf("error = %q", run.Error)
+				}
+			},
+		},
+		{
+			name: "another KotlinBuild comment doesn't end the run",
+			pr:   newPR(me).says(me, "/dry-run", at(10), rocket).comment(user("KotlinBuild"), "Something else.", at(12)),
+			want: model.RunAccepted,
+		},
+		{
+			name: "a failure no command waits for is ignored",
+			pr:   newPR(me).comment(user("KotlinBuild"), rebaseConflicts, at(12)),
+			want: model.RunNone,
+		},
+		{
+			name: "a failure answers the accepted command, not a newer requested one",
+			pr: newPR(me).says(me, "/dry-run", at(10), rocket).says(me, "/safe-merge", at(11)).
+				comment(user("KotlinBuild"), rebaseConflicts, at(12)),
+			want: model.RunFailed,
+			check: func(t *testing.T, run model.Run) {
+				if run.Kind != model.DryRun {
+					t.Errorf("kind = %s, want the dry-run", run.Kind)
+				}
+			},
+		},
+		{
 			name: "runs from an ultimate Merge-Request are ignored",
 			pr: newPR(me).comment(user("KotlinBuild"),
 				gateBody(model.DryRun, 100, "")+"\nThe quality gate was triggered by Safe-Merge of the [corresponding Merge-Request](https://jetbrains.team/p/ij/reviews/1/timeline) in ultimate.", at(10)),
