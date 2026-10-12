@@ -6,10 +6,14 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.10.0 — 2026-10-12
+
+The bot's run reports, read again after it changed them, and runs it never reports on. The JSON output only gains
+`noResponse` on accepted runs, so it stays `"version": 1`.
+
 - A dry-run or safe-merge that finished since 2026-10-12, when the bot added `✅` and `❌` to its result line, no longer
   stays "running": it's passed or failed again, and notified as such. So is one that passed on a retry or through the
   auxiliary quality gate, which also showed as running.
-- A run with several retries shows the attempt that's running, not the first one.
 - A dry-run or safe-merge the bot couldn't start, for conflicts when it rebases the PR onto master or
   `fixup!` commits that don't squash, fails with the bot's reason; it no longer stays "accepted".
 - A dry-run or safe-merge the bot accepted (🚀) but never reported on for an hour is "accepted 1h ago, no response",
@@ -17,6 +21,7 @@ breaking JSON changes and noted here.
 - A dry-run or safe-merge that failed after its gate says why in the bot's words, like "Either new conflicts appeared
   while the quality gate was running …", not with the git command that failed. "Failed all 5 attempts, see nested
   exception for details" and "Unretryable error occurred" read "the coordinator gave up on a GitHub or TeamCity call".
+- A run with several retries shows the attempt that's running, not the first one.
 
 ## v0.9.1 — 2026-10-12
 
