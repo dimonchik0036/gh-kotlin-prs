@@ -1,6 +1,7 @@
 package classify
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
@@ -117,6 +118,7 @@ func TestParseGateResultLines(t *testing.T) {
 		{"failed", start + "Quality gate failed ❌. See https://buildserver.labs.intellij.net/build/101 to get full insight.", model.RunFailed, ""},
 		{"failed after a retry", start + retry + "Quality gate failed ❌. See https://buildserver.labs.intellij.net/build/101 to get full insight.", model.RunFailed, "retry 1/1"},
 		{"recovered via a retry", start + retry + "[Quality gate](https://buildserver.labs.intellij.net/build/101) finished successfully (recovered via [retry](https://buildserver.labs.intellij.net/build/102)).", model.RunPassed, "retry 1/1"},
+		{"failed after two retries", start + strings.ReplaceAll(retry, "out of 1", "out of 2") + strings.ReplaceAll(retry, "№1 out of 1", "№2 out of 2") + "Quality gate failed ❌. See https://buildserver.labs.intellij.net/build/101 to get full insight.", model.RunFailed, "retry 2/2"},
 		{"recovered via the auxiliary gate", start + "[Quality gate](https://buildserver.labs.intellij.net/build/101) finished successfully (recovered via [auxiliary quality gate](https://buildserver.labs.intellij.net/build/103)).", model.RunPassed, ""},
 	}
 	for _, tt := range tests {

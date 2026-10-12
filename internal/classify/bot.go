@@ -150,7 +150,9 @@ func ParseGate(body string) (GateReport, bool) {
 	if strings.Contains(body, dryRunBanner) {
 		r.Kind = model.DryRun
 	}
-	if m := gateRetry.FindStringSubmatch(body); m != nil {
+	// The bot adds a line per attempt and keeps the earlier ones: the last is the latest.
+	if all := gateRetry.FindAllStringSubmatch(body, -1); all != nil {
+		m := all[len(all)-1]
 		r.Reason = "retry " + m[2] + "/" + m[3]
 	}
 	switch {

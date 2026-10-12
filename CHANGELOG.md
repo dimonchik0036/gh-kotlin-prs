@@ -9,6 +9,7 @@ breaking JSON changes and noted here.
 - A dry-run or safe-merge that finished since 2026-10-12, when the bot added `✅` and `❌` to its result line, no longer
   stays "running": it's passed or failed again, and notified as such. So is one that passed on a retry or through the
   auxiliary quality gate, which also showed as running.
+- A run with several retries shows the attempt that's running, not the first one.
 
 ## v0.9.1 — 2026-10-12
 

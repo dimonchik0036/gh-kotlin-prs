@@ -72,7 +72,8 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
 KotlinBuild posts one comment per quality-gate run and **edits it** when the run ends:
 - `**THIS IS A DRY RUN**` at the top marks a dry-run. Without it, the run is a safe-merge.
 - `Quality gate is triggered at <tc-url>` gives the TeamCity build. `Commit: [abc1234](…)` is the merge-ref commit, not the head.
-- `Triggered a [retry attempt](<url>) №N out of M.` means a retry is running.
+- `Triggered a [retry attempt](<url>) №N out of M.` means a retry is running. The bot adds one per attempt and keeps
+  the earlier ones: the last is the current attempt.
 - Result lines (`✅` and `❌` since 2026-10-12, before that without them):
   - `Quality gate finished successfully ✅.` → passed;
   - `[Quality gate](<url>) finished successfully (recovered via [retry](<url>)).`, or via `[auxiliary quality
