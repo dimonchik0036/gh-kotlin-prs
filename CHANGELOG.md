@@ -9,6 +9,7 @@ breaking JSON changes and noted here.
 - A PR of yours whose code owner requested changes before your last push is your move, "re-request review from
   <them>", no longer "waiting: <them>": GitHub doesn't ask them again until you do. The extra "waiting: code owners"
   line next to "changes requested by …" is gone too.
+- Built with Go 1.27.2 and golang.org/x/net v0.60.0, which fix vulnerabilities in the HTTP client.
 
 ## v0.9.0 — 2026-10-08
 

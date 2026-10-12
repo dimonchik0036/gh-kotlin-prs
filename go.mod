@@ -1,6 +1,6 @@
 module github.com/dimonchik0036/gh-kotlin-prs
 
-go 1.27.1
+go 1.27.2
 
 require (
 	charm.land/bubbles/v2 v2.2.1
@@ -12,7 +12,7 @@ require (
 	github.com/cli/go-gh/v2 v2.16.1
 	github.com/spf13/cobra v1.10.2
 	go.yaml.in/yaml/v3 v3.0.5
-	golang.org/x/net v0.59.0
+	golang.org/x/net v0.60.0
 	golang.org/x/term v0.46.0
 	golang.org/x/text v0.42.0
 )
