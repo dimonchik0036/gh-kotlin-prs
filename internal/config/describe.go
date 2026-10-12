@@ -233,7 +233,7 @@ func wrapFlow(line, indent string) []string {
 func docLines(doc string) []string {
 	var lines []string
 	cur := ""
-	for _, w := range strings.Fields(doc) {
+	for w := range strings.FieldsSeq(doc) {
 		if cur != "" && len(cur)+1+len(w) > 98 {
 			lines, cur = append(lines, cur), ""
 		}

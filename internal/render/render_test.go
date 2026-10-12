@@ -802,7 +802,7 @@ func TestDetailViewWidth(t *testing.T) {
 	for _, limit := range []int{40, 72} {
 		view := DetailView(pr, now, opts, limit)
 		cut := false
-		for _, line := range strings.Split(view, "\n") {
+		for line := range strings.SplitSeq(view, "\n") {
 			if w := ansi.StringWidth(line); w > limit {
 				t.Errorf("limit %d: a line of %d: %q", limit, w, ansi.Strip(line))
 			}

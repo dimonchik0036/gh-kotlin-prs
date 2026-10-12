@@ -109,7 +109,7 @@ func ReadScript(text string) (Installed, error) {
 		return Installed{}, ErrNotOurs
 	}
 	in := Installed{Format: 1}
-	for _, line := range strings.Split(text, "\n") {
+	for line := range strings.SplitSeq(text, "\n") {
 		switch {
 		case strings.HasPrefix(line, "gh="):
 			in.GH = Unquote(strings.TrimPrefix(line, "gh="))

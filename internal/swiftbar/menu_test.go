@@ -164,7 +164,7 @@ func TestEscaping(t *testing.T) {
 		DryRun:  model.Run{Kind: model.DryRun, State: model.RunNone}, SafeMerge: model.Run{Kind: model.SafeMerge, State: model.RunNone},
 	}}}
 	out := Render(m)
-	for _, line := range strings.Split(out, "\n") {
+	for line := range strings.SplitSeq(out, "\n") {
 		item, _, _ := strings.Cut(line, " | ")
 		item = strings.TrimLeft(item, "-")
 		if strings.Contains(item, "|") || strings.Contains(item, "\nc") {
@@ -191,7 +191,7 @@ func TestRowReviews(t *testing.T) {
 		DryRun:     model.Run{Kind: model.DryRun, State: model.RunNone}, SafeMerge: model.Run{Kind: model.SafeMerge, State: model.RunNone}}
 	out := Render(Menu{Icons: render.Unicode, Sections: allSections, Viewer: "me", PRs: []model.PR{pr}})
 	var row string
-	for _, line := range strings.Split(out, "\n") {
+	for line := range strings.SplitSeq(out, "\n") {
 		if strings.Contains(line, "#7") {
 			row = line
 			break

@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -67,9 +68,7 @@ func (k *Keys) UnmarshalYAML(node *yaml.Node) error {
 		return fmt.Errorf("line %d: keys must map actions to keys", node.Line)
 	}
 	merged := DefaultKeys()
-	for name, keys := range *k {
-		merged[name] = keys
-	}
+	maps.Copy(merged, *k)
 	for i := 0; i+1 < len(node.Content); i += 2 {
 		name, value := node.Content[i].Value, node.Content[i+1]
 		if !slices.ContainsFunc(Actions, func(a Action) bool { return a.Name == name }) {

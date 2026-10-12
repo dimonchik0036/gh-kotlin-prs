@@ -96,7 +96,7 @@ func trackedTextFiles(t *testing.T) []trackedFile {
 		t.Skipf("not a git checkout: %v", err)
 	}
 	var files []trackedFile
-	for _, path := range strings.Split(strings.TrimRight(string(out), "\x00"), "\x00") {
+	for path := range strings.SplitSeq(strings.TrimRight(string(out), "\x00"), "\x00") {
 		data, err := os.ReadFile(filepath.Join(root, path))
 		if errors.Is(err, fs.ErrNotExist) {
 			continue // deleted, not yet staged

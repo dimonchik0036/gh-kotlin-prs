@@ -220,7 +220,7 @@ func (a *Anonymizer) rewritePR(pr map[string]any) {
 // (`^KT-123 Fixed`, `^KT-123`), which the classifier reads.
 func (a *Anonymizer) commitMessage(msg string) string {
 	var trailers []string
-	for _, line := range strings.Split(msg, "\n") {
+	for line := range strings.SplitSeq(msg, "\n") {
 		if a.isTrailer(line) {
 			trailers = append(trailers, strings.TrimSpace(line))
 		}

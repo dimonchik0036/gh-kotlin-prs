@@ -301,8 +301,9 @@ Build and install the working copy in place of a release (`gh extension remove k
 go build && gh extension install .
 ```
 
-Run `scripts/check.sh` before every commit; CI runs the same script. It checks formatting, `go vet`, staticcheck and
-govulncheck (pinned as tool dependencies in `go.mod`), then runs the tests the way CI does: without your gh login,
+Run `scripts/check.sh` before every commit; CI runs the same script. It checks formatting, `go vet`, staticcheck,
+modernize (`go tool modernize -test -fix ./...` applies what it finds) and govulncheck (pinned as tool dependencies
+in `go.mod`), then runs the tests the way CI does: without your gh login,
 your config or the network. To run it on every commit, enable the bundled hook: `git config core.hooksPath .githooks`.
 
 ```sh

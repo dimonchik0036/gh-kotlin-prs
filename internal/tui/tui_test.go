@@ -313,7 +313,7 @@ func selectedLine(t *testing.T, h *harness) string {
 // styledSelectedLine is the selected line with its escapes.
 func styledSelectedLine(t *testing.T, h *harness) string {
 	t.Helper()
-	for _, line := range strings.Split(h.m.content(), "\n") {
+	for line := range strings.SplitSeq(h.m.content(), "\n") {
 		if strings.Contains(line, "\x1b[7m") {
 			return line
 		}
@@ -325,7 +325,7 @@ func styledSelectedLine(t *testing.T, h *harness) string {
 // lineWith is the line of the screen, with its escapes, that shows text.
 func lineWith(t *testing.T, h *harness, text string) string {
 	t.Helper()
-	for _, line := range strings.Split(h.m.content(), "\n") {
+	for line := range strings.SplitSeq(h.m.content(), "\n") {
 		if strings.Contains(ansi.Strip(line), text) {
 			return line
 		}
@@ -471,7 +471,7 @@ func TestResize(t *testing.T) {
 	}
 	h.send(tea.WindowSizeMsg{Width: 100, Height: 30})
 	var rejected string
-	for _, line := range strings.Split(h.screen(), "\n") {
+	for line := range strings.SplitSeq(h.screen(), "\n") {
 		if strings.Contains(line, "#90007") {
 			rejected = strings.TrimRight(line, " ")
 		}

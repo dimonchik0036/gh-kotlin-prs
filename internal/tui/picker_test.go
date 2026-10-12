@@ -303,7 +303,7 @@ func TestReviewHint(t *testing.T) {
 		"dry-run running 10m ago|assign reviewers for /analysis/": "A assign reviewers ∙ enter details",
 	} {
 		h.m.prs[i].Reasons = nil
-		for _, r := range strings.Split(reasons, "|") {
+		for r := range strings.SplitSeq(reasons, "|") {
 			h.m.prs[i].Reasons = append(h.m.prs[i].Reasons, model.Reason{Text: r})
 		}
 		h.m.rebuild()

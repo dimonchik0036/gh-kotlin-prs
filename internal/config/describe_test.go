@@ -16,8 +16,8 @@ import (
 func TestFieldsCoverConfig(t *testing.T) {
 	var keys []string
 	typ := reflect.TypeFor[Config]()
-	for i := range typ.NumField() {
-		keys = append(keys, typ.Field(i).Tag.Get("yaml"))
+	for field := range typ.Fields() {
+		keys = append(keys, field.Tag.Get("yaml"))
 	}
 	var described []string
 	for _, f := range fields {
@@ -41,7 +41,7 @@ func TestTemplate(t *testing.T) {
 		}
 	}
 	var uncommented []string
-	for _, line := range strings.Split(tmpl, "\n") {
+	for line := range strings.SplitSeq(tmpl, "\n") {
 		if l, ok := strings.CutPrefix(line, "# "); ok && !docs[line] {
 			line = l
 		}
@@ -54,7 +54,7 @@ func TestTemplate(t *testing.T) {
 	if !reflect.DeepEqual(cfg.Values(nil), Default().Values(nil)) {
 		t.Errorf("uncommented template = %+v, want the defaults", cfg)
 	}
-	for _, line := range strings.Split(tmpl, "\n") {
+	for line := range strings.SplitSeq(tmpl, "\n") {
 		if len(line) > 100 {
 			t.Errorf("a line of %d columns: %s", len(line), line)
 		}

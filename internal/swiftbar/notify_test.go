@@ -66,7 +66,7 @@ func swiftbarQuery(t *testing.T, raw string) map[string]string {
 	t.Helper()
 	_, query, _ := strings.Cut(raw, "?")
 	q := map[string]string{}
-	for _, item := range strings.Split(query, "&") {
+	for item := range strings.SplitSeq(query, "&") {
 		k, v, _ := strings.Cut(item, "=")
 		v, err := url.PathUnescape(v)
 		if err != nil {

@@ -206,8 +206,8 @@ func (f *facts) withAggregate(runs []model.Run) []model.Run {
 // answeredCommand picks the waiting command a failure reply answers: the latest one
 // without 🚀, since 🚀 means the bot dispatched it. Returns -1 if none waits.
 func answeredCommand(pending []pendingCommand) int {
-	for i := len(pending) - 1; i >= 0; i-- {
-		if !pending[i].accepted {
+	for i, p := range slices.Backward(pending) {
+		if !p.accepted {
 			return i
 		}
 	}
@@ -218,8 +218,7 @@ func answeredCommand(pending []pendingCommand) int {
 // build for: it failed, with the comment's reason. A comment no such command waits for
 // (it fell out of the fetched comments) ends nothing.
 func aborted(pending []pendingCommand, runs []model.Run, cm github.Comment, reason string) ([]pendingCommand, []model.Run) {
-	for i := len(pending) - 1; i >= 0; i-- {
-		p := pending[i]
+	for i, p := range slices.Backward(pending) {
 		if !p.accepted || p.dismissed || p.kind != model.DryRun && p.kind != model.SafeMerge {
 			continue
 		}

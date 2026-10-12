@@ -230,7 +230,7 @@ func (m *Model) helpLines() []string {
 	lines = append(lines, "", styleTitle.Render("Symbols"), "")
 	// The legend's lines are wider than most terminals: wrap them after their 15-column label.
 	wrap := lipgloss.NewStyle().Width(max(m.width-15, 20))
-	for _, l := range strings.Split(strings.TrimSuffix(m.opts.Render.Icons.Legend(), "\n"), "\n") {
+	for l := range strings.SplitSeq(strings.TrimSuffix(m.opts.Render.Icons.Legend(), "\n"), "\n") {
 		for i, part := range strings.Split(wrap.Render(l[15:]), "\n") {
 			prefix := l[:15]
 			if i > 0 {

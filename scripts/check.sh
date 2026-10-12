@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs every check a commit must pass, failing fast: formatting, vet, staticcheck,
-# govulncheck, the release notes of CHANGELOG.md, and the tests as CI runs them (no gh
+# modernize (the Go idioms IDEs suggest), govulncheck, the release notes of CHANGELOG.md, and the tests as CI runs them (no gh
 # login, no config, no network).
 # The tool versions are pinned as tool dependencies in go.mod.
 set -euo pipefail
@@ -20,6 +20,10 @@ go vet ./...
 
 step staticcheck
 go tool staticcheck ./...
+
+# What it finds, `go tool modernize -test -fix ./...` rewrites.
+step modernize
+go tool modernize -test ./...
 
 step govulncheck
 go tool govulncheck ./...
