@@ -270,7 +270,7 @@ func TestKindsMatchConfig(t *testing.T) {
 	for _, e := range config.NotifyEvents {
 		names = append(names, e.Name)
 	}
-	if want := []string{RunPassed, RunFailed, RunRejected, MyMove, ChangesRequested, ReviewRequested, Merged}; !slices.Equal(names, want) {
+	if want := []string{RunPassed, RunFailed, RunRejected, MyMove, ChangesRequested, ReviewRequested, Merged, Update}; !slices.Equal(names, want) {
 		t.Errorf("config.NotifyEvents %q, want %q", names, want)
 	}
 }

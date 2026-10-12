@@ -17,6 +17,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/listing"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/tui"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/update"
 )
 
 // runTUI opens the TUI on the list's sections, starting from the cache when it holds a
@@ -94,6 +95,14 @@ func runTUI(ctx context.Context, e env, global globalOptions, opts listOptions, 
 		Start:         start.number,
 		StartCommand:  start.command,
 		StartReview:   start.review,
+		CheckUpdate: func(ctx context.Context) (update.Info, bool, bool) {
+			u, ok := checkUpdate(ctx, e, cfg, next, account, nil)
+			if !ok {
+				return u, false, false
+			}
+			_, announce := announcement(e, u)
+			return u, true, announce
+		},
 	})
 }
 

@@ -19,9 +19,10 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/listing"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/update"
 )
 
-var update = flag.Bool("update", false, "rewrite the golden files")
+var updateGolden = flag.Bool("update", false, "rewrite the golden files")
 
 var allSections = []model.Section{model.SectionMine, model.SectionReview, model.SectionTeams, model.SectionMerged}
 
@@ -47,7 +48,7 @@ func fixtureMenu(t *testing.T) Menu {
 func golden(t *testing.T, name string, got string) {
 	t.Helper()
 	path := filepath.Join("../../testdata/golden", name)
-	if *update {
+	if *updateGolden {
 		if err := os.WriteFile(path, []byte(got), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -479,6 +480,34 @@ func TestUpdateItem(t *testing.T) {
 		if out := Render(m); strings.Contains(out, "Update the plugin script") {
 			t.Errorf("format %d: an update item", format)
 		}
+	}
+}
+
+// A newer release ends the menu: a gh install upgrades from it in the terminal, then
+// SwiftBar runs the plugin again; a pinned one or another install only links the release.
+func TestReleaseItems(t *testing.T) {
+	m := fixtureMenu(t)
+	m.GH = "/opt/homebrew/bin/gh"
+	notes := "https://github.com/dimonchik0036/gh-kotlin-prs/releases/tag/v0.11.0"
+	m.Update = &update.Info{Current: "v0.10.0", Latest: "v0.11.0", URL: notes, Install: update.InstallGH}
+	want := "\nUpgrade to v0.11.0 | bash=/opt/homebrew/bin/gh param1=extension param2=upgrade param3=kotlin-prs terminal=true refresh=true " +
+		`tooltip="you have v0.10.0; runs gh extension upgrade kotlin-prs in the terminal"` + "\nWhat's new in v0.11.0 | href=" + notes + "\n"
+	if out := Render(m); !strings.HasSuffix(out, want) {
+		t.Errorf("gh install: the menu doesn't end with %q:\n%s", want, out)
+	}
+	m.Update.Install = update.InstallPinned
+	want = "\nv0.11.0 is out (pinned to v0.10.0) | href=" + notes +
+		` tooltip="pinned with --pin: gh extension remove kotlin-prs, then gh extension install dimonchik0036/gh-kotlin-prs"` + "\n"
+	if out := Render(m); !strings.HasSuffix(out, want) || strings.Contains(out, "Upgrade") {
+		t.Errorf("pinned: the menu doesn't end with %q:\n%s", want, out)
+	}
+	m.Update.Install = update.InstallOther
+	if out := Render(m); !strings.HasSuffix(out, "\nv0.11.0 is out (you have v0.10.0) | href="+notes+"\n") {
+		t.Errorf("another install:\n%s", out)
+	}
+	m.Update = nil
+	if out := Render(m); strings.Contains(out, "v0.11.0") {
+		t.Errorf("no release, but:\n%s", out)
 	}
 }
 

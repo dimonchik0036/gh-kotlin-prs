@@ -12,6 +12,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/update"
 )
 
 var (
@@ -37,8 +38,8 @@ func (m *Model) View() tea.View {
 	return v
 }
 
-// content is the whole screen: the body, the filter line while there's a filter, and
-// the status bar.
+// content is the whole screen: the body, the filter line while there's a filter, the
+// newer release's line while there's one, and the status bar.
 func (m *Model) content() string {
 	if m.width <= 0 || m.height <= 0 {
 		return ""
@@ -69,6 +70,9 @@ func (m *Model) content() string {
 	if m.showFilter() {
 		lines = append(lines, m.filter.View())
 	}
+	if m.showRelease() {
+		lines = append(lines, styleFaint.Render(releaseNote(*m.release)))
+	}
 	lines = append(lines, m.statusBar())
 	for i, l := range lines {
 		lines[i] = ansi.Truncate(l, m.width, "")
@@ -80,10 +84,17 @@ func (m *Model) showFilter() bool {
 	return m.screen == screenList && (m.filtering || m.filter.Value() != "")
 }
 
-// bodyHeight is the screen minus the status bar and the filter line.
+// showRelease: a newer release gets a line of its own above the status bar, once
+// there's data (the loading screen says nothing else either).
+func (m *Model) showRelease() bool { return m.release != nil && m.data != nil }
+
+// bodyHeight is the screen minus the status bar, the filter line and the release line.
 func (m *Model) bodyHeight() int {
 	h := m.height - 1
 	if m.showFilter() {
+		h--
+	}
+	if m.showRelease() {
 		h--
 	}
 	return max(h, 1)
@@ -320,6 +331,17 @@ func (m *Model) statusBar() string {
 		}
 	}
 	return l
+}
+
+// releaseNote names the newer release, and for a gh install how to get it.
+func releaseNote(r update.Info) string {
+	switch r.Install {
+	case update.InstallGH:
+		return r.Latest + " is out: " + update.Upgrade
+	case update.InstallPinned:
+		return r.Latest + " is out (pinned to " + r.Current + ")"
+	}
+	return r.Latest + " is out"
 }
 
 // reviewHint is the requestReview key's hint while the current PR has someone to

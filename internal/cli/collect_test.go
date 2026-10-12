@@ -29,6 +29,8 @@ type fakeClient struct {
 	teamRequest string
 	// edit changes a PR of the fixtures as it's fetched alone (FetchPR).
 	edit func(number int, pr map[string]any)
+	// latest is the tool's latest release ("" for none).
+	latest string
 }
 
 const searchResponse = `{
@@ -47,6 +49,14 @@ var alias = regexp.MustCompile(`pr(\d+): pullRequest\(number: (\d+)\)`)
 
 func (f *fakeClient) DoWithContext(_ context.Context, query string, vars map[string]any, resp any) error {
 	f.queries = append(f.queries, query)
+	if strings.Contains(query, "latestRelease") {
+		var latest any
+		if f.latest != "" {
+			latest = map[string]any{"tagName": f.latest, "url": "https://github.com/dimonchik0036/gh-kotlin-prs/releases/tag/" + f.latest}
+		}
+		data, _ := json.Marshal(map[string]any{"repository": map[string]any{"latestRelease": latest}})
+		return json.Unmarshal(data, resp)
+	}
 	if strings.Contains(query, "mine: search") {
 		if !strings.Contains(vars["merged"].(string), "merged:>=2026-09-30T00:00:00Z") {
 			f.t.Errorf("merged query %q doesn't start at the UTC day 24h ago", vars["merged"])
@@ -244,7 +254,7 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 	}
 	var out, errOut strings.Builder
 	return env{
-		version:    "v0.0.0-test",
+		version:    "dev (test)",
 		stdout:     &out,
 		stderr:     &errOut,
 		configPath: path,
@@ -268,6 +278,7 @@ func testEnv(t *testing.T, client github.Client, configYAML string) (env, *strin
 			t.Errorf("started %q", argv)
 			return nil
 		},
+		executable:  func() (string, error) { return "", errors.New("no executable in this test") },
 		cacheDir:    t.TempDir(),
 		now:         func() time.Time { return now },
 		isTerminal:  func() bool { return false },
@@ -314,7 +325,7 @@ func TestExitCodes(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	e, out, _ := testEnv(t, nil, "")
-	if got := run(context.Background(), []string{"--version"}, e); got != exitOK || out.String() != "gh-kotlin-prs v0.0.0-test\n" {
+	if got := run(context.Background(), []string{"--version"}, e); got != exitOK || out.String() != "gh-kotlin-prs dev (test)\n" {
 		t.Errorf("exit %d, output %q", got, out.String())
 	}
 }

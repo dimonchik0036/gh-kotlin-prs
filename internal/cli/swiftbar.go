@@ -61,6 +61,16 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 		_, err := io.WriteString(e.stdout, swiftbar.Render(menu))
 		return err
 	}
+	var debug io.Writer
+	if global.debug {
+		debug = e.stderr
+	}
+	if u, ok := checkUpdate(ctx, e, cfg, next, account, debug); ok {
+		menu.Update = &u
+		if ev, ok := announcement(e, u); ok {
+			deliver(ctx, e, cfg, []notify.Event{ev}, menu.Plugin, menu.GH)
+		}
+	}
 	client := &cache.Client{Next: next, Dir: e.cacheDir, Account: account, MaxAge: opts.maxAge, Now: e.now}
 	if global.debug {
 		client.Debug = e.stderr
@@ -384,8 +394,14 @@ func notifyChanges(ctx context.Context, e env, cfg config.Config, prs []model.PR
 	if !ok {
 		return
 	}
+	deliver(ctx, e, cfg, notify.Diff(prev.PRs, prs), plugin, gh)
+}
+
+// deliver sends the events notify.events enables through SwiftBar (or AppleScript),
+// unless notify.swiftbar is off, and the notify.command hook either way.
+func deliver(ctx context.Context, e env, cfg config.Config, events []notify.Event, plugin, gh string) {
 	n := notify.New(cfg.Notify, nil, nil)
-	for _, ev := range n.Enabled(notify.Diff(prev.PRs, prs)) {
+	for _, ev := range n.Enabled(events) {
 		if cfg.Notify.Swiftbar {
 			if err := e.start(swiftbar.NotificationArgv(plugin, gh, ev)); err != nil {
 				writef(e.stderr, "notification: %v\n", err)

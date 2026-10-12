@@ -102,7 +102,7 @@ refresh fails, and warns when less than a tenth of the hourly API budget is left
 The interactive view, while it runs, and the [menu-bar plugin](#menu-bar-swiftbar) notify you of what changed between
 two refreshes: a dry-run or safe-merge of yours passed, failed or was rejected, a PR became your move, changes were
 requested, your review was requested, a PR of yours was merged. Nothing is sent for what was already there when they
-started.
+started. They also tell you once when a new release of gh-kotlin-prs is out (`update`).
 
 Each delivers through its own channel, and both also run your command:
 
@@ -208,6 +208,12 @@ gh's path, the config file) unless flags say otherwise; a plugin of v0.5.2 or ol
 interval becoming the max-age. When the installed script is older than the one this version writes, the menu ends
 with "Update the plugin script", which runs it.
 
+When a new release is out, the menu ends with "Upgrade to vX.Y.Z", which runs `gh extension upgrade kotlin-prs` in a
+terminal tab (it stays open with the outcome), and
+"What's new in vX.Y.Z"; the interactive view says it on a faint line above its status bar, and the first of the two to see the release
+notifies you once (the `update` event). A version installed with `--pin` only shows the release, since `gh extension
+upgrade` doesn't upgrade it. The check asks GitHub about twice a day; `updateCheck: false` turns it off.
+
 It needs SwiftBar to have a plugin folder (SwiftBar asks for one on its first start); `--dir` names another. For a
 manual install, write the script yourself and make it executable:
 
@@ -278,12 +284,13 @@ issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
 keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, F5]}; `?` lists the defaults
 notify:                   # notifications; unset keys keep these defaults
-  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]   # TUI and plugin
+  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged, update]   # TUI and plugin
   terminal: auto          # TUI only: osc9, osc777, osc99, none
   bell: false             # TUI only
   swiftbar: true          # menu-bar plugin only: its notification through SwiftBar
   command: []             # TUI and plugin, e.g. [notify-send, "{title}", "{body}"]
   timeout: 10s            # TUI and plugin: for the command
+updateCheck: true         # tell of a newer release of gh-kotlin-prs (menu-bar plugin and interactive view)
 ```
 
 ## Development

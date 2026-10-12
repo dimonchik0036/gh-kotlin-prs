@@ -17,6 +17,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/update"
 )
 
 // Icon is the menu-bar symbol (an SF Symbol), template-rendered unless something failed.
@@ -60,6 +61,8 @@ type Menu struct {
 	// incompatible format would also gate which items the binary emits for old scripts;
 	// there's nothing to gate yet.
 	ScriptFormat int
+	// Update is a newer release than the running binary, nil for none.
+	Update *update.Info
 }
 
 // Render is the plugin's output: the menu-bar title, then the dropdown.
@@ -445,6 +448,34 @@ func (b *builder) footer(m Menu) {
 	}
 	if m.ScriptFormat > 0 && m.ScriptFormat < ScriptFormat {
 		b.line(0, "Update the plugin script", m.updateAction())
+	}
+	if u := m.Update; u != nil {
+		b.release(m, *u)
+	}
+}
+
+// pinnedTip says how to leave a pinned install, which `gh extension upgrade` refuses.
+const pinnedTip = "pinned with --pin: gh extension remove kotlin-prs, then gh extension install " + update.Repo
+
+// release is the newer release: for a gh install an item that upgrades it in the
+// terminal, whose tab stays open with gh's outcome (then SwiftBar runs the plugin again,
+// with the new binary), and one with its notes; otherwise one with its notes, which says
+// what's installed.
+func (b *builder) release(m Menu, u update.Info) {
+	notes := "href=" + param(u.URL)
+	switch u.Install {
+	case update.InstallGH:
+		gh := m.GH
+		if gh == "" {
+			gh = "gh"
+		}
+		b.line(0, text("Upgrade to "+u.Latest), bashParams([]string{gh, "extension", "upgrade", "kotlin-prs"})+
+			" terminal=true refresh=true tooltip="+param("you have "+u.Current+"; runs "+update.Upgrade+" in the terminal"))
+		b.line(0, text("What's new in "+u.Latest), notes)
+	case update.InstallPinned:
+		b.line(0, text(u.Latest+" is out (pinned to "+u.Current+")"), notes+" tooltip="+param(pinnedTip))
+	default:
+		b.line(0, text(u.Latest+" is out (you have "+u.Current+")"), notes)
 	}
 }
 

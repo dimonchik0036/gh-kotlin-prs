@@ -437,7 +437,8 @@ gh kotlin-prs open <number>        # browser
 ## 7. TUI (bubbletea + bubbles + lipgloss)
 
 - **List screen:** the sections with the same rows as the table (the section flags of the bare command apply), the
-  selected row in reverse video, plus a status bar showing the last refresh, errors and the rate limit (§12). On a
+  selected row in reverse video, plus a status bar showing the last refresh, errors and the rate limit (§12), and
+  above it, on every screen, a faint line for a newer release (§16). On a
   narrow terminal the reason column narrows first, then the title, down to 20 and 16 columns; past that lines are cut.
 - **Detail pane** (`enter`, `esc` back): the `show` view at the terminal's width, scrollable (`j`/`k`, `pgup`/`pgdown`).
   A merged row comes from the search, so its detail fetches the PR in full. It shows:
@@ -585,12 +586,13 @@ issueURL: https://youtrack.jetbrains.com/issue/{id}
 hyperlinks: auto          # always, never
 keys: {}                  # TUI keys by action, e.g. {copy: c, refresh: [r, F5]}; `?` lists the defaults
 notify:                   # notifications; unset keys keep these defaults
-  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged]   # TUI and plugin
+  events: [runPassed, runFailed, runRejected, myMove, changesRequested, reviewRequested, merged, update]   # TUI and plugin
   terminal: auto          # TUI only: osc9, osc777, osc99, none
   bell: false             # TUI only
   swiftbar: true          # menu-bar plugin only: its notification through SwiftBar
   command: []             # TUI and plugin, e.g. [notify-send, "{title}", "{body}"]
   timeout: 10s            # TUI and plugin: for the command
+updateCheck: true         # look for a newer release (§16)
 ```
 
 ## 10. Layout, tests, release
@@ -607,6 +609,7 @@ internal/tui/
 internal/actions/   the bot commands and when they may be posted
 internal/notify/    events from two snapshots, terminal notifications, the command hook
 internal/swiftbar/  the menu-bar plugin: its menu, script and notifications
+internal/update/    a newer release of the tool, and how gh installed this one (§16)
 testdata/           raw GraphQL responses + golden outputs
 scripts/fetch-fixtures.sh
 ```
@@ -668,7 +671,7 @@ scripts/fetch-fixtures.sh
 - **Cache:** the raw GraphQL responses with their fetch time in `$XDG_CACHE_HOME/gh-kotlin-prs/` (default
   `~/.cache/gh-kotlin-prs/`). Classification always re-runs with the current clock, so cached data still ages correctly
   ("failed 2h ago" keeps moving).
-  - One file per query, `<operation>-<scope>-<hash>.json` (`Sections`, `PullRequests`, `PullRequest`): the scope hashes
+  - One file per query, `<operation>-<scope>-<hash>.json` (`Sections`, `PullRequests`, `PullRequest`, `LatestRelease`): the scope hashes
     the account (gh's host and token, never stored), the operation and its variables (the repo, the merged cut-off
     day), the hash also the query text (the PR numbers of a details query). A file is `{"format": 1, "fetchedAt": …, "data": <the response's data as GitHub sent it>}`, mode 0600.
     The details of ~40 PRs are about 1 MB.
@@ -701,7 +704,8 @@ scripts/fetch-fixtures.sh
     say so;
   - `changesRequested`: a reviewer's latest review on my PR is newly CHANGES_REQUESTED;
   - `reviewRequested`: a PR in Review became my move (a new or repeated request);
-  - `merged`: a PR of mine moved to Recently merged.
+  - `merged`: a PR of mine moved to Recently merged;
+  - `update`: a newer release of the tool is out (§16), once per release, not from a diff.
   A PR that's new in the snapshot only counts for `reviewRequested` and `merged`: a PR I just opened isn't news.
 - Delivery, configurable, several at once. Each notifier has its own channels, and `notify.command` runs from both
   whatever they're set to:
@@ -759,6 +763,12 @@ scripts/fetch-fixtures.sh
     param4=--dir param5=<the folder of $SWIFTBAR_PLUGIN_PATH> terminal=false refresh=true` (no `--dir` without that
     variable). Not in the title, no `!`. A newer format than the binary knows (a downgraded binary) gets nothing. A
     future incompatible format would also gate which items the binary emits for old scripts; nothing is gated now.
+    Last, a newer release (§16): for a gh install "Upgrade to vX.Y.Z" (`bash=<gh> param1=extension param2=upgrade
+    param3=kotlin-prs terminal=true refresh=true`: in a new tab of SwiftBar's terminal, without `exec`, so the tab stays
+    open with gh's outcome, a failure included; SwiftBar runs the new binary right after, and "Update the plugin
+    script" follows when its script changed) and "What's new in vX.Y.Z" (the release's page); for a pinned install
+    "vX.Y.Z is out (pinned to vA.B.C)", for any other "vX.Y.Z is out (you have vA.B.C)", each opening the release's
+    page. Not in the title either.
   - Item texts are neutralized for SwiftBar: `|` becomes `¦`, newlines spaces, a leading `-` gets a zero-width space,
     and user text has `emojize=false symbolize=false`; parameter values with blanks are quoted.
   - Every item with a submenu has an action: a PR row the details' (`bash=exec … --pr N terminal=true`; `href=.`
@@ -828,6 +838,36 @@ scripts/fetch-fixtures.sh
     whatever the channels are. `notify.events` filters all of them.
     They don't coordinate: the same change may be notified by each.
 
-## 16. Open questions
+## 16. Updates
+
+- With `updateCheck` (on by default), the plugin on every run and the TUI at its start and after each live refresh look
+  for a newer release: `repository(owner: "dimonchik0036", name: "gh-kotlin-prs") { latestRelease { tagName url } }`
+  (the newest release that is neither a draft nor a pre-release, the one `gh extension upgrade` installs), through the
+  cache with a max-age of 12h, so about two queries a day, at a cost of 1 each. A check never fails anything and never
+  holds the menu more than 5s: a failed one is no newer release. No cache dir, no check (demo mode included), else
+  every plugin run would ask.
+- Only a release build checks: the running version and the tag must be semantic versions (`v0.11.0`,
+  `v0.11.0-rc.1`), compared by `golang.org/x/mod/semver`; a local build (`dev (5efe46a)`) has nothing newer.
+- How gh installed the binary comes from the `manifest.yml` gh keeps next to it (`os.Executable`, symlinks resolved;
+  gh's own undocumented file): `owner`/`name` this repository and `ispinned`. A gh install upgrades with `gh extension
+  upgrade kotlin-prs`; a pinned one (`gh extension install --pin`) can't, as gh refuses to upgrade it: it shows the
+  release with how to leave the pin, and is never notified. Without the file, or another extension's, it's another
+  install (`go install`, a copy), shown the release and notified, with no upgrade command.
+- Shown in the plugin's menu (§15) and in the TUI on a faint line of its own above the status bar, on the left, so the
+  status bar keeps its room (`vX.Y.Z is out: gh extension upgrade kotlin-prs`, `vX.Y.Z is out (pinned to vA.B.C)`,
+  `vX.Y.Z is out`): the body gives it a row. It stays while checks find the release newer; a check that finds none (or
+  fails) removes it.
+- Announced once per release, by whichever of the plugin and the TUI sees it first: the one that creates the release's
+  marker in the cache dir, an empty `update-announced-vX.Y.Z`, with `O_EXCL`, so of two asking at once only one
+  announces. Creating it removes the other releases' markers. It has no `.json`, which the cache's pruning (§13) would
+  drop after 3 days and announce the release again. The plugin and the TUI share it only through the same cache dir:
+  with another `$XDG_CACHE_HOME` in the shell than SwiftBar's, each announces once. The event
+  is `update` (§14), through the channels of whoever announces it, filtered by `notify.events` like any other: the
+  plugin's SwiftBar notification opens the release's page on a click (`href`; it's about no PR), the TUI's goes to the
+  terminal without a status-bar note (its line already says it), and `notify.command` gets `{"kind": "update",
+  "number": 0, "title": "gh kotlin-prs vX.Y.Z is out", "body": "You have vA.B.C: gh extension upgrade kotlin-prs",
+  "url": <the release's page>}`. An announcement with the event filtered out still counts as made.
+
+## 17. Open questions
 
 None for now.

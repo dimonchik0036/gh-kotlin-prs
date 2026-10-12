@@ -30,9 +30,12 @@ const (
 	ChangesRequested = "changesRequested"
 	ReviewRequested  = "reviewRequested"
 	Merged           = "merged"
+	// Update is a newer release of the tool (internal/update); it's about no PR.
+	Update = "update"
 )
 
-// Event is one notification; its JSON is what the command gets on stdin.
+// Event is one notification; its JSON is what the command gets on stdin. Number is 0 for
+// an event about no PR (update).
 type Event struct {
 	Kind    string `json:"kind"`
 	Number  int    `json:"number"`

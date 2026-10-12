@@ -20,6 +20,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/update"
 )
 
 var allSections = []model.Section{model.SectionMine, model.SectionReview, model.SectionTeams, model.SectionMerged}
@@ -133,7 +134,7 @@ func (h *harness) run(cmd tea.Cmd) {
 		h.quit = true
 	case tea.RawMsg:
 		h.raw = append(h.raw, msg.Msg.(string))
-	case fetchedMsg, detailMsg, noteMsg, copyMsg, postedMsg, reviewRequestedMsg:
+	case fetchedMsg, detailMsg, noteMsg, copyMsg, postedMsg, reviewRequestedMsg, releaseMsg:
 		h.send(msg)
 	}
 }
@@ -693,5 +694,62 @@ func TestCopyBranch(t *testing.T) {
 	_, fallback := h.m.Update(cmd())
 	if fallback == nil || !strings.Contains(h.statusBar(), "copied topic/KT-990004-example") {
 		t.Errorf("no clipboard: %q", h.statusBar())
+	}
+}
+
+// A newer release has a line of its own above the status bar, checked at the start and
+// after each live refresh (the first refresh finds the start's check still running);
+// announced, it's notified through the terminal once.
+func TestRelease(t *testing.T) {
+	release := update.Info{Current: "v0.10.0", Latest: "v0.11.0", URL: "https://example.org/releases/tag/v0.11.0", Install: update.InstallGH}
+	checks, announce, ok := 0, true, true
+	h := newHarness(t, func(_ *harness, opts *Options) {
+		cfg, err := config.Parse([]byte("notify: {terminal: osc9}\n"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		opts.Notifier = notify.New(cfg.Notify, nil, nil)
+		opts.CheckUpdate = func(context.Context) (update.Info, bool, bool) {
+			checks++
+			a := announce
+			announce = false
+			return release, ok, a
+		}
+	})
+	aboveStatusBar := func() string {
+		lines := strings.Split(h.screen(), "\n")
+		return lines[len(lines)-2]
+	}
+	h.start()
+	if want := []string{"\x1b]9;gh kotlin-prs v0.11.0 is out: You have v0.10.0: gh extension upgrade kotlin-prs\a"}; !slices.Equal(h.raw, want) {
+		t.Errorf("terminal %q, want %q", h.raw, want)
+	}
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if checks != 2 || len(h.raw) != 1 || aboveStatusBar() != "v0.11.0 is out: gh extension upgrade kotlin-prs" ||
+		!strings.HasPrefix(h.statusBar(), "updated just now ∙ next refresh in 3m") || strings.Contains(h.statusBar(), "v0.11.0") {
+		t.Errorf("%d checks, terminal %q, screen:\n%s", checks, h.raw, h.screen())
+	}
+	if lines := strings.Count(h.screen(), "\n") + 1; lines != 30 {
+		t.Errorf("%d lines on a screen of 30", lines)
+	}
+	// The details give the line a row of their viewport.
+	h.keys("enter")
+	if lines := strings.Count(h.screen(), "\n") + 1; lines != 30 || aboveStatusBar() != "v0.11.0 is out: gh extension upgrade kotlin-prs" {
+		t.Errorf("details: %d lines:\n%s", lines, h.screen())
+	}
+	h.keys("esc")
+	release.Install = update.InstallPinned
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if got := aboveStatusBar(); got != "v0.11.0 is out (pinned to v0.10.0)" {
+		t.Errorf("pinned: %q", got)
+	}
+	// No newer release (upgraded elsewhere, a failed check): the line goes.
+	ok = false
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if strings.Contains(h.screen(), "v0.11.0") {
+		t.Errorf("no release:\n%s", h.screen())
 	}
 }

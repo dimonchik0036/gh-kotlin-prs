@@ -28,6 +28,7 @@ import (
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/notify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/update"
 )
 
 // Options are everything the TUI needs from outside; tests substitute them.
@@ -66,6 +67,11 @@ type Options struct {
 	Start        int
 	StartCommand *actions.Command
 	StartReview  bool
+	// CheckUpdate is the newer release than the running binary, if there is one, and
+	// whether it's still to announce (once per release, internal/update); nil never
+	// checks. It may ask GitHub, so it runs in the background: at the start and after
+	// each live refresh, from a cached answer most of the time.
+	CheckUpdate func(ctx context.Context) (info update.Info, ok, announce bool)
 }
 
 // Run shows the TUI until the user quits or ctx is done.
@@ -156,6 +162,10 @@ type Model struct {
 	spinner spinner.Model
 	note    string
 	noteEnd time.Time
+
+	// release is the newer release, nil for none; checking while CheckUpdate runs.
+	release  *update.Info
+	checking bool
 }
 
 // New is the model of the TUI; Init starts the first refresh.
@@ -212,7 +222,11 @@ type (
 		resp   *github.PRResponse
 		err    error
 	}
-	noteMsg string
+	noteMsg    string
+	releaseMsg struct {
+		info         update.Info
+		ok, announce bool
+	}
 	copyMsg struct {
 		text string
 		err  error
@@ -220,7 +234,40 @@ type (
 )
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.tick(), m.refresh(), m.openStart(false))
+	return tea.Batch(m.tick(), m.refresh(), m.openStart(false), m.checkUpdate())
+}
+
+// checkUpdate looks for a newer release in the background, unless a check is running.
+func (m *Model) checkUpdate() tea.Cmd {
+	check, ctx := m.opts.CheckUpdate, m.ctx
+	if check == nil || m.checking {
+		return nil
+	}
+	m.checking = true
+	return func() tea.Msg {
+		info, ok, announce := check(ctx)
+		return releaseMsg{info: info, ok: ok, announce: announce}
+	}
+}
+
+// onRelease shows the newer release on its line above the status bar, and announces it
+// through the notifier when it's new (with no note: its line already says it).
+func (m *Model) onRelease(msg releaseMsg) tea.Cmd {
+	m.checking, m.release = false, nil
+	if msg.ok {
+		m.release = &msg.info
+	}
+	// The line takes a row from the body or gives it back.
+	m.updateDetail()
+	m.updateHelp()
+	if !msg.ok {
+		return nil
+	}
+	ev, ok := msg.info.Event()
+	if !msg.announce || !ok || m.opts.Notifier == nil {
+		return nil
+	}
+	return m.send(m.opts.Notifier.Enabled([]notify.Event{ev}))
 }
 
 // openStart opens Start's details once the PR is in the data (giving up after a live
@@ -317,6 +364,8 @@ func (m *Model) update(msg tea.Msg) tea.Cmd {
 	case noteMsg:
 		m.setNote(string(msg))
 		return nil
+	case releaseMsg:
+		return m.onRelease(msg)
 	case postedMsg:
 		m.onPosted(msg)
 		return nil
@@ -372,7 +421,7 @@ func (m *Model) onFetched(msg fetchedMsg) tea.Cmd {
 	m.reclassify()
 	prev := m.live
 	m.live, m.liveAt = m.prs, m.fetchStarted
-	start := m.openStart(true)
+	start := tea.Batch(m.openStart(true), m.checkUpdate())
 	if prev == nil || m.opts.Notifier == nil {
 		return start
 	}
@@ -381,18 +430,23 @@ func (m *Model) onFetched(msg fetchedMsg) tea.Cmd {
 	return tea.Batch(start, m.deliver(m.opts.Notifier.Enabled(events)))
 }
 
-// deliver writes the terminal notifications, runs the command per event in the
-// background, and names the first event in the status bar.
+// deliver names the first event in the status bar and sends them all (send).
 func (m *Model) deliver(events []notify.Event) tea.Cmd {
 	if len(events) == 0 {
 		return nil
 	}
-	n := m.opts.Notifier
 	note := events[0].Title
 	if len(events) > 1 {
 		note += fmt.Sprintf(" (+%d more)", len(events)-1)
 	}
 	m.setNote(note)
+	return m.send(events)
+}
+
+// send writes the terminal notifications and runs the command per event in the
+// background.
+func (m *Model) send(events []notify.Event) tea.Cmd {
+	n := m.opts.Notifier
 	var cmds []tea.Cmd
 	if s := n.Escapes(events); s != "" {
 		cmds = append(cmds, tea.Raw(s))

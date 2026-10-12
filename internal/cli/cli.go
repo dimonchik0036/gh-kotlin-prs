@@ -70,6 +70,8 @@ type env struct {
 	lookGH func() (string, error)
 	// start runs a program without waiting for it: a plugin notification.
 	start func(argv []string) error
+	// executable is the running binary's path, whose folder tells how gh installed it.
+	executable func() (string, error)
 }
 
 // configEnv overrides the default config path.
@@ -109,6 +111,7 @@ func Execute(ctx context.Context, args []string, stdout, stderr io.Writer, versi
 		swiftbarDir: swiftbarPluginDir,
 		lookGH:      func() (string, error) { return exec.LookPath("gh") },
 		start:       startDetached,
+		executable:  os.Executable,
 	}
 	if dir := os.Getenv(demoEnv); dir != "" {
 		fixtures, err := demo.Load(dir)

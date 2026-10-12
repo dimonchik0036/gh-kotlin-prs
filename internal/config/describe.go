@@ -74,6 +74,8 @@ var fields = []field{
 			{Key: "timeout", Value: n.Timeout.String()},
 		}
 	}},
+	{key: "updateCheck", doc: "Look for a newer release of gh-kotlin-prs, about once in 12 hours: the menu-bar plugin and the " +
+		"TUI show it, and notify.events' update tells of it once.", get: func(c Config) string { return fmt.Sprint(c.UpdateCheck) }},
 }
 
 // LoadSources is Load plus the keys the file sets, a map's sub-keys as "notify.command".
@@ -203,13 +205,29 @@ func Template() string {
 		}
 		b.WriteString("# " + v.Key + ":\n")
 		for _, s := range v.Sub {
-			b.WriteString("#   " + s.Key + ": " + s.Value + "\n")
+			for _, l := range wrapFlow("#   "+s.Key+": "+s.Value, "#     ") {
+				b.WriteString(l + "\n")
+			}
 		}
 	}
 	return b.String()
 }
 
 const templateHeader = "# gh-kotlin-prs config. Every key is optional; uncomment one to change it."
+
+// wrapFlow wraps a line ending in a flow list to 100 columns after the list's commas, the
+// next lines starting with indent, which YAML reads as the same list.
+func wrapFlow(line, indent string) []string {
+	var lines []string
+	for len(line) > 100 {
+		i := strings.LastIndex(line[:100], ", ")
+		if i < 0 || !strings.HasSuffix(line, "]") {
+			break
+		}
+		lines, line = append(lines, line[:i+1]), indent+line[i+2:]
+	}
+	return append(lines, line)
+}
 
 // docLines wraps a key's doc to 100 columns.
 func docLines(doc string) []string {

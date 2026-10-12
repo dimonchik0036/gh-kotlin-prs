@@ -17,6 +17,7 @@ var NotifyEvents = []struct{ Name, Doc string }{
 	{"changesRequested", "a reviewer requested changes on a PR of yours"},
 	{"reviewRequested", "your review was requested"},
 	{"merged", "a PR of yours was merged"},
+	{"update", "a new release of gh-kotlin-prs is out (once per release; needs updateCheck)"},
 }
 
 // Terminal notification protocols: OSC 9 (iTerm2, WezTerm, Ghostty), OSC 777 (foot,

@@ -54,6 +54,9 @@ type Config struct {
 	Keys Keys `yaml:"keys"`
 	// Notify configures the TUI's notifications; unset keys keep their defaults.
 	Notify Notify `yaml:"notify"`
+	// UpdateCheck looks for a newer release of the tool (internal/update): the plugin's menu
+	// and the TUI's status bar show it, and the update event tells of it.
+	UpdateCheck bool `yaml:"updateCheck"`
 }
 
 // Duration is a time.Duration written as "3m" in YAML.
@@ -88,6 +91,7 @@ func Default() Config {
 		Hyperlinks:         "auto",
 		Keys:               DefaultKeys(),
 		Notify:             DefaultNotify(),
+		UpdateCheck:        true,
 	}
 }
 
