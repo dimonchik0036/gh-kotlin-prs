@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A dry-run or safe-merge that finished since 2026-10-12, when the bot added `✅` and `❌` to its result line, no longer
+  stays "running": it's passed or failed again, and notified as such. So is one that passed on a retry or through the
+  auxiliary quality gate, which also showed as running.
+
 ## v0.9.1 — 2026-10-12
 
 A fix for when a PR of yours waits on a code owner, and a Go update. The JSON output is unchanged (`"version": 1`).

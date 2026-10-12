@@ -73,9 +73,11 @@ KotlinBuild posts one comment per quality-gate run and **edits it** when the run
 - `**THIS IS A DRY RUN**` at the top marks a dry-run. Without it, the run is a safe-merge.
 - `Quality gate is triggered at <tc-url>` gives the TeamCity build. `Commit: [abc1234](…)` is the merge-ref commit, not the head.
 - `Triggered a [retry attempt](<url>) №N out of M.` means a retry is running.
-- Result lines:
-  - `Quality gate finished successfully.` → passed;
-  - `Quality gate failed. See <url> …` → failed;
+- Result lines (`✅` and `❌` since 2026-10-12, before that without them):
+  - `Quality gate finished successfully ✅.` → passed;
+  - `[Quality gate](<url>) finished successfully (recovered via [retry](<url>)).`, or via `[auxiliary quality
+    gate](<url>)` → passed: the main build failed, a retry or the auxiliary gate covered its failures;
+  - `Quality gate failed ❌. See <url> …` → failed;
   - neither → running.
 - An `Error:` section after the result, like `Error: Failed to merge PR #N: rebase-merge failed: Pull Request has merge
   conflicts` under a passed safe-merge, means the bot couldn't act on the result: the run failed, whatever the result

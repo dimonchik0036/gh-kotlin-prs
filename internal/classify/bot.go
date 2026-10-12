@@ -14,9 +14,13 @@ import (
 var (
 	dryRunBanner = "**THIS IS A DRY RUN**"
 	gateStarted  = regexp.MustCompile(`Quality gate is triggered at (\S+)`)
-	gatePassed   = "Quality gate finished successfully."
-	gateFailed   = regexp.MustCompile(`Quality gate failed\.(?: See (\S+))?`)
-	gateRetry    = regexp.MustCompile(`Triggered a \[retry attempt]\((\S+?)\) №(\d+) out of (\d+)`)
+	// "Quality gate finished successfully ✅." (without ✅ before 2026-10-12), or after a
+	// failure "[Quality gate](<url>) finished successfully (recovered via [retry](<url>))."
+	// (or via [auxiliary quality gate](<url>)).
+	gatePassed = regexp.MustCompile(`Quality gate(?:]\(\S+?\))? finished successfully`)
+	// "Quality gate failed ❌. See <url> to get full insight." (without ❌ before 2026-10-12).
+	gateFailed = regexp.MustCompile(`Quality gate failed\b`)
+	gateRetry  = regexp.MustCompile(`Triggered a \[retry attempt]\((\S+?)\) №(\d+) out of (\d+)`)
 	// An error after the result: the bot couldn't finish the run's job, like the merge.
 	gateError = regexp.MustCompile(`(?m)^Error:[ \t]*(\S.*?)\s*$`)
 	// The PR an error names says nothing on the PR's own page.
@@ -150,7 +154,7 @@ func ParseGate(body string) (GateReport, bool) {
 		r.Reason = "retry " + m[2] + "/" + m[3]
 	}
 	switch {
-	case strings.Contains(body, gatePassed):
+	case gatePassed.MatchString(body):
 		r.State = model.RunPassed
 	case gateFailed.MatchString(body):
 		r.State = model.RunFailed

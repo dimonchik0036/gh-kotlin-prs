@@ -102,6 +102,34 @@ func TestParseGateRunningRetry(t *testing.T) {
 	}
 }
 
+// The result lines the bot writes since 2026-10-12, when it added the emojis.
+func TestParseGateResultLines(t *testing.T) {
+	const (
+		start = "**THIS IS A DRY RUN**\n\nQuality gate is triggered at https://buildserver.labs.intellij.net/build/101 — use this link to get full insight.\n\n---\n\n"
+		retry = "Triggered a [retry attempt](https://buildserver.labs.intellij.net/build/102) №1 out of 1.\n\n---\n\n"
+	)
+	tests := []struct {
+		name, body string
+		state      model.RunState
+		reason     string
+	}{
+		{"passed", start + "Quality gate finished successfully ✅.", model.RunPassed, ""},
+		{"failed", start + "Quality gate failed ❌. See https://buildserver.labs.intellij.net/build/101 to get full insight.", model.RunFailed, ""},
+		{"failed after a retry", start + retry + "Quality gate failed ❌. See https://buildserver.labs.intellij.net/build/101 to get full insight.", model.RunFailed, "retry 1/1"},
+		{"recovered via a retry", start + retry + "[Quality gate](https://buildserver.labs.intellij.net/build/101) finished successfully (recovered via [retry](https://buildserver.labs.intellij.net/build/102)).", model.RunPassed, "retry 1/1"},
+		{"recovered via the auxiliary gate", start + "[Quality gate](https://buildserver.labs.intellij.net/build/101) finished successfully (recovered via [auxiliary quality gate](https://buildserver.labs.intellij.net/build/103)).", model.RunPassed, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := ParseGate(tt.body)
+			want := GateReport{Kind: model.DryRun, State: tt.state, BuildURL: "https://buildserver.labs.intellij.net/build/101", Reason: tt.reason}
+			if !ok || got != want {
+				t.Errorf("got %+v, %v\nwant %+v", got, ok, want)
+			}
+		})
+	}
+}
+
 func TestParseGateIgnoresOtherComments(t *testing.T) {
 	for _, body := range []string{
 		commentBody(t, "90005", "kotlin-safemerge", "CODE_OWNERS_REVIEW_COMMENT"),
