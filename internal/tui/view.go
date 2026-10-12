@@ -340,8 +340,9 @@ func releaseNote(r update.Info) string {
 		return r.Latest + " is out: " + update.Upgrade
 	case update.InstallPinned:
 		return r.Latest + " is out (pinned to " + r.Current + ")"
+	default:
+		return r.Latest + " is out"
 	}
-	return r.Latest + " is out"
 }
 
 // reviewHint is the requestReview key's hint while the current PR has someone to

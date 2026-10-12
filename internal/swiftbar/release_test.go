@@ -1,19 +1,12 @@
 package swiftbar
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
-	"github.com/dimonchik0036/gh-kotlin-prs/internal/demo"
-	"github.com/dimonchik0036/gh-kotlin-prs/internal/listing"
-	"github.com/dimonchik0036/gh-kotlin-prs/internal/render"
 )
 
 // Synthetic PRs of the release workflow and the bots' PRs, through the whole pipeline: the
@@ -42,11 +35,11 @@ func ownersTable(rows ...owners) string {
 	var b strings.Builder
 	b.WriteString("### Code Owners\n\n<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr>")
 	for _, r := range rows {
-		fmt.Fprintf(&b, `<tr><td><code>%s</code></td><td><details><summary><a href="https://github.com/orgs/JetBrains/teams/%s">%s</a></summary><ul>`, r.path, r.team, r.team)
+		_, _ = fmt.Fprintf(&b, `<tr><td><code>%s</code></td><td><details><summary><a href="https://github.com/orgs/JetBrains/teams/%s">%s</a></summary><ul>`, r.path, r.team, r.team)
 		for _, m := range r.members {
 			b.WriteString("<li>" + link(m) + "</li>")
 		}
-		fmt.Fprintf(&b, `</ul></details></td><td align="center">%s<br>`, r.mark)
+		_, _ = fmt.Fprintf(&b, `</ul></details></td><td align="center">%s<br>`, r.mark)
 		if len(r.assigned) == 0 {
 			b.WriteString("<b><code>UNASSIGNED</code></b>")
 		}
@@ -156,7 +149,7 @@ func releaseMenu(t *testing.T) Menu {
 		return pr{number: number, author: "KotlinBuild", body: cherryPickOf(number-100, original), base: "2.5.0",
 			branch: fmt.Sprintf("rrr/2.5.0/topic/example-%d", number)}
 	}
-	prs := []pr{}
+	var prs []pr
 	// Mine: a failed Aggregate.
 	p := cherry(901, viewer)
 	p.owners, p.requested, p.approvedBy = []owners{fir("✅", "bob_user"), release("❌", "olivia_user")}, []string{"olivia_user"}, []string{"bob_user"}
@@ -212,18 +205,7 @@ func releaseMenu(t *testing.T) Menu {
 			t.Fatal(err)
 		}
 	}
-	fixtures, err := demo.Load(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	cfg := config.Default()
-	d, err := listing.Fetch(context.Background(), fixtures, cfg, fixtures.Now(), allSections)
-	if err != nil {
-		t.Fatal(err)
-	}
-	shown, hidden := listing.Filter(d.Classify(cfg, fixtures.Now()), false, false)
-	return Menu{PRs: shown, Hidden: hidden, Sections: allSections, Viewer: d.Viewer, Icons: render.Unicode,
-		FetchedAt: fixtures.Now().Add(-time.Minute), Now: fixtures.Now(), Plugin: plugin}
+	return menuOn(t, dir)
 }
 
 // The release workflow and the bots' PRs in the menu: QG in place of DR and SM, whose move

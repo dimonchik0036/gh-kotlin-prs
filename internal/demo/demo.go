@@ -156,7 +156,7 @@ func (c *Client) search(vars map[string]any) map[string]any {
 			case pr.State == "OPEN":
 				sections[search] = append(sections[search], map[string]any{"number": n, "author": pr.Author, "body": pr.Body, "assignees": pr.Assignees})
 			case pr.State == "MERGED" && pr.MergedAt != nil && !pr.MergedAt.Before(since):
-				sections[search+"Merged"] = append(sections[search+"Merged"], json.RawMessage(c.prs[n]))
+				sections[search+"Merged"] = append(sections[search+"Merged"], c.prs[n])
 			}
 		}
 		if bot != "" && strings.EqualFold(pr.Author.LoginOrEmpty(), bot) && strings.Contains(strings.ToLower(pr.Body), "@"+strings.ToLower(c.viewer)) {
@@ -168,7 +168,7 @@ func (c *Client) search(vars map[string]any) map[string]any {
 		switch {
 		case pr.State == "MERGED":
 			if mine && pr.MergedAt != nil && !pr.MergedAt.Before(since) {
-				sections["merged"] = append(sections["merged"], json.RawMessage(c.prs[n]))
+				sections["merged"] = append(sections["merged"], c.prs[n])
 			}
 			continue
 		case pr.State != "OPEN":

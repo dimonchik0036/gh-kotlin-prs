@@ -31,7 +31,13 @@ const plugin = "/Users/alice_user/Library/Application Support/SwiftBar/Plugins/k
 // fixtureMenu is the fixtures' menu, fetched a minute before their clock.
 func fixtureMenu(t *testing.T) Menu {
 	t.Helper()
-	fixtures, err := demo.Load("../../testdata/raw")
+	return menuOn(t, "../../testdata/raw")
+}
+
+// menuOn is the menu of the fixtures in dirs (demo.Load), fetched a minute before their clock.
+func menuOn(t *testing.T, dirs string) Menu {
+	t.Helper()
+	fixtures, err := demo.Load(dirs)
 	if err != nil {
 		t.Fatal(err)
 	}

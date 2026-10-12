@@ -244,7 +244,7 @@ const (
 	NextReviewers NextAction = "reviewers"
 	NextCI        NextAction = "ci"
 	NextAuthor    NextAction = "author"
-	// NextRelease: approved on a release branch, the release engineer merges it.
+	// NextRelease is a PR approved on a release branch: the release engineer merges it.
 	NextRelease NextAction = "release"
 	NextDone    NextAction = "done"
 )

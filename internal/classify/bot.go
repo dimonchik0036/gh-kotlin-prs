@@ -31,7 +31,7 @@ var (
 	gateGenericError  = "the coordinator gave up on a GitHub or TeamCity call"
 	// The end of the coordinator's messages for a run it couldn't start (ParseAbort).
 	gateAbort    = "trigger Safe-Merge again."
-	markdownLink = regexp.MustCompile(`\[([^\]]*)]\([^)\s]*\)`)
+	markdownLink = regexp.MustCompile(`\[([^]]*)]\([^)\s]*\)`)
 	// The PR an error names says nothing on the PR's own page.
 	gateErrorPR = regexp.MustCompile(`^Failed to merge PR #\d+: `)
 	// Runs started by a Safe-Merge in the ultimate repository rather than by a command on this PR.

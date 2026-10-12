@@ -31,6 +31,9 @@ func TestParseTeamURL(t *testing.T) {
 	}
 }
 
+// A http:// link isn't a profile's.
+//
+//goland:noinspection HttpUrlsUsage
 func TestParseProfileURL(t *testing.T) {
 	for url, want := range map[string]string{
 		"https://github.com/judy_user":         "judy_user",

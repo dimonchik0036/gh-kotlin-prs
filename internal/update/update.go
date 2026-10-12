@@ -34,11 +34,11 @@ const Upgrade = "gh extension upgrade kotlin-prs"
 type Install int
 
 const (
-	// InstallOther: not by gh (go install, a copy): it upgrades the way it came.
+	// InstallOther is an install not by gh (go install, a copy): it upgrades the way it came.
 	InstallOther Install = iota
-	// InstallGH: `gh extension install`; `gh extension upgrade` gets the latest release.
+	// InstallGH is `gh extension install`: `gh extension upgrade` gets the latest release.
 	InstallGH
-	// InstallPinned: `gh extension install --pin`, which `gh extension upgrade` refuses.
+	// InstallPinned is `gh extension install --pin`, which `gh extension upgrade` refuses.
 	InstallPinned
 )
 
