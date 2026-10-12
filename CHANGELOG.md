@@ -12,6 +12,8 @@ breaking JSON changes and noted here.
 - A run with several retries shows the attempt that's running, not the first one.
 - A dry-run or safe-merge the bot couldn't start, for conflicts when it rebases the PR onto master or
   `fixup!` commits that don't squash, fails with the bot's reason; it no longer stays "accepted".
+- A dry-run or safe-merge the bot accepted (🚀) but never reported on for an hour is "accepted 1h ago, no response",
+  your move, and can be posted again. New config key `acceptedTimeout`.
 - A dry-run or safe-merge that failed after its gate says why in the bot's words, like "Either new conflicts appeared
   while the quality gate was running …", not with the git command that failed. "Failed all 5 attempts, see nested
   exception for details" and "Unretryable error occurred" read "the coordinator gave up on a GitHub or TeamCity call".

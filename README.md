@@ -270,7 +270,8 @@ releaseTeam: kotlin-release   # the release engineers, who merge them
 teams: []                 # only show team requests to these teams; empty means all
 refresh: 3m
 startupMaxAge: 30m        # the TUI starts from cached data at most this old
-requestedTimeout: 10m
+requestedTimeout: 10m     # a command with no reaction or reply after this long: "no response"
+acceptedTimeout: 1h       # a dry-run or safe-merge with 🚀 but no gate comment after this long: "no response"
 icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]   # issue IDs recognized in commit trailers, branch names and titles
 issueURL: https://youtrack.jetbrains.com/issue/{id}

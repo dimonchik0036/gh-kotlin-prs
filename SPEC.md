@@ -154,7 +154,9 @@ in reviews, and comments from accounts without write access (no reaction, no rep
 
 Our states:
 - A `/dry-run` or `/safe-merge` with no reaction and no reply → **requested**; after 10 min → **requested, no response**.
-- 🚀 but no KotlinBuild comment yet → **accepted**.
+- 🚀 but no KotlinBuild comment yet → **accepted**; after an hour (`acceptedTimeout`) → **accepted, no response**. The
+  gate comment usually follows within ~3 min; without one, the coordinator failed before it could post anything, or
+  its build never ran. A `/test-public` waits for the Aggregate instead and has no such timeout.
 - A KotlinBuild comment without `Quality gate is triggered at` is the coordinator's report on a run it couldn't
   start, so there's no build and no banner: the latest accepted dry-run or safe-merge **failed**, its reason read like
   a gate error's. It's "Changes in the corresponding Merge-Request can't be rebased onto master due to conflicts."
@@ -292,7 +294,8 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
 "re-request…" or "assign reviewers…" as secondary lines; once the run passed, they make it mine (and the TUI hints
 `A` either way). A failed run is rule 1's.
 1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected for a cause of mine, or got no
-   response → "safe-merge failed 2h ago", "safe-merge failed: <error>" (§3), "dry-run rejected: <reason>". Whose a rejection is, by the bot's reason
+   response → "safe-merge failed 2h ago", "safe-merge failed: <error>" (§3), "dry-run rejected: <reason>", "dry-run
+   accepted 1h ago, no response". Whose a rejection is, by the bot's reason
    (§3):
 
    | Reason | Whose |
@@ -575,6 +578,7 @@ teams: []                 # slugs for --teams
 refresh: 3m
 startupMaxAge: 30m        # the TUI starts from cached data at most this old
 requestedTimeout: 10m
+acceptedTimeout: 1h       # a dry-run or safe-merge with 🚀 and no gate comment after this long: "no response"
 icons: unicode            # or ascii
 issueProjects: [KT, KTIJ, KTI]
 issueURL: https://youtrack.jetbrains.com/issue/{id}

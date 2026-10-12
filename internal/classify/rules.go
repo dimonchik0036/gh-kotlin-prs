@@ -118,7 +118,7 @@ func mineRunFailed(f *facts) []model.Reason { return runFailed(f, latest(f.pr.Ru
 func runFailed(f *facts, run model.Run) []model.Reason {
 	switch {
 	case run.NoResponse:
-		return linked(fmt.Sprintf("%s requested %s, no response", run.Kind, model.Ago(f.c.Now, run.Started)), run.CommentURL)
+		return linked(fmt.Sprintf("%s %s %s, no response", run.Kind, run.State, model.Ago(f.c.Now, run.Started)), run.CommentURL)
 	case run.State == model.RunRejected && ReviewersToFix(run.Reason):
 		return nil
 	case run.State == model.RunRejected:

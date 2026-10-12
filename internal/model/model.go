@@ -76,7 +76,8 @@ type Run struct {
 	Updated time.Time `json:"updated,omitzero"`
 	// Outdated: triggered before the last push.
 	Outdated bool `json:"outdated,omitempty"`
-	// NoResponse: requested longer than requestedTimeout ago with no reaction or reply.
+	// NoResponse: requested longer than requestedTimeout ago with no reaction or reply, or
+	// accepted longer than acceptedTimeout ago with no gate comment.
 	NoResponse bool `json:"noResponse,omitempty"`
 	// Minimized: the gate comment was hidden ("resolved") on GitHub.
 	Minimized bool `json:"minimized,omitempty"`

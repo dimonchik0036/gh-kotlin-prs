@@ -39,6 +39,9 @@ type Config struct {
 	// StartupMaxAge: the TUI starts from cached data at most this old, else it waits for GitHub.
 	StartupMaxAge    Duration `yaml:"startupMaxAge"`
 	RequestedTimeout Duration `yaml:"requestedTimeout"`
+	// AcceptedTimeout: a dry-run or safe-merge the bot accepted (🚀) with no gate comment
+	// after this long is "no response".
+	AcceptedTimeout Duration `yaml:"acceptedTimeout"`
 	// Icons is the symbol set: "unicode" or "ascii".
 	Icons string `yaml:"icons"`
 	// IssueProjects are the issue tracker projects whose IDs (KT-123) are recognized.
@@ -78,6 +81,7 @@ func Default() Config {
 		Refresh:            Duration(3 * time.Minute),
 		StartupMaxAge:      Duration(30 * time.Minute),
 		RequestedTimeout:   Duration(10 * time.Minute),
+		AcceptedTimeout:    Duration(time.Hour),
 		Icons:              "unicode",
 		IssueProjects:      []string{"KT", "KTIJ", "KTI"},
 		IssueURL:           "https://youtrack.jetbrains.com/issue/{id}",

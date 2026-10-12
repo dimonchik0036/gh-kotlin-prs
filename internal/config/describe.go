@@ -49,6 +49,7 @@ var fields = []field{
 	{key: "refresh", doc: "Refresh interval of the TUI.", get: func(c Config) string { return c.Refresh.String() }},
 	{key: "startupMaxAge", doc: "The TUI starts from cached data at most this old (0: never), then refreshes.", get: func(c Config) string { return c.StartupMaxAge.String() }},
 	{key: "requestedTimeout", doc: "A command with no reaction or reply after this long is \"no response\".", get: func(c Config) string { return c.RequestedTimeout.String() }},
+	{key: "acceptedTimeout", doc: "A dry-run or safe-merge with 🚀 but no comment from the gate bot after this long is \"no response\".", get: func(c Config) string { return c.AcceptedTimeout.String() }},
 	{key: "icons", doc: "Symbols: unicode or ascii.", get: func(c Config) string { return scalar(c.Icons) }},
 	{key: "issueProjects", doc: "Issue IDs recognized in commit trailers, branch names and titles.", get: func(c Config) string { return list(c.IssueProjects) }},
 	{key: "issueURL", doc: "Issue link; {id} is the issue ID.", get: func(c Config) string { return scalar(c.IssueURL) }},

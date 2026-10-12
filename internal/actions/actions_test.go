@@ -53,6 +53,8 @@ func TestCheck(t *testing.T) {
 			[]string{"cancel-coordinator", "fixup", "test-public"}, "a dry-run is already accepted on #7"},
 		{"requested without a response", func(pr *model.PR) { pr.DryRun.State, pr.DryRun.NoResponse = model.RunRequested, true },
 			[]string{"dry-run", "dry-run-retry", "safe-merge", "fixup", "test-public"}, ""},
+		{"accepted without a response", func(pr *model.PR) { pr.DryRun.State, pr.DryRun.NoResponse = model.RunAccepted, true },
+			[]string{"dry-run", "dry-run-retry", "safe-merge", "fixup", "test-public"}, ""},
 		{"no approval", func(pr *model.PR) { pr.Approvals = 0 },
 			[]string{"dry-run", "dry-run-retry", "fixup", "test-public"}, "#7 isn't approved: no approval yet"},
 		{"code owners missing", func(pr *model.PR) {

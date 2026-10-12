@@ -42,6 +42,21 @@ func TestRunLifecycle(t *testing.T) {
 			name: "🚀 from the bot means accepted",
 			pr:   newPR(me).says(me, "/dry-run", at(100), rocket),
 			want: model.RunAccepted,
+			check: func(t *testing.T, run model.Run) {
+				if run.NoResponse {
+					t.Error("20 minutes is within acceptedTimeout")
+				}
+			},
+		},
+		{
+			name: "accepted with no gate comment after acceptedTimeout",
+			pr:   newPR(me).says(me, "/safe-merge", at(55), rocket),
+			want: model.RunAccepted,
+			check: func(t *testing.T, run model.Run) {
+				if !run.NoResponse {
+					t.Error("want NoResponse after 65 minutes")
+				}
+			},
 		},
 		{
 			name: "a 🚀 from a person doesn't count",
@@ -319,6 +334,14 @@ func TestRunsFromFixtures(t *testing.T) {
 		}
 		if pr.DryRun.State != model.RunPassed {
 			t.Errorf("dry-run = %s, want passed", pr.DryRun.State)
+		}
+	})
+	t.Run("acceptedTimeout comes from the config", func(t *testing.T) {
+		c := testClassifier()
+		c.Config.AcceptedTimeout = config.Duration(2 * time.Hour)
+		pr := c.PR(newPR(me).says(me, "/dry-run", at(55), rocket).build(), model.SectionMine)
+		if pr.DryRun.NoResponse {
+			t.Error("65 minutes is within a 2h timeout")
 		}
 	})
 	t.Run("requestedTimeout comes from the config", func(t *testing.T) {

@@ -169,6 +169,11 @@ func TestReleaseTestPublic(t *testing.T) {
 			next: model.NextCI, reason: "test-public accepted 20m ago",
 		},
 		{
+			name: "accepted long ago: the Aggregate isn't the coordinator's, no timeout",
+			pr:   releasePR().status(aggregate, "FAILURE", at(1)).says(me, "/test-public", at(5), rocket),
+			next: model.NextCI, reason: "test-public accepted 1h ago",
+		},
+		{
 			name: "no response",
 			pr:   failed().says(me, "/test-public", at(100)),
 			next: model.NextMe, reason: "test-public requested 20m ago, no response",

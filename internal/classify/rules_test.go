@@ -81,6 +81,11 @@ func TestMineRule1RunFailed(t *testing.T) {
 			next: model.NextMe, reason: "safe-merge requested 20m ago, no response",
 		},
 		{
+			name: "accepted, but no gate comment for an hour",
+			pr:   readyPR().says(me, "/dry-run", at(50), rocket),
+			next: model.NextMe, reason: "dry-run accepted 1h ago, no response",
+		},
+		{
 			name: "an outdated failure doesn't count",
 			pr:   readyPR().gate(model.DryRun, 100, "failed", at(-30)),
 			next: model.NextMe, reason: "ready to /safe-merge",

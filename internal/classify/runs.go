@@ -27,7 +27,7 @@ type pendingCommand struct {
 // rejected: …` or another failure text) and adds no reaction. A reply therefore answers
 // the latest waiting command without 🚀. A dry-run or safe-merge then ends with a gate
 // comment of its kind. Commands still waiting at the end are requested (no 🚀 yet) or
-// accepted (🚀, the build is queued). A KotlinBuild comment without a gate line fails the
+// accepted (🚀, the build is queued), with no response after acceptedTimeout. A KotlinBuild comment without a gate line fails the
 // latest accepted one instead: the coordinator couldn't start its build.
 //
 // A gate comment without a result is running only while it is the newest one, isn't
@@ -149,10 +149,16 @@ func (c *Classifier) runs(comments []github.Comment, lastPush time.Time, release
 			continue
 		}
 		run := model.Run{Kind: p.kind, State: model.RunRequested, Started: p.at, Updated: p.at, CommentURL: p.url}
-		if p.accepted {
+		switch {
+		case !p.accepted:
+			run.NoResponse = c.Now.Sub(p.at) > time.Duration(c.Config.RequestedTimeout)
+		case p.kind == model.TestPublic:
+			// Waits for the Aggregate (withAggregate), which isn't the coordinator's.
 			run.State = model.RunAccepted
-		} else if c.Now.Sub(p.at) > time.Duration(c.Config.RequestedTimeout) {
-			run.NoResponse = true
+		default:
+			// The coordinator failed before it could say so, or its build never ran.
+			run.State = model.RunAccepted
+			run.NoResponse = c.Now.Sub(p.at) > time.Duration(c.Config.AcceptedTimeout)
 		}
 		runs = append(runs, run)
 	}
