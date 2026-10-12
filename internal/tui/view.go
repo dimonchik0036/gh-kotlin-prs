@@ -333,8 +333,12 @@ func (m *Model) statusBar() string {
 	return l
 }
 
-// releaseNote names the newer release, and for a gh install how to get it.
+// releaseNote names the newer release, and for a gh install how to get it; once gh has
+// installed it under the running TUI, that a restart runs it.
 func releaseNote(r update.Info) string {
+	if r.Upgraded() {
+		return r.Installed + " installed: restart the interactive view to use it"
+	}
 	switch r.Install {
 	case update.InstallGH:
 		return r.Latest + " is out: " + update.Upgrade

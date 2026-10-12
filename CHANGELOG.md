@@ -9,9 +9,9 @@ breaking JSON changes and noted here.
 - The menu-bar plugin and the interactive view tell you when a new release is out: the menu ends with "Upgrade to
   vX.Y.Z" (it runs `gh extension upgrade kotlin-prs` in the terminal) and "What's new in vX.Y.Z", the interactive
   view names it on a faint line above its status bar, and the first of the two to see it notifies you once, through
-  the new `update` event. An install pinned with `--pin` only shows the release. The check asks GitHub about twice a
-  day; new config key `updateCheck: false` turns it off. A config that lists its own `notify.events` gets no `update`
-  notification until it adds `update`.
+  the new `update` event. An install pinned with `--pin` only shows the release, and an interactive view left open
+  over an upgrade says to restart it. The check asks GitHub about twice a day; new config key `updateCheck: false`
+  turns it off. A config that lists its own `notify.events` gets no `update` notification until it adds `update`.
 - Built with bubbletea v2.1.0, whose fixes keep the interactive view from hanging on exit now and then, and give it a
   default size in a terminal that reports none.
 

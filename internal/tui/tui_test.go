@@ -745,6 +745,13 @@ func TestRelease(t *testing.T) {
 	if got := aboveStatusBar(); got != "v0.11.0 is out (pinned to v0.10.0)" {
 		t.Errorf("pinned: %q", got)
 	}
+	// Upgraded from another terminal: the TUI still runs the old binary.
+	release.Install, release.Installed = update.InstallGH, "v0.11.0"
+	h.clock = h.clock.Add(time.Minute)
+	h.keys("r")
+	if got := aboveStatusBar(); got != "v0.11.0 installed: restart the interactive view to use it" {
+		t.Errorf("upgraded: %q", got)
+	}
 	// No newer release (upgraded elsewhere, a failed check): the line goes.
 	ok = false
 	h.clock = h.clock.Add(time.Minute)

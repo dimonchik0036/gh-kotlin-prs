@@ -857,6 +857,12 @@ scripts/fetch-fixtures.sh
   status bar keeps its room (`vX.Y.Z is out: gh extension upgrade kotlin-prs`, `vX.Y.Z is out (pinned to vA.B.C)`,
   `vX.Y.Z is out`): the body gives it a row. It stays while checks find the release newer; a check that finds none (or
   fails) removes it.
+- An upgrade from another terminal replaces the binary under a running TUI, which goes on as the old version. Each
+  check reads the manifest again, whose `tag` is the version gh installed: once that's the release or newer, the line
+  says `vX.Y.Z installed: restart the interactive view to use it`, and nothing announces the release (it's no news;
+  no marker is made). The plugin needs none of this: SwiftBar starts the new binary on its next run, which has nothing
+  newer. A run during the upgrade itself, while gh rewrites the extension's folder, may find no manifest and show the
+  release as another install's, once.
 - Announced once per release, by whichever of the plugin and the TUI sees it first: the one that creates the release's
   marker in the cache dir, an empty `update-announced-vX.Y.Z`, with `O_EXCL`, so of two asking at once only one
   announces. Creating it removes the other releases' markers. It has no `.json`, which the cache's pruning (§13) would

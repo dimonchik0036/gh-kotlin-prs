@@ -47,6 +47,15 @@ type Info struct {
 	// Current is the running version, Latest the newer release's tag, URL its page.
 	Current, Latest, URL string
 	Install              Install
+	// Installed is the version gh has installed by now ("" when unknown), which an
+	// upgrade made under the running process sets ahead of Current (Upgraded).
+	Installed string
+}
+
+// Upgraded reports whether gh has already installed the release (or a newer one) in
+// place of the running binary: the process, started before, has to restart to run it.
+func (i Info) Upgraded() bool {
+	return semver.IsValid(i.Installed) && semver.Compare(i.Installed, i.Latest) >= 0
 }
 
 const latestQuery = `query LatestRelease($owner: String!, $name: String!) {
@@ -101,37 +110,40 @@ func Check(ctx context.Context, client github.Client, current string, install In
 type manifest struct {
 	Owner    string `yaml:"owner"`
 	Name     string `yaml:"name"`
+	Tag      string `yaml:"tag"`
 	IsPinned bool   `yaml:"ispinned"`
 }
 
-// ReadInstall tells how gh installed the binary at executable, from the manifest.yml gh
-// keeps next to it. The file is gh's own and undocumented: without it, or when it doesn't
-// read as this extension's, the binary wasn't installed by gh.
-func ReadInstall(executable string) Install {
+// ReadInstall tells how gh installed the binary at executable, and the version it
+// installed there (gh's tag, "" for none), from the manifest.yml gh keeps next to it: an
+// upgrade rewrites it while an older process runs on. The file is gh's own and
+// undocumented: without it, or when it doesn't read as this extension's, the binary
+// wasn't installed by gh.
+func ReadInstall(executable string) (install Install, tag string) {
 	if executable == "" {
-		return InstallOther
+		return InstallOther, ""
 	}
 	if resolved, err := filepath.EvalSymlinks(executable); err == nil {
 		executable = resolved
 	}
 	data, err := os.ReadFile(filepath.Join(filepath.Dir(executable), "manifest.yml"))
 	if err != nil {
-		return InstallOther
+		return InstallOther, ""
 	}
 	var m manifest
 	if err := yaml.Unmarshal(data, &m); err != nil || m.Owner+"/"+m.Name != Repo {
-		return InstallOther
+		return InstallOther, ""
 	}
 	if m.IsPinned {
-		return InstallPinned
+		return InstallPinned, m.Tag
 	}
-	return InstallGH
+	return InstallGH, m.Tag
 }
 
 // Event is the notification of the release. A pinned install gets none: it chose its
-// version.
+// version; nor does one already upgraded (Upgraded): it's no news.
 func (i Info) Event() (notify.Event, bool) {
-	if i.Install == InstallPinned {
+	if i.Install == InstallPinned || i.Upgraded() {
 		return notify.Event{}, false
 	}
 	body := "You have " + i.Current

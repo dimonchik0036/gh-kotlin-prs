@@ -14,8 +14,9 @@ import (
 )
 
 // releaseEnv is the plugin of a v0.10.0 release build that gh installed (pinned or not),
-// with v0.11.0 out. started collects the notifications.
-func releaseEnv(t *testing.T, configYAML string, pinned bool) (e env, client *fakeClient, started *[][]string, out *strings.Builder) {
+// with v0.11.0 out. started collects the notifications; setTag rewrites the version gh
+// installed, as an upgrade would under the running binary.
+func releaseEnv(t *testing.T, configYAML string, pinned bool) (e env, client *fakeClient, started *[][]string, out *strings.Builder, setTag func(string)) {
 	t.Helper()
 	client = &fakeClient{t: t, latest: "v0.11.0"}
 	e, out, _ = swiftbarEnv(t, client, configYAML)
@@ -25,13 +26,17 @@ func releaseEnv(t *testing.T, configYAML string, pinned bool) (e env, client *fa
 	if pinned {
 		manifest = strings.Replace(manifest, "ispinned: false", "ispinned: true", 1)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "manifest.yml"), []byte(manifest), 0o600); err != nil {
-		t.Fatal(err)
+	setTag = func(tag string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(dir, "manifest.yml"), []byte(strings.Replace(manifest, "v0.10.0", tag, 1)), 0o600); err != nil {
+			t.Fatal(err)
+		}
 	}
+	setTag("v0.10.0")
 	e.executable = func() (string, error) { return filepath.Join(dir, "gh-kotlin-prs"), nil }
 	started = &[][]string{}
 	e.start = func(argv []string) error { *started = append(*started, argv); return nil }
-	return e, client, started, out
+	return e, client, started, out, setTag
 }
 
 func releaseQueries(c *fakeClient) int {
@@ -46,7 +51,7 @@ func releaseQueries(c *fakeClient) int {
 
 // The plugin shows a newer release and announces it once; the answer is cached for 12h.
 func TestSwiftbarRelease(t *testing.T) {
-	e, client, started, out := releaseEnv(t, "", false)
+	e, client, started, out, _ := releaseEnv(t, "", false)
 	// Within the day the fake search expects.
 	clock := now.Truncate(24 * time.Hour)
 	e.now = func() time.Time { return clock }
@@ -110,21 +115,21 @@ func TestSwiftbarReleaseQuiet(t *testing.T) {
 		return out.String()
 	}
 	// Pinned: the release in the menu, no upgrade item, no notification.
-	e, _, started, out := releaseEnv(t, "", true)
+	e, _, started, out, _ := releaseEnv(t, "", true)
 	if got := menu(e, out); !strings.Contains(got, "\nv0.11.0 is out (pinned to v0.10.0) | href=") || strings.Contains(got, "Upgrade") || len(*started) != 0 {
 		t.Errorf("pinned: notified %q:\n%s", *started, got)
 	}
 	// The update event off: the menu still shows the release.
-	e, _, started, out = releaseEnv(t, "notify: {events: [merged]}\n", false)
+	e, _, started, out, _ = releaseEnv(t, "notify: {events: [merged]}\n", false)
 	if got := menu(e, out); !strings.Contains(got, "Upgrade to v0.11.0") || len(*started) != 0 {
 		t.Errorf("events without update: notified %q:\n%s", *started, got)
 	}
 	// updateCheck off, or a local build: no query at all.
-	e, client, started, out := releaseEnv(t, "updateCheck: false\n", false)
+	e, client, started, out, _ := releaseEnv(t, "updateCheck: false\n", false)
 	if got := menu(e, out); strings.Contains(got, "v0.11.0") || releaseQueries(client) != 0 || len(*started) != 0 {
 		t.Errorf("updateCheck false: %d queries:\n%s", releaseQueries(client), got)
 	}
-	e, client, _, out = releaseEnv(t, "", false)
+	e, client, _, out, _ = releaseEnv(t, "", false)
 	e.version = "dev (5efe46a)"
 	if got := menu(e, out); strings.Contains(got, "v0.11.0") || releaseQueries(client) != 0 {
 		t.Errorf("a local build: %d queries:\n%s", releaseQueries(client), got)
@@ -133,7 +138,7 @@ func TestSwiftbarReleaseQuiet(t *testing.T) {
 
 // The TUI gets the same check, and the announcement is shared with the plugin: once.
 func TestTUIRelease(t *testing.T) {
-	e, _, _, _ := releaseEnv(t, "", false)
+	e, _, _, _, setTag := releaseEnv(t, "", false)
 	e.interactive = func() bool { return true }
 	type result struct {
 		info         update.Info
@@ -141,7 +146,10 @@ func TestTUIRelease(t *testing.T) {
 	}
 	var got []result
 	e.runTUI = func(ctx context.Context, opts tui.Options) error {
-		for range 2 {
+		for i := range 3 {
+			if i == 2 {
+				setTag("v0.11.0") // upgraded from another terminal
+			}
 			info, ok, announce := opts.CheckUpdate(ctx)
 			got = append(got, result{info, ok, announce})
 		}
@@ -150,8 +158,21 @@ func TestTUIRelease(t *testing.T) {
 	if code := run(context.Background(), nil, e); code != exitOK {
 		t.Fatalf("exit %d", code)
 	}
-	if len(got) != 2 || !got[0].ok || got[0].info.Latest != "v0.11.0" || got[0].info.Install != update.InstallGH ||
-		!got[0].announce || !got[1].ok || got[1].announce {
+	if len(got) != 3 || !got[0].ok || got[0].info.Latest != "v0.11.0" || got[0].info.Install != update.InstallGH ||
+		!got[0].announce || !got[1].ok || got[1].announce || got[1].info.Upgraded() || !got[2].ok || !got[2].info.Upgraded() {
 		t.Errorf("checks %+v", got)
+	}
+}
+
+// A release gh installed before anything announced it (upgraded at once, from another
+// terminal) is no news: no notification, and nothing recorded.
+func TestReleaseAlreadyUpgraded(t *testing.T) {
+	e, _, started, out, setTag := releaseEnv(t, "", false)
+	setTag("v0.11.0")
+	if got := run(context.Background(), []string{"list", "--format", "swiftbar"}, e); got != exitOK || len(*started) != 0 {
+		t.Errorf("exit %d, notified %q:\n%s", got, *started, out.String())
+	}
+	if markers, _ := filepath.Glob(filepath.Join(e.cacheDir, "update-announced-*")); len(markers) != 0 {
+		t.Errorf("markers %q", markers)
 	}
 }

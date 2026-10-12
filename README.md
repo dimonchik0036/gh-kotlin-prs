@@ -212,7 +212,8 @@ When a new release is out, the menu ends with "Upgrade to vX.Y.Z", which runs `g
 terminal tab (it stays open with the outcome), and
 "What's new in vX.Y.Z"; the interactive view says it on a faint line above its status bar, and the first of the two to see the release
 notifies you once (the `update` event). A version installed with `--pin` only shows the release, since `gh extension
-upgrade` doesn't upgrade it. The check asks GitHub about twice a day; `updateCheck: false` turns it off.
+upgrade` doesn't upgrade it. After an upgrade from another terminal, an interactive view still open says to restart
+it. The check asks GitHub about twice a day; `updateCheck: false` turns it off.
 
 It needs SwiftBar to have a plugin folder (SwiftBar asks for one on its first start); `--dir` names another. For a
 manual install, write the script yourself and make it executable:

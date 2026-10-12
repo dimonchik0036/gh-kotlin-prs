@@ -109,17 +109,18 @@ func TestReadInstall(t *testing.T) {
 	for _, tt := range []struct {
 		name, exe string
 		want      Install
+		tag       string
 	}{
-		{"gh extension install", install(gh), InstallGH},
-		{"--pin", install(pinned), InstallPinned},
-		{"--pin, through a symlink", link, InstallPinned},
-		{"another extension's manifest", install(strings.Replace(gh, "name: gh-kotlin-prs", "name: gh-other", 1)), InstallOther},
-		{"no manifest", install(""), InstallOther},
-		{"a broken manifest", install("owner: [\n"), InstallOther},
-		{"no executable", "", InstallOther},
+		{"gh extension install", install(gh), InstallGH, "v0.10.0"},
+		{"--pin", install(pinned), InstallPinned, "v0.10.0"},
+		{"--pin, through a symlink", link, InstallPinned, "v0.10.0"},
+		{"another extension's manifest", install(strings.Replace(gh, "name: gh-kotlin-prs", "name: gh-other", 1)), InstallOther, ""},
+		{"no manifest", install(""), InstallOther, ""},
+		{"a broken manifest", install("owner: [\n"), InstallOther, ""},
+		{"no executable", "", InstallOther, ""},
 	} {
-		if got := ReadInstall(tt.exe); got != tt.want {
-			t.Errorf("%s: %v, want %v", tt.name, got, tt.want)
+		if got, tag := ReadInstall(tt.exe); got != tt.want || tag != tt.tag {
+			t.Errorf("%s: %v, %q, want %v, %q", tt.name, got, tag, tt.want, tt.tag)
 		}
 	}
 }
@@ -138,6 +139,28 @@ func TestEvent(t *testing.T) {
 	u.Install = InstallPinned
 	if _, ok := u.Event(); ok {
 		t.Error("a pinned install is notified")
+	}
+	u.Install, u.Installed = InstallGH, "v0.11.0"
+	if _, ok := u.Event(); ok {
+		t.Error("an install already upgraded is notified")
+	}
+}
+
+// Upgraded: gh installed the release (or a newer one) since the running binary started.
+func TestUpgraded(t *testing.T) {
+	for _, tt := range []struct {
+		installed string
+		want      bool
+	}{
+		{"v0.11.0", true},
+		{"v0.12.0", true},
+		{"v0.10.0", false}, // the running binary's own
+		{"", false},
+		{"nightly", false},
+	} {
+		if got := (Info{Current: "v0.10.0", Latest: "v0.11.0", Installed: tt.installed}).Upgraded(); got != tt.want {
+			t.Errorf("installed %q: %v", tt.installed, got)
+		}
 	}
 }
 
