@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.9.1 — 2026-10-12
+
+A fix for when a PR of yours waits on a code owner, and a Go update. The JSON output is unchanged (`"version": 1`).
+
 - A PR of yours whose code owner requested changes before your last push is your move, "re-request review from
   <them>", no longer "waiting: <them>": GitHub doesn't ask them again until you do. The extra "waiting: code owners"
   line next to "changes requested by …" is gone too.
