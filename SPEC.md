@@ -497,7 +497,9 @@ gh kotlin-prs open <number>        # browser
     doesn't refuse;
   - `/safe-merge` only on a PR that isn't a draft and is approved: at least one approval and a green
     `Code Owners Approval`. A draft takes every other command;
-  - `/cancel-coordinator` only while a dry-run or safe-merge is requested or running;
+  - `/cancel-coordinator` only while a dry-run or safe-merge is requested or running, one with no response too:
+    its build may still run (a later run's "A Coordinator build is already in progress" says so), and the bot
+    takes a cancel with nothing to cancel;
   - `/codeowners` only while its check is missing or failing;
   - `/test-public` anywhere; on a release branch neither while a test-public is requested or accepted nor while its
     Aggregate runs ("Aggregate (2.5.0) (2.5.0) is already running on #N"). Elsewhere nothing tracks it, so only the

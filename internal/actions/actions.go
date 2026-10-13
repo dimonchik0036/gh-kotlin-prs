@@ -88,7 +88,8 @@ func refuse(format string, args ...any) error {
 // (the bot rejects them there) and only while no run is
 // requested or running (the bot runs one at a time), a safe-merge only on a PR that
 // isn't a draft and is approved, /cancel-coordinator only while a run is requested or
-// running,
+// running, even one with no response (its build may still run, and a cancel with nothing
+// to cancel is harmless),
 // /codeowners only while its check is missing or failing, and /test-public, on a release
 // branch, only while neither it nor the Aggregate runs. A request the bot never
 // answered ("no response") doesn't count as running: it may be posted again.
@@ -115,7 +116,7 @@ func Check(c Command, pr model.PR, viewer string) error {
 			return refuse("#%d isn't approved: %s", pr.Number, missingApproval(pr))
 		}
 	case CancelCoordinator:
-		if !active {
+		if !pr.SafeMerge.State.InProgress() && !pr.DryRun.State.InProgress() {
 			return refuse("no dry-run or safe-merge is requested or running on #%d", pr.Number)
 		}
 	case CodeOwners:

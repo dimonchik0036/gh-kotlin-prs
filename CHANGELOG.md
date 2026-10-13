@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- `cancel-coordinator` can be posted on a dry-run or safe-merge with no response too: its build may still be
+  running, as a rejected "A Coordinator build is already in progress" shows.
+
 ## v0.11.0 — 2026-10-12
 
 Word of a new release, in the menu bar and the interactive view. The JSON output is unchanged (`"version": 1`).
