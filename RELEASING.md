@@ -5,10 +5,19 @@
 2. On `main`, make a `Release vX.Y.Z` commit that renames `## Unreleased` in [CHANGELOG.md](CHANGELOG.md) to
    `## vX.Y.Z — YYYY-MM-DD` and adds a new empty `## Unreleased` above it. That section becomes the GitHub release's
    notes as it is (step 4), so make it final before tagging: `scripts/release-notes.sh vX.Y.Z` prints them.
-3. Tag that commit with an annotated tag and push both:
+3. Push `main` alone and wait for its CI run to pass. CI builds with the Go of go.mod, which a local check may not
+   (a newer local Go hides what govulncheck finds in the older one), and a tag starts a release that can't be undone,
+   so nothing is tagged on a red or unfinished run. On a red one, `main` is published already: fix it in new commits
+   that put their lines in the version's section of CHANGELOG.md, and tag the last of them once its run passes. The
+   run shows up a few seconds after the push.
+   ```sh
+   git push origin main
+   gh run watch --exit-status "$(gh run list --workflow ci --commit "$(git rev-parse HEAD)" --limit 1 --json databaseId --jq '.[0].databaseId')"
+   ```
+   Then tag that commit with an annotated tag and push the tag:
    ```sh
    git tag -a vX.Y.Z -m vX.Y.Z
-   git push origin main vX.Y.Z
+   git push origin vX.Y.Z
    ```
 4. The tag triggers `.github/workflows/release.yml` (`cli/gh-extension-precompile`): it builds the binaries with
    `-X main.tag=vX.Y.Z`, so `gh kotlin-prs --version` prints the tag, and creates the GitHub release as a draft with
