@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -27,7 +28,7 @@ type fakeClient struct {
 	queries []string
 	// teamRequest adds a request to this team to every fetched PR not authored by the viewer.
 	teamRequest string
-	// edit changes a PR of the fixtures as it's fetched alone (FetchPR).
+	// edit changes a PR of the fixtures as it's fetched, alone (FetchPR) or in a batch.
 	edit func(number int, pr map[string]any)
 	// latest is the tool's latest release ("" for none).
 	latest string
@@ -101,6 +102,10 @@ func (f *fakeClient) DoWithContext(_ context.Context, query string, vars map[str
 			return err
 		}
 		pr := envelope.Data.Repository.PullRequest
+		if f.edit != nil {
+			n, _ := strconv.Atoi(m[1])
+			f.edit(n, pr)
+		}
 		if author := pr["author"].(map[string]any)["login"]; f.teamRequest != "" && author != "dimonchik0036" {
 			pr["reviewRequests"] = map[string]any{"nodes": []any{map[string]any{"requestedReviewer": map[string]any{"__typename": "Team", "slug": f.teamRequest}}}}
 		}

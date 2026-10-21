@@ -20,7 +20,7 @@ fragment PR on PullRequest {
     nodes { author { __typename login } state submittedAt url }
   }
   reviews(last: 30) {
-    nodes { author { __typename login } state submittedAt url comments { totalCount } }
+    nodes { author { __typename login } state body submittedAt url comments { totalCount } }
   }
   reviewThreads(last: 50) {
     nodes {

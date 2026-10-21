@@ -123,6 +123,15 @@ func IsCommand(body string) bool {
 	return slashCommand.MatchString(strings.TrimSpace(body))
 }
 
+// FinalMarker makes an approval final (🔒): the bot looks for it anywhere in the review's
+// body, and runs no command from a review.
+const FinalMarker = "/final"
+
+// SaysMore reports whether a review's body has text besides the /final marker.
+func SaysMore(body string) bool {
+	return strings.TrimSpace(strings.ReplaceAll(body, FinalMarker, "")) != ""
+}
+
 // RunKind maps a command to the run it starts.
 func (c Command) RunKind() (model.RunKind, bool) {
 	switch c {

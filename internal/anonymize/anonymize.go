@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/classify"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/config"
 )
 
@@ -27,6 +28,7 @@ var pseudonyms = []string{
 const (
 	commentFiller = "Comment text."
 	threadFiller  = "Review comment text."
+	reviewFiller  = "Review text."
 	commitFiller  = "Commit message."
 	titleFiller   = "Example change"
 )
@@ -180,6 +182,8 @@ func (a *Anonymizer) Rewrite(doc any) error {
 			return
 		}
 		switch {
+		case isReview(obj):
+			obj["body"] = reviewBody(body)
 		case command.MatchString(strings.TrimSpace(body)):
 			obj["body"] = commandOnly(body)
 		case isThreadComment(obj):
@@ -256,6 +260,20 @@ func commandOnly(body string) string {
 		}
 	}
 	return strings.Join(out, " ")
+}
+
+// reviewBody keeps a review's /final marker and turns any other text into filler before
+// it, as the PR Helper extension writes it: the classifier only asks whether an approval
+// is final and whether it says more. An empty body stays empty.
+func reviewBody(body string) string {
+	var parts []string
+	if classify.SaysMore(body) {
+		parts = append(parts, reviewFiller)
+	}
+	if strings.Contains(body, classify.FinalMarker) {
+		parts = append(parts, classify.FinalMarker)
+	}
+	return strings.Join(parts, "\n\n")
 }
 
 // replaceLogins swaps logins in the places bots put them: profile links, the
@@ -338,6 +356,12 @@ func (a *Anonymizer) isBot(actor map[string]any) bool {
 func (a *Anonymizer) botAuthored(obj map[string]any) bool {
 	author, ok := obj["author"].(map[string]any)
 	return ok && a.isBot(author)
+}
+
+// isReview: reviews carry submittedAt, comments carry createdAt.
+func isReview(obj map[string]any) bool {
+	_, ok := obj["submittedAt"]
+	return ok
 }
 
 // isThreadComment: review-thread comments carry no updatedAt/isMinimized, PR comments do.

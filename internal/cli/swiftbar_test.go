@@ -220,6 +220,60 @@ func TestSwiftbarNotifications(t *testing.T) {
 	}
 }
 
+// A PR ready to merge but still waiting on a review shows so in the menu, and notifies
+// once that review is in, across the baseline the plugin keeps between its runs.
+func TestSwiftbarReviewsIn(t *testing.T) {
+	approved := false
+	client := &fakeClient{t: t, edit: func(number int, pr map[string]any) {
+		if number != 90005 {
+			return
+		}
+		for _, node := range pr["commits"].(map[string]any)["nodes"].([]any) {
+			contexts := node.(map[string]any)["commit"].(map[string]any)["statusCheckRollup"].(map[string]any)["contexts"].(map[string]any)
+			for _, c := range contexts["nodes"].([]any) {
+				if c := c.(map[string]any); c["name"] == "Code Owners Approval" {
+					c["conclusion"] = "SUCCESS"
+				}
+			}
+		}
+		if approved {
+			review := map[string]any{"author": map[string]any{"__typename": "User", "login": "bob_user"}, "state": "APPROVED", "body": "/final",
+				"submittedAt": now.Add(-time.Minute).Format(time.RFC3339), "url": "https://github.com/JetBrains/kotlin/pull/90005#pullrequestreview-1"}
+			pr["reviewRequests"] = map[string]any{"nodes": []any{}}
+			for _, key := range []string{"latestOpinionatedReviews", "reviews"} {
+				reviews := pr[key].(map[string]any)
+				reviews["nodes"] = append(reviews["nodes"].([]any), review)
+			}
+		}
+	}}
+	e, out, errOut := swiftbarEnv(t, client, "")
+	clock := now
+	e.now = func() time.Time { return clock }
+	var started [][]string
+	e.start = func(argv []string) error { started = append(started, argv); return nil }
+	menu := func() {
+		t.Helper()
+		out.Reset()
+		if got := run(context.Background(), []string{"list", "--format", "swiftbar"}, e); got != exitOK {
+			t.Fatalf("exit %d, stderr %q", got, errOut.String())
+		}
+	}
+	menu()
+	if !strings.Contains(out.String(), "ready to /safe-merge, waiting: bob_user") || len(started) != 0 {
+		t.Fatalf("notified %q, menu:\n%s", started, out.String())
+	}
+	approved, clock = true, clock.Add(10*time.Minute)
+	menu()
+	if len(started) != 1 || !strings.Contains(started[0][2], "title=%2390005%3A+reviews+in&body=ready+to+%2Fsafe-merge&") {
+		t.Errorf("notified %q", started)
+	}
+	clock = clock.Add(10 * time.Minute)
+	menu()
+	if len(started) != 1 {
+		t.Errorf("notified again: %q", started)
+	}
+}
+
 // The plugin runs the notify.command hook from the config, with the event on stdin.
 func TestSwiftbarNotifyCommand(t *testing.T) {
 	for _, channel := range []bool{true, false} {

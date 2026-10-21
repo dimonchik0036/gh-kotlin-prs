@@ -223,6 +223,14 @@ func (b *prBuilder) reviewedWith(login, state string, t time.Time, comments int)
 	return b
 }
 
+// approved submits an approval with a body, like "/final" or "/final\n\nOne nit".
+func (b *prBuilder) approved(login, body string, t time.Time) *prBuilder {
+	b.reviewed(login, "APPROVED", t)
+	b.pr.Reviews.Nodes[len(b.pr.Reviews.Nodes)-1].Body = body
+	b.pr.LatestOpinionatedReviews.Nodes[len(b.pr.LatestOpinionatedReviews.Nodes)-1].Body = body
+	return b
+}
+
 type threadComment struct {
 	login string
 	at    time.Time

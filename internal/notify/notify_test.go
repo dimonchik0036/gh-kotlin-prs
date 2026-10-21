@@ -159,6 +159,59 @@ func TestDiffMine(t *testing.T) {
 	}
 }
 
+func TestDiffReviewsIn(t *testing.T) {
+	waiting := model.PR{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Section: model.SectionMine, Next: model.NextMe,
+		Ready:   &model.Ready{Waiting: []string{"dave_user"}},
+		Reasons: []model.Reason{{Text: "ready to /safe-merge, waiting: dave_user"}}}
+	change := func(f func(pr *model.PR)) []model.PR {
+		pr := waiting
+		f(&pr)
+		return []model.PR{pr}
+	}
+	ready := change(func(pr *model.PR) {
+		pr.Ready, pr.Reasons = &model.Ready{}, []model.Reason{{Text: "ready to /safe-merge"}}
+	})
+	tests := []struct {
+		name       string
+		prev, next []model.PR
+		want       []string
+	}{
+		{"the awaited review came in", []model.PR{waiting}, ready, []string{"myMove #7"}},
+		{"it came in as a comment", []model.PR{waiting}, change(func(pr *model.PR) {
+			pr.Ready, pr.Reasons = &model.Ready{}, []model.Reason{{Text: "new review from dave_user 1m ago"}, {Text: "ready to /safe-merge"}}
+		}), []string{"myMove #7"}},
+		{"a change request to re-request was approved", change(func(pr *model.PR) {
+			pr.Ready = &model.Ready{ReRequest: []string{"erin_user"}}
+		}), ready, []string{"myMove #7"}},
+		{"the request was answered with changes", []model.PR{waiting}, change(func(pr *model.PR) {
+			pr.Ready = &model.Ready{}
+			pr.Reviewers = []model.Reviewer{{Login: "dave_user", State: model.ReviewerChangesRequested}}
+		}), []string{"changesRequested #7"}},
+		{"one of two answered", change(func(pr *model.PR) {
+			pr.Ready = &model.Ready{Waiting: []string{"dave_user", "erin_user"}}
+		}), []model.PR{waiting}, nil},
+		{"comments don't wait on anyone", change(func(pr *model.PR) {
+			pr.Ready = &model.Ready{Comments: []string{"bob_user"}}
+		}), ready, nil},
+		{"no longer ready", []model.PR{waiting}, change(func(pr *model.PR) {
+			pr.Ready, pr.Reasons = nil, []model.Reason{{Text: "conflicts with master, rebase"}}
+		}), nil},
+		{"ready again with nobody awaited", ready, ready, nil},
+	}
+	for _, tt := range tests {
+		if got := kinds(Diff(tt.prev, tt.next)); !slices.Equal(got, tt.want) {
+			t.Errorf("%s: %v, want %v", tt.name, got, tt.want)
+		}
+	}
+	if e := Diff([]model.PR{waiting}, ready)[0]; e.Title != "#7: reviews in" || e.Body != "ready to /safe-merge" || e.URL != "https://example.org/pull/7" {
+		t.Errorf("reviews in %+v", e)
+	}
+	// Becoming my move says so once, whatever the ready PR waited on before.
+	if e := Diff([]model.PR{{Number: 7, Section: model.SectionMine, Next: model.NextReviewers}}, ready); len(e) != 1 || e[0].Title != "#7: your move" {
+		t.Errorf("became my move: %+v", e)
+	}
+}
+
 func TestDetect(t *testing.T) {
 	for _, c := range []struct {
 		env  []string

@@ -1,6 +1,7 @@
 package classify
 
 import (
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -562,19 +563,19 @@ func TestMineRule4NewComment(t *testing.T) {
 		{
 			name: "the commenter approved after the comment",
 			pr:   readyPR().says("bob_user", "One nit, otherwise fine", at(60)).reviewed("bob_user", "APPROVED", at(61)),
-			next: model.NextMe, reason: "ready to /safe-merge",
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from bob_user",
 			absent: []string{"new comment"},
 		},
 		{
 			name: "the reviewer approved after a commenting review",
 			pr:   readyPR().reviewed("carol_user", "COMMENTED", at(60)).reviewed("carol_user", "APPROVED", at(61)),
-			next: model.NextMe, reason: "ready to /safe-merge",
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from carol_user",
 			absent: []string{"new review"},
 		},
 		{
 			name: "the reviewer approved after a comment in a resolved thread",
 			pr:   readyPR().thread(true, false, by("bob_user", at(60))).reviewed("bob_user", "APPROVED", at(61)),
-			next: model.NextMe, reason: "ready to /safe-merge",
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from bob_user",
 			absent: []string{"new thread comment"},
 		},
 		{
@@ -655,8 +656,7 @@ func TestMineRule6Ready(t *testing.T) {
 			name: "the check, not the table, decides",
 			pr: readyPR().owners(ownerRow{path: "/analysis/", team: "kotlin-analysis-api", members: []string{"alice_user"}, mark: "❌", assignees: []string{"alice_user"}}).
 				request("grace_user"),
-			next: model.NextMe, reason: "ready to /safe-merge",
-			extra: []string{"waiting: grace_user"},
+			next: model.NextMe, reason: "ready to /safe-merge, waiting: grace_user",
 		},
 		{
 			name: "an approval is required",
@@ -664,6 +664,112 @@ func TestMineRule6Ready(t *testing.T) {
 			next: model.NextReviewers, reason: "waiting: alice_user",
 		},
 	})
+}
+
+func TestMineRule6ReadyStillOpen(t *testing.T) {
+	runRuleCases(t, model.SectionMine, []ruleCase{
+		{
+			// Someone asked for another look, not a code owner of anything left.
+			name: "a pending request",
+			pr:   readyPR().request("dave_user").requestEvent("dave_user", at(40)),
+			next: model.NextMe, reason: "ready to /safe-merge, waiting: dave_user",
+		},
+		{
+			// A team's request may stay after one of them reviewed: the details list it.
+			name: "a team request isn't in the reason",
+			pr:   readyPR().requestTeam("kotlin-frontend"),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			extra: []string{"waiting: kotlin-frontend"},
+		},
+		{
+			name: "people in the reason, teams after it",
+			pr:   readyPR().request("dave_user").requestTeam("kotlin-frontend"),
+			next: model.NextMe, reason: "ready to /safe-merge, waiting: dave_user",
+			extra: []string{"waiting: kotlin-frontend"},
+		},
+		{
+			name: "changes requested before my push",
+			pr:   readyPR().reviewed("bob_user", "CHANGES_REQUESTED", at(-20)),
+			next: model.NextMe, reason: "ready to /safe-merge, re-request review from bob_user",
+		},
+		{
+			name: "changes requested before my push, re-requested since",
+			pr:   readyPR().reviewed("bob_user", "CHANGES_REQUESTED", at(-20)).request("bob_user").requestEvent("bob_user", at(40)),
+			next: model.NextMe, reason: "ready to /safe-merge, waiting: bob_user",
+		},
+		{
+			name: "an approval with text",
+			pr:   readyPR().approved("bob_user", "/final\n\nConsider a test for the empty case", at(60)),
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from bob_user",
+		},
+		{
+			// As the PR Helper extension writes it.
+			name: "an approval with text, then /final",
+			pr:   readyPR().approved("bob_user", "Consider a test for the empty case\n\n/final", at(60)),
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from bob_user",
+		},
+		{
+			name: "text on the line of /final",
+			pr:   readyPR().approved("bob_user", "/final One nit: rename it", at(60)),
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from bob_user",
+		},
+		{
+			// The bot runs no command from a review: it's text to read.
+			name: "a bot command in an approval",
+			pr:   readyPR().approved("bob_user", "/dry-run", at(60)),
+			next: model.NextMe, reason: "ready to /safe-merge, 1 comment from bob_user",
+		},
+		{
+			name: "an approval with /final only",
+			pr:   readyPR().approved("bob_user", " /final\n", at(60)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+		},
+		{
+			name: "comments before my last push",
+			pr:   readyPR().says("bob_user", "One nit", at(-30)).approved("bob_user", "/final\nLGTM", at(-20)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+		},
+		{
+			name: "my reply after them",
+			pr:   readyPR().approved("bob_user", "/final\nOne nit", at(60)).says(me, "Thanks, will do in a follow-up", at(70)),
+			next: model.NextMe, reason: "ready to /safe-merge",
+		},
+		{
+			name: "everything at once",
+			pr: readyPR().request("dave_user").reviewed("erin_user", "CHANGES_REQUESTED", at(-20)).
+				says("bob_user", "One nit", at(50)).approved("bob_user", "/final", at(51)).
+				approved("carol_user", "Fine by me", at(60)),
+			next: model.NextMe, reason: "ready to /safe-merge, waiting: dave_user, re-request review from erin_user, 2 comments from bob_user, carol_user",
+		},
+		{
+			// The reason of 6 comes after an earlier rule's.
+			name: "a newer comment comes first",
+			pr:   readyPR().request("dave_user").says("carol_user", "Is this ready?", at(60)),
+			next: model.NextMe, reason: "new comment from carol_user 1h ago",
+			extra: []string{"ready to /safe-merge, waiting: dave_user"},
+		},
+	})
+}
+
+func TestMineReadyModel(t *testing.T) {
+	pr := readyPR().request("dave_user").reviewed("erin_user", "CHANGES_REQUESTED", at(-20)).
+		approved("bob_user", "/final\nOne nit", at(60)).mine()
+	want := &model.Ready{Waiting: []string{"dave_user"}, ReRequest: []string{"erin_user"}, Comments: []string{"bob_user"}}
+	if !reflect.DeepEqual(pr.Ready, want) {
+		t.Errorf("ready = %+v, want %+v", pr.Ready, want)
+	}
+	if slices.Contains(pr.Texts(), "waiting: dave_user") {
+		t.Errorf("reasons %q repeat the waiting of the ready reason", pr.Texts())
+	}
+	if got, want := pr.PrimaryReason().URL, pr.URL+"#pullrequestreview-202"; got != want {
+		t.Errorf("url = %q, want the approval %q", got, want)
+	}
+	if pr := newPR(me).ownersGreen().mine(); pr.Ready != nil {
+		t.Errorf("ready = %+v without an approval, want nil", pr.Ready)
+	}
+	if pr := readyPR().release().mine(); pr.Ready != nil {
+		t.Errorf("ready = %+v on a release branch, want nil", pr.Ready)
+	}
 }
 
 func TestMineRule7Waiting(t *testing.T) {

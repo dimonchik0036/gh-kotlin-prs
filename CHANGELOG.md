@@ -6,6 +6,12 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- "ready to /safe-merge" says what's still open there without blocking the merge: "waiting: <them>" for people asked
+  to review who haven't yet, "re-request review from <them>" for a change request from before your last push, and
+  "N comments from <them>" for what reviewers wrote with or before their approval since your last activity, an
+  approval's own text included (linked to the latest). Once nobody's review is awaited any more, you're notified
+  again: "#N: reviews in" (`myMove`). The JSON output gains `ready`.
+
 ## v0.11.1 — 2026-10-13
 
 A fix for cancelling a coordinator build that went quiet. The JSON output is unchanged (`"version": 1`).

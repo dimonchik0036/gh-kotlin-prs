@@ -299,10 +299,32 @@ type PR struct {
 	UnresolvedThreads int        `json:"unresolvedThreads"`
 	Threads           []Thread   `json:"threads,omitempty"`
 	Next              NextAction `json:"next"`
+	// Ready is set on my PR (not on a release branch) whose gates allow /safe-merge, with
+	// what's still open there but doesn't block it.
+	Ready *Ready `json:"ready,omitempty"`
 	// Reasons explain Next; the first one is the primary reason.
 	Reasons []Reason `json:"reasons"`
 	// Hidden: shown only with --all (a done review, a draft in Review).
 	Hidden bool `json:"hidden,omitempty"`
+}
+
+// Ready is what a PR ready to /safe-merge still has open: nothing of it is a gate.
+type Ready struct {
+	// Waiting are the people whose review is requested and not given yet. Teams aren't:
+	// a team's request may stay after one of them reviewed.
+	Waiting []string `json:"waiting,omitempty"`
+	// ReRequest are the reviewers whose change request from before my last push stands,
+	// not requested again since.
+	ReRequest []string `json:"reRequest,omitempty"`
+	// Comments are the authors of comments since my last activity that their approval
+	// answered: no move of mine, but the approval may say more.
+	Comments []string `json:"comments,omitempty"`
+}
+
+// Pending reports whether someone's review is still to come: a request not answered, or
+// a change request to re-request.
+func (r *Ready) Pending() bool {
+	return r != nil && (len(r.Waiting) > 0 || len(r.ReRequest) > 0)
 }
 
 // Primary returns the main reason, or "".

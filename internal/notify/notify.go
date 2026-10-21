@@ -50,7 +50,8 @@ type Event struct {
 // Diff is what changed from prev to next, two live snapshots of the same sections (the
 // hidden rows included). A PR new in next only counts for reviewRequested and merged:
 // a PR opened since isn't news. When a run event or new changes explain a PR becoming
-// my move, myMove isn't repeated.
+// my move, myMove isn't repeated. A ready PR whose last awaited review came in is my move
+// anew (myMove, "reviews in").
 func Diff(prev, next []model.PR) []Event {
 	before := map[int]model.PR{}
 	for _, pr := range prev {
@@ -85,9 +86,16 @@ func Diff(prev, next []model.PR) []Event {
 				events = append(events, event(ChangesRequested, pr, fmt.Sprintf("#%d: changes requested by %s", pr.Number, r.Login), pr.Title, pr.URL))
 				explained = true
 			}
-			if pr.Next == model.NextMe && old.Next != model.NextMe && !explained {
+			// A ready PR that still waited on someone's review is my move again once nobody's is
+			// to come: the reviews it waited for are in.
+			reviewsIn := old.Ready.Pending() && pr.Ready != nil && !pr.Ready.Pending()
+			if pr.Next == model.NextMe && (old.Next != model.NextMe || reviewsIn) && !explained {
+				title := fmt.Sprintf("#%d: your move", pr.Number)
+				if old.Next == model.NextMe {
+					title = fmt.Sprintf("#%d: reviews in", pr.Number)
+				}
 				reason := pr.PrimaryReason()
-				events = append(events, event(MyMove, pr, fmt.Sprintf("#%d: your move", pr.Number), reason.Text, cmpOr(reason.URL, pr.URL)))
+				events = append(events, event(MyMove, pr, title, reason.Text, cmpOr(reason.URL, pr.URL)))
 			}
 		}
 	}

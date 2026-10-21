@@ -48,9 +48,9 @@ func (c *Classifier) Show(raw *github.PullRequest) model.PR {
 	switch raw.State {
 	case "MERGED":
 		merged := c.Merged(raw)
-		pr.MergedAt, pr.Next, pr.Reasons, pr.Hidden = merged.MergedAt, model.NextDone, merged.Reasons, false
+		pr.MergedAt, pr.Next, pr.Reasons, pr.Hidden, pr.Ready = merged.MergedAt, model.NextDone, merged.Reasons, false, nil
 	case "CLOSED":
-		pr.Next, pr.Reasons, pr.Hidden, pr.Closed = model.NextDone, []model.Reason{{Text: "closed"}}, false, true
+		pr.Next, pr.Reasons, pr.Hidden, pr.Closed, pr.Ready = model.NextDone, []model.Reason{{Text: "closed"}}, false, true, nil
 	}
 	return pr
 }
@@ -222,8 +222,10 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 			if !sameLogin(login, f.author) {
 				f.reviews = append(f.reviews, r)
 			}
-			// A review with thread comments is represented by those comments.
-			if r.State == "COMMENTED" && (r.Comments == nil || r.Comments.TotalCount == 0) {
+			// A review with thread comments is represented by those comments. An approval
+			// counts by its text, besides the /final marker.
+			if r.State == "COMMENTED" && (r.Comments == nil || r.Comments.TotalCount == 0) ||
+				r.State == "APPROVED" && SaysMore(r.Body) {
 				f.events = append(f.events, event{login: login, at: r.SubmittedAt, what: "review", thread: -1, url: r.URL})
 			}
 		}

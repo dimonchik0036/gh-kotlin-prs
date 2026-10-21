@@ -53,7 +53,9 @@ such as `+4 reviews not waiting on you, 1 draft (--all)`.
     `UNKNOWN`); a fixture without it reads as `UNKNOWN`. Neither field changes the cost (4 points for a batch of 3
     PRs before and after).
   - `reviewRequests(first: 20) { requestedReviewer { ... on User { login } ... on Team { slug } } }`
-  - `latestOpinionatedReviews(first: 20)` and `reviews(last: 30) { author state submittedAt comments { totalCount } }`
+  - `latestOpinionatedReviews(first: 20)` and `reviews(last: 30) { author state body submittedAt comments { totalCount } }`:
+    the body only for whether an approval says anything besides `/final` (rule 6). The bot finds that marker anywhere
+    in an approval's body, and runs no command from a review
   - `reviewThreads(last: 50) { isResolved isOutdated path firstComment: comments(first: 1) { author body createdAt url } comments(last: 5) { author createdAt } }`
   - `comments(last: 40) { author body createdAt updatedAt }`. The bots edit their comments in place, so `updatedAt` matters.
   - `timelineItems(last: 5, itemTypes: [PULL_REQUEST_COMMIT, HEAD_REF_FORCE_PUSHED_EVENT, REVIEW_REQUESTED_EVENT])`, for the time of the last push and of the last review request.
@@ -269,6 +271,7 @@ type PR struct {
     Base             string
     Release          bool       // Base is a release branch (§3)
     Next             NextAction // Me | Reviewers | CI | Author | Release | Done
+    Ready            *Ready     // {Waiting, ReRequest, Comments []string}: rule 6 matched, and what's open but no gate
     Reasons          []Reason   // {Text, URL}: human-readable, first = primary; URL = the page that shows it
 }
 ```
@@ -330,10 +333,21 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
 5. **CI:** a run is requested or running.
 6. **Me (ready):** `Code Owners Approval` is green, there's at least one approval, and no run is requested or running → "ready to /safe-merge".
    A missing or outdated green dry-run doesn't block this (CI isn't a gate), but it's added as a hint: "no fresh dry-run".
+   Nor does what the reason says along (`Ready`), in this order, each part only when there's someone:
+   - ", waiting: alice_user": the people whose review is requested now, whoever asked and whether they own anything.
+     Not teams: a team's request may stay after one of them reviewed (rule 7 lists them);
+   - ", re-request review from bob_user": a reviewer's change request from before my last push stands, and they
+     weren't requested again (2a for anyone, not only a missing rule's assignee);
+   - ", 2 comments from carol_user": comments, reviews and thread comments since `myLastActivity` that rule 4 leaves
+     out because their author approved at the same time or later, and an approval's own text besides `/final`. Not those of a thread rule 3 reports, nor of someone re-requested since. Linked to the latest.
+
+   So "ready to /safe-merge, waiting: alice_user, 1 comment from carol_user". Someone who only commented, with no
+   request since, isn't waiting: GitHub drops a request on any review, and a re-request asks them again. When nobody is
+   waiting or to re-request any more, the PR is notified again (§14).
 7. **Reviewers:** pending requests or missing code owners → "waiting: alice_user, bob_user": the requested people and
    teams, then the assignees of the missing rules (not the ones of 2a, nor the ones of 2 who requested changes
    since my push), or "waiting: code owners" when the check fails and nothing else names anyone, the missing rules'
-   assignees included (and 2c doesn't fire).
+   assignees included (and 2c doesn't fire). On a ready PR (6) only the teams: rule 6 names the people.
 8. **Me:** none of the above, for example no dry-run yet → "no dry-run yet".
 
 **Mine on a release branch** (§3): no dry-run or safe-merge, so rules 1, 5, 6 and 8 work on the gates, the head
@@ -422,7 +436,8 @@ gh kotlin-prs open <number>        # browser
   `code owner, needs a re-request`, `unavailable`.
 - Reasons link the page that shows them: a failed or running run → its build; a rejection or bot failure reply → that
   reply; "requested, no response" and "accepted" → the command; "changes requested by X" → that review; "re-request review
-  from X" → the PR; unresolved threads → the newest one's last comment; a new comment → that comment. "waiting: …" has no link.
+  from X" → the PR; unresolved threads → the newest one's last comment; a new comment → that comment; "ready to
+  /safe-merge, … comments from X" → the latest of them. "waiting: …" and a plain "ready to /safe-merge" have no link.
   The DR / SM cells link their run's build, or its comment before a build exists (a ⊘ links the rejection).
 - Hyperlinks (OSC 8): the PR number links the PR, issue IDs link `issueURL`; in `show` also builds, reviewer logins and
   teams, and threads (their first comment). `--hyperlinks auto|always|never` (config `hyperlinks`): auto links only when
@@ -703,7 +718,9 @@ scripts/fetch-fixtures.sh
     the one seen before; not when it's outdated. The link is the build, or the bot's reply for a rejection, whose
     reason is the body;
   - `myMove`: a PR of mine became my move, unless a run failing or being rejected, or new changes requested, already
-    say so;
+    say so; or it's ready (rule 6) and was waiting on someone's review (`Ready`'s waiting or re-request), and nobody's
+    is to come now: "#90006: reviews in", the primary reason as the body. Comments don't count, only my activity
+    clears them;
   - `changesRequested`: a reviewer's latest review on my PR is newly CHANGES_REQUESTED;
   - `reviewRequested`: a PR in Review became my move (a new or repeated request);
   - `merged`: a PR of mine moved to Recently merged;

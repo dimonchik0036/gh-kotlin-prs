@@ -301,19 +301,49 @@ func mineRunInProgress(f *facts) []model.Reason {
 }
 
 // 6. Code owners green, at least one approval, nothing running: ready to /safe-merge.
-// A missing or outdated green dry-run doesn't block it, but adds a hint.
+// The reason says along what's open but doesn't block it (model.Ready): the people still
+// asked, the change requests to re-request, the comments an approval answered. A missing
+// or outdated green dry-run doesn't block it either, but adds a hint.
 func mineReady(f *facts) []model.Reason {
 	if f.pr.CodeOwners.State != model.CodeOwnersOK || f.pr.Approvals == 0 || f.inProgress() {
 		return nil
 	}
-	reasons := texts("ready to /safe-merge")
+	ready := &model.Ready{}
+	for _, rr := range f.raw.ReviewRequests.Nodes {
+		if r := rr.RequestedReviewer; r != nil && r.Slug == "" && r.Login != "" {
+			ready.Waiting = appendUnique(ready.Waiting, r.Login)
+		}
+	}
+	for _, r := range f.raw.LatestOpinionatedReviews.Nodes {
+		if login := r.Author.LoginOrEmpty(); f.changesRequestedBeforePush(login) {
+			ready.ReRequest = appendUnique(ready.ReRequest, login)
+		}
+	}
+	comments, latest := f.answeredByApproval()
+	for _, e := range comments {
+		ready.Comments = appendUnique(ready.Comments, e.login)
+	}
+	f.pr.Ready = ready
+
+	text := "ready to /safe-merge"
+	if len(ready.Waiting) > 0 {
+		text += ", waiting: " + strings.Join(ready.Waiting, ", ")
+	}
+	if len(ready.ReRequest) > 0 {
+		text += ", re-request review from " + strings.Join(ready.ReRequest, ", ")
+	}
+	if len(comments) > 0 {
+		text += fmt.Sprintf(", %s from %s", plural(len(comments), "comment"), strings.Join(ready.Comments, ", "))
+	}
+	reasons := linked(text, latest.url)
 	if dr := f.pr.DryRun; dr.State != model.RunPassed || dr.Outdated {
 		reasons = append(reasons, model.Reason{Text: "no fresh dry-run"})
 	}
 	return reasons
 }
 
-// 7. Pending review requests or missing code owners.
+// 7. Pending review requests or missing code owners. On a ready PR (6) its reason names
+// the people already.
 func mineWaiting(f *facts) []model.Reason {
 	var names []string
 	for _, rr := range f.raw.ReviewRequests.Nodes {
@@ -321,7 +351,7 @@ func mineWaiting(f *facts) []model.Reason {
 		case r == nil:
 		case r.Slug != "":
 			names = appendUnique(names, r.Slug)
-		case r.Login != "":
+		case r.Login != "" && f.pr.Ready == nil:
 			names = appendUnique(names, r.Login)
 		}
 	}
@@ -816,6 +846,31 @@ func (f *facts) myLastActivity() time.Time {
 		}
 	}
 	return t
+}
+
+// answeredByApproval returns the events since my last activity that rule 4 leaves out
+// because their author approved at the same time or later, oldest first, and the latest
+// of them. Not those of a thread rule 3 reports, nor of someone re-requested since.
+func (f *facts) answeredByApproval() ([]event, event) {
+	since := f.myLastActivity()
+	var answered []event
+	var latest event
+	for _, e := range f.events {
+		if sameLogin(e.login, f.me) || !e.at.After(since) || !f.approvedSince(e.login, e.at) || f.reRequestedSince(e.login, e.at) {
+			continue
+		}
+		if e.thread >= 0 {
+			if _, reported := f.awaitsMyReply(e.thread); reported {
+				continue
+			}
+		}
+		answered = append(answered, e)
+		if e.at.After(latest.at) {
+			latest = e
+		}
+	}
+	slices.SortStableFunc(answered, func(a, b event) int { return a.at.Compare(b.at) })
+	return answered, latest
 }
 
 // approvedSince reports whether login submitted an APPROVED review at t or later.

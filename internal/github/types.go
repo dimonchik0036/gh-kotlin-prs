@@ -23,6 +23,7 @@ type ReviewRequest struct {
 type Review struct {
 	Author      *Actor    `json:"author"`
 	State       string    `json:"state"`
+	Body        string    `json:"body,omitempty"`
 	SubmittedAt time.Time `json:"submittedAt"`
 	URL         string    `json:"url,omitempty"`
 	// Comments counts the thread comments submitted with the review.

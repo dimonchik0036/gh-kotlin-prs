@@ -100,8 +100,9 @@ refresh fails, and warns when less than a tenth of the hourly API budget is left
 ### Notifications
 
 The interactive view, while it runs, and the [menu-bar plugin](#menu-bar-swiftbar) notify you of what changed between
-two refreshes: a dry-run or safe-merge of yours passed, failed or was rejected, a PR became your move, changes were
-requested, your review was requested, a PR of yours was merged. Nothing is sent for what was already there when they
+two refreshes: a dry-run or safe-merge of yours passed, failed or was rejected, a PR became your move, a PR ready to
+merge got the last review it still waited for, changes were requested, your review was requested, a PR of yours was
+merged. Nothing is sent for what was already there when they
 started. They also tell you once when a new release of gh-kotlin-prs is out (`update`).
 
 Each delivers through its own channel, and both also run your command:

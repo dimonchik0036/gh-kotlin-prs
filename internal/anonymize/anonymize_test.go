@@ -30,6 +30,10 @@ const first = `{"data": {
        "reactions": {"nodes": [{"user": {"login": "kotlin-safemerge[bot]"}}]}}
     ]},
     "reviewThreads": {"nodes": [{"path": "compiler/A.kt", "firstComment": {"nodes": [{"author": {"__typename": "User", "login": "real_reviewer"}, "body": "Why, real_author?"}]}}]},
+    "reviews": {"nodes": [
+      {"author": {"__typename": "User", "login": "real_reviewer"}, "state": "APPROVED", "submittedAt": "2026-10-01T10:00:00Z", "body": "/final\n\nA secret remark"},
+      {"author": {"__typename": "User", "login": "real_reviewer"}, "state": "COMMENTED", "submittedAt": "2026-10-01T09:00:00Z", "body": ""}
+    ]},
     "commits": {"nodes": [{"commit": {"statusCheckRollup": {"contexts": {"nodes": [{"__typename": "CheckRun", "name": "Code Owners Approval", "title": "Waiting for code owner approvals",
       "summary": "<table><tr><td><a href=\"https://github.com/real_owner\"><b><code>real_owner</code></b></a></td></tr></table>\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"}]}}}}]}
   }}
@@ -72,7 +76,7 @@ func anonymizeBoth(t *testing.T) (string, string) {
 
 func TestAnonymize(t *testing.T) {
 	got, other := anonymizeBoth(t)
-	for _, secret := range []string{"real_author", "real_reviewer", "Real_Reviewer", "real_owner", "Secret plans", "frobnicator", "talked", "Why,", "Secret Name", "Viewer Secret"} {
+	for _, secret := range []string{"real_author", "real_reviewer", "Real_Reviewer", "real_owner", "Secret plans", "frobnicator", "talked", "Why,", "Secret Name", "Viewer Secret", "secret remark"} {
 		if strings.Contains(got, secret) || strings.Contains(other, secret) {
 			t.Errorf("%q survived:\n%s", secret, got)
 		}
@@ -100,6 +104,8 @@ func TestAnonymize(t *testing.T) {
 		`"title": "Waiting for code owner approvals"`,
 		`"body": "Comment text."`,
 		`"body": "Review comment text."`,
+		`"body": "Review text.\n\n/final"`,
+		`"body": ""`,
 		`"title": "KT-990001: Example change"`,
 		`"headRefName": "topic/KT-990001-example"`,
 	} {
@@ -184,7 +190,7 @@ func TestCommittedFixturesAreAnonymized(t *testing.T) {
 						t.Errorf("%s: bot comment names %q", filepath.Base(f), name)
 					}
 				}
-			} else if body, ok := obj["body"].(string); ok && body != commentFiller && body != threadFiller && body != commandOnly(body) {
+			} else if body, ok := obj["body"].(string); ok && !anonymousBody(obj, body) {
 				t.Errorf("%s: human text %.40q", filepath.Base(f), body)
 			}
 			if msg, ok := obj["message"].(string); ok && msg != a.commitMessage(msg) {
@@ -192,6 +198,14 @@ func TestCommittedFixturesAreAnonymized(t *testing.T) {
 			}
 		})
 	}
+}
+
+// anonymousBody: body is filler, a bare command, or a review's commands and filler.
+func anonymousBody(obj map[string]any, body string) bool {
+	if isReview(obj) {
+		return body == reviewBody(body)
+	}
+	return body == commentFiller || body == threadFiller || body != "" && body == commandOnly(body)
 }
 
 // committedFixtures are the fetched fixtures and the derived demo one (testdata/demo).
