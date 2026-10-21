@@ -895,4 +895,11 @@ scripts/fetch-fixtures.sh
 
 ## 17. Open questions
 
-None for now.
+- **A ready PR that stops being ready stays silent.** `myMove` fires when a PR becomes my move, and a ready one
+  (rule 6) already is: a comment after an approval (4), a new thread (3) or conflicts (1a) take the lead, still my move,
+  and nothing is notified. Changes requested, a run's outcome and the awaited reviews coming in (§14) are. Left as it
+  is: whoever posts `/safe-merge` sees the row as it is now (the TUI refreshes, a notification opens it on fresh data),
+  conflicts block the command (§8), and GitHub notifies of comments; at worst it's known later, never merged past. If
+  it bites: `#N: no longer ready` when rule 6 led and another rule of mine does now, unless another event says so. It
+  needs the rule behind each reason in the model (`Reason.Rule`, its names part of the JSON contract), which could
+  also replace the TUI's text match for the `A` hint.
