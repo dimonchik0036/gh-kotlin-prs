@@ -6,11 +6,16 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.12.0 — 2026-10-21
+
+What a PR ready to merge still waits on, and word when it's in. The JSON output only gains `ready`, so it stays
+`"version": 1`.
+
 - "ready to /safe-merge" says what's still open there without blocking the merge: "waiting: <them>" for people asked
   to review who haven't yet, "re-request review from <them>" for a change request from before your last push, and
   "N comments from <them>" for what reviewers wrote with or before their approval since your last activity, an
   approval's own text included (linked to the latest). Once nobody's review is awaited any more, you're notified
-  again: "#N: reviews in" (`myMove`). The JSON output gains `ready`.
+  again: "#N: reviews in" (`myMove`).
 
 ## v0.11.1 — 2026-10-13
 
