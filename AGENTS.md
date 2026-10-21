@@ -7,7 +7,7 @@ CLI); keep it in sync with behavior changes. [README.md](README.md) is for users
 
 Run `scripts/check.sh` before every commit; CI runs the same script. It runs gofmt, go vet, staticcheck,
 modernize (`go tool modernize -test -fix ./...` applies its rewrites), govulncheck (all three pinned as tool
-dependencies in go.mod) and the tests as CI runs them: no gh login, no config,
+dependencies in go.mod) and the tests as CI runs them: with the Go of go.mod, no gh login, no config,
 no network. To run it on every commit: `git config core.hooksPath .githooks`.
 
 Workflow actions are pinned to full commit SHAs with the version as a comment (`@<sha> # v7.0.1`); Dependabot bumps them.

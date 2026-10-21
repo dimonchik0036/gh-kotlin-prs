@@ -6,10 +6,16 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# The Go of go.mod, which CI and the release build use: a newer local one would check
+# another standard library, and govulncheck looks at the one it runs with. Go downloads
+# it once when it isn't installed.
+GOTOOLCHAIN="go$(sed -n 's/^go //p' go.mod)"
+export GOTOOLCHAIN
+
 step() { printf '==> %s\n' "$*"; }
 
 step gofmt
-unformatted="$(gofmt -l .)"
+unformatted="$("$(go env GOROOT)/bin/gofmt" -l .)"
 if [ -n "$unformatted" ]; then
   printf 'not gofmt-ed:\n%s\n' "$unformatted" >&2
   exit 1
