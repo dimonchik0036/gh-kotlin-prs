@@ -6,6 +6,8 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Built with Go 1.27.3, which fixes a vulnerability in how certificates are verified (`crypto/x509`, GO-2026-6809).
+
 ## v0.12.0 — 2026-10-21
 
 What a PR ready to merge still waits on, and word when it's in. The JSON output only gains `ready`, so it stays
