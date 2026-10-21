@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.12.1 — 2026-10-21
+
+A build with the Go release that fixes certificate verification. The JSON output is unchanged (`"version": 1`).
+
 - Built with Go 1.27.3, which fixes a vulnerability in how certificates are verified (`crypto/x509`, GO-2026-6809).
 
 ## v0.12.0 — 2026-10-21
