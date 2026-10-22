@@ -190,9 +190,9 @@ func (f *facts) withAggregate(runs []model.Run) []model.Run {
 			continue
 		}
 		switch {
-		case runningGate(agg.State):
+		case agg.State.Running():
 			r.State = model.RunRunning
-		case failedGate(agg.State):
+		case agg.State.Failed():
 			r.State = model.RunFailed
 		default:
 			r.State = model.RunPassed

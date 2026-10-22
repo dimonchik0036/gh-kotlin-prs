@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dimonchik0036/gh-kotlin-prs/internal/github"
 	"github.com/dimonchik0036/gh-kotlin-prs/internal/model"
 )
 
@@ -1093,8 +1094,8 @@ func TestReasonURLs(t *testing.T) {
 
 // Only MERGEABLE and CONFLICTING are GitHub's answer; UNKNOWN or none is still to come.
 func TestConflictsUnknown(t *testing.T) {
-	for state, want := range map[string]bool{"MERGEABLE": false, "CONFLICTING": false, "UNKNOWN": true, "": true} {
-		if pr := readyPR().mergeable(state).mine(); pr.ConflictsUnknown != want || pr.Conflicts != (state == "CONFLICTING") {
+	for state, want := range map[github.MergeableState]bool{github.Mergeable: false, github.Conflicting: false, github.MergeableUnknown: true, "": true} {
+		if pr := readyPR().mergeable(state).mine(); pr.ConflictsUnknown != want || pr.Conflicts != (state == github.Conflicting) {
 			t.Errorf("%q: conflicts %t, unknown %t", state, pr.Conflicts, pr.ConflictsUnknown)
 		}
 	}

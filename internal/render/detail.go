@@ -226,7 +226,7 @@ func DetailView(pr model.PR, now time.Time, opts Options, width int) string {
 		section(&b, "Checks")
 		rows = nil
 		for _, c := range pr.Checks {
-			rows = append(rows, []string{"  " + c.Name, c.State})
+			rows = append(rows, []string{"  " + c.Name, string(c.State)})
 		}
 		writeGrid(&b, rows)
 	}

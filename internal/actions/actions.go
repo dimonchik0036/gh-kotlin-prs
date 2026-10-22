@@ -120,7 +120,7 @@ func Check(c Command, pr model.PR, viewer string) error {
 			return refuse("no dry-run or safe-merge is requested or running on #%d", pr.Number)
 		}
 	case CodeOwners:
-		if pr.CodeOwners.Check == "SUCCESS" {
+		if pr.CodeOwners.Check == model.CheckSuccess {
 			return refuse("the code-owners check of #%d is already green", pr.Number)
 		}
 	case TestPublic:
@@ -131,7 +131,7 @@ func Check(c Command, pr model.PR, viewer string) error {
 			return refuse("a test-public is already %s on #%d", run.State, pr.Number)
 		}
 		for _, check := range pr.Checks {
-			if model.IsReleaseAggregate(check.Name) && (check.State == "PENDING" || check.State == "EXPECTED") {
+			if model.IsReleaseAggregate(check.Name) && (check.State == model.CheckPending || check.State == model.CheckExpected) {
 				return refuse("%s is already running on #%d", check.Name, pr.Number)
 			}
 		}

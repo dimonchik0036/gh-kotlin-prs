@@ -401,7 +401,7 @@ func mineFallback(f *facts) []model.Reason {
 // head commit has its own gates. The other gates (the User Projects) don't block the
 // merge: the release engineers merge with them red, nobody answering.
 func releaseAggregateFailed(f *facts) []model.Reason {
-	if agg, ok := f.aggregate(); ok && failedGate(agg.State) && f.answer(agg) == "" {
+	if agg, ok := f.aggregate(); ok && agg.State.Failed() && f.answer(agg) == "" {
 		return linked("quality gate failed: "+agg.Context, agg.TargetURL)
 	}
 	return nil
@@ -414,11 +414,11 @@ func releaseGateHints(f *facts) []model.Reason {
 	for _, g := range f.gates() {
 		aggregate := model.IsReleaseAggregate(g.Context)
 		switch answer := f.answer(g); {
-		case failedGate(g.State) && aggregate && answer != "":
+		case g.State.Failed() && aggregate && answer != "":
 			reasons = append(reasons, linked("quality gate failed: "+g.Context+" ("+answer+")", g.TargetURL)...)
-		case failedGate(g.State) && !aggregate:
+		case g.State.Failed() && !aggregate:
 			reasons = append(reasons, linked("quality gate failed: "+g.Context+" (not blocking)", g.TargetURL)...)
-		case runningGate(g.State) && !aggregate:
+		case g.State.Running() && !aggregate:
 			reasons = append(reasons, linked("quality gate running: "+g.Context+" (not blocking)", g.TargetURL)...)
 		}
 	}
@@ -477,7 +477,7 @@ func releaseAggregateRunning(f *facts) []model.Reason {
 	}
 	agg, ok := f.aggregate()
 	switch {
-	case ok && runningGate(agg.State):
+	case ok && agg.State.Running():
 		reasons = append(reasons, linked("quality gate running: "+agg.Context, agg.TargetURL)...)
 	case !ok && (len(f.gates()) > 0 || f.c.Config.ReleaseRunBranch(f.pr.Branch, f.pr.Base)):
 		reasons = append(reasons, texts("the Aggregate hasn't started, pushed "+model.Ago(f.c.Now, f.lastPush))...)
@@ -529,7 +529,7 @@ func releaseFallback(f *facts) []model.Reason {
 // check stays red until they do).
 func (f *facts) readyForRelease() bool {
 	agg, ok := f.aggregate()
-	passed := ok && (agg.State == "SUCCESS" || failedGate(agg.State) && f.answer(agg) != "")
+	passed := ok && (agg.State == github.StatusSuccess || agg.State.Failed() && f.answer(agg) != "")
 	if _, waiting := f.testPublicWaiting(); !passed || waiting || f.pr.Approvals == 0 || f.pr.Conflicts {
 		return false
 	}
@@ -591,7 +591,7 @@ func (f *facts) qualityGate() model.Run {
 	of := func(state model.RunState) model.Run {
 		return model.Run{Kind: model.QualityGate, State: state, BuildURL: agg.TargetURL, Started: agg.CreatedAt, Updated: agg.CreatedAt}
 	}
-	if ok && failedGate(agg.State) && f.answer(agg) == "" {
+	if ok && agg.State.Failed() && f.answer(agg) == "" {
 		return of(model.RunFailed)
 	}
 	if run, waiting := f.testPublicWaiting(); waiting {
@@ -601,11 +601,11 @@ func (f *facts) qualityGate() model.Run {
 	switch {
 	case !ok:
 		return model.Run{Kind: model.QualityGate, State: model.RunNone}
-	case runningGate(agg.State):
+	case agg.State.Running():
 		return of(model.RunRunning)
-	case failedGate(agg.State):
+	case agg.State.Failed():
 		return of(model.RunFailed)
-	case agg.State == "SUCCESS":
+	case agg.State == github.StatusSuccess:
 		return of(model.RunPassed)
 	}
 	return model.Run{Kind: model.QualityGate, State: model.RunNone}
@@ -627,10 +627,6 @@ func (f *facts) testPublicWaiting() (model.Run, bool) {
 	run := latestOfKind(f.pr.Runs, model.TestPublic)
 	return run, (run.State == model.RunRequested || run.State == model.RunAccepted) && !run.NoResponse
 }
-
-func failedGate(state string) bool { return state == "FAILURE" || state == "ERROR" }
-
-func runningGate(state string) bool { return state == "PENDING" || state == "EXPECTED" }
 
 // commentedSince: the author (whoever answers for the PR; me on mine) commented, replied in
 // a thread or reviewed after t.
@@ -666,7 +662,7 @@ func reviewReleaseReady(f *facts) []model.Reason {
 	if !f.releaseEngineer() || !f.readyForRelease() {
 		return nil
 	}
-	if f.myOpinion() == "APPROVED" {
+	if f.myOpinion() == github.ReviewApproved {
 		return linked("approved, ready to merge", f.pr.URL)
 	}
 	return linked("ready to approve and merge", f.pr.URL)
@@ -717,7 +713,7 @@ func (f *facts) releaseEngineer() bool {
 
 // 2. I approved: done until a re-request, whatever happened since.
 func reviewApproved(f *facts) []model.Reason {
-	if f.myOpinion() != "APPROVED" {
+	if f.myOpinion() != github.ReviewApproved {
 		return nil
 	}
 	return texts(withActivity(f, "approved "+model.Ago(f.c.Now, f.myLastReview())))
@@ -730,11 +726,11 @@ func reviewNotRequested(f *facts) []model.Reason {
 	}
 	var reason string
 	switch f.myOpinion() {
-	case "CHANGES_REQUESTED":
+	case github.ReviewChangesRequested:
 		reason = "changes requested " + model.Ago(f.c.Now, f.myLastReview())
-	case "COMMENTED":
+	case github.ReviewCommented:
 		reason = "commented " + model.Ago(f.c.Now, f.myLastReview())
-	case "DISMISSED":
+	case github.ReviewDismissed:
 		reason = "review dismissed"
 	default:
 		return texts("not requested from you")
@@ -813,14 +809,14 @@ func (f *facts) missingRules() []model.CodeOwnerRule {
 // push and than a pending re-request of them.
 func (f *facts) changesRequestedSincePush(login string) bool {
 	r, ok := f.opinions[strings.ToLower(login)]
-	return ok && r.State == "CHANGES_REQUESTED" && r.SubmittedAt.After(f.lastPush) && !f.reRequestedSince(login, r.SubmittedAt)
+	return ok && r.State == github.ReviewChangesRequested && r.SubmittedAt.After(f.lastPush) && !f.reRequestedSince(login, r.SubmittedAt)
 }
 
 // changesRequestedBeforePush: login's latest opinion requests changes, and I pushed since
 // without requesting them again: the change request stays, but they wait for a re-request.
 func (f *facts) changesRequestedBeforePush(login string) bool {
 	r, ok := f.opinions[strings.ToLower(login)]
-	return ok && r.State == "CHANGES_REQUESTED" && !r.SubmittedAt.After(f.lastPush) &&
+	return ok && r.State == github.ReviewChangesRequested && !r.SubmittedAt.After(f.lastPush) &&
 		!f.requestedUsers[strings.ToLower(login)] && !sameLogin(login, f.author)
 }
 
@@ -876,7 +872,7 @@ func (f *facts) answeredByApproval() ([]event, event) {
 // approvedSince reports whether login submitted an APPROVED review at t or later.
 func (f *facts) approvedSince(login string, t time.Time) bool {
 	for _, r := range f.reviews {
-		if r.State == "APPROVED" && sameLogin(r.Author.LoginOrEmpty(), login) && !r.SubmittedAt.Before(t) {
+		if r.State == github.ReviewApproved && sameLogin(r.Author.LoginOrEmpty(), login) && !r.SubmittedAt.Before(t) {
 			return true
 		}
 	}
@@ -894,12 +890,12 @@ func (f *facts) myLastReview() time.Time {
 }
 
 // myOpinion is my latest opinionated review state, or COMMENTED if I only commented.
-func (f *facts) myOpinion() string {
+func (f *facts) myOpinion() github.ReviewState {
 	if r, ok := f.opinions[strings.ToLower(f.me)]; ok {
 		return r.State
 	}
 	if !f.myLastReview().IsZero() {
-		return "COMMENTED"
+		return github.ReviewCommented
 	}
 	return ""
 }

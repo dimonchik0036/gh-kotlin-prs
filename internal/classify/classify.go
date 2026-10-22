@@ -46,10 +46,10 @@ func (c *Classifier) PR(raw *github.PullRequest, section model.Section) model.PR
 func (c *Classifier) Show(raw *github.PullRequest) model.PR {
 	pr := c.PR(raw, c.SectionFor(raw))
 	switch raw.State {
-	case "MERGED":
+	case github.PRMerged:
 		merged := c.Merged(raw)
 		pr.MergedAt, pr.Next, pr.Reasons, pr.Hidden, pr.Ready = merged.MergedAt, model.NextDone, merged.Reasons, false, nil
-	case "CLOSED":
+	case github.PRClosed:
 		pr.Next, pr.Reasons, pr.Hidden, pr.Closed, pr.Ready = model.NextDone, []model.Reason{{Text: "closed"}}, false, true, nil
 	}
 	return pr
@@ -128,7 +128,6 @@ func (c *Classifier) basics(raw *github.PullRequest, section model.Section) mode
 		Base:         raw.BaseRefName,
 		Release:      c.Config.IsReleaseBranch(raw.BaseRefName),
 		Draft:        raw.IsDraft,
-		Conflicts:    raw.Mergeable == "CONFLICTING",
 		Section:      section,
 		Updated:      raw.UpdatedAt,
 	}
@@ -175,7 +174,8 @@ type facts struct {
 
 func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *facts {
 	pr := c.basics(raw, section)
-	pr.ConflictsUnknown = raw.Mergeable != "MERGEABLE" && raw.Mergeable != "CONFLICTING"
+	// A merged PR's row (basics alone) has no mergeable state: only an open one's does.
+	pr.Conflicts, pr.ConflictsUnknown = raw.Mergeable == github.Conflicting, !raw.Mergeable.Known()
 	f := &facts{
 		c:              c,
 		pr:             &pr,
@@ -225,8 +225,8 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 			}
 			// A review with thread comments is represented by those comments. An approval
 			// counts by its text, besides the /final marker.
-			if r.State == "COMMENTED" && (r.Comments == nil || r.Comments.TotalCount == 0) ||
-				r.State == "APPROVED" && SaysMore(r.Body) {
+			if r.State == github.ReviewCommented && (r.Comments == nil || r.Comments.TotalCount == 0) ||
+				r.State == github.ReviewApproved && SaysMore(r.Body) {
 				f.events = append(f.events, event{login: login, at: r.SubmittedAt, what: "review", thread: -1, url: r.URL})
 			}
 		}
@@ -256,7 +256,7 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 	pr.Checks = checks(raw)
 	pr.Reviewers = f.reviewers()
 	for _, r := range f.opinions {
-		if r.State == "APPROVED" {
+		if r.State == github.ReviewApproved {
 			pr.Approvals++
 		}
 	}
@@ -316,23 +316,25 @@ func checks(raw *github.PullRequest) []model.Check {
 		for _, ctx := range c.Commit.StatusCheckRollup.Contexts.Nodes {
 			switch ctx.Typename {
 			case "CheckRun":
-				state := ctx.Conclusion
-				if state == "" {
-					state = ctx.Status
-				}
-				out = append(out, model.Check{Name: ctx.Name, State: state, URL: ctx.DetailsURL})
+				out = append(out, model.Check{Name: ctx.Name, State: checkState(ctx), URL: ctx.DetailsURL})
 			case "StatusContext":
-				out = append(out, model.Check{Name: ctx.Context, State: ctx.State, URL: ctx.TargetURL, At: ctx.CreatedAt})
+				out = append(out, model.Check{Name: ctx.Context, State: model.CheckState(ctx.State), URL: ctx.TargetURL, At: ctx.CreatedAt})
 			}
 		}
 	}
 	return out
 }
 
+// checkState is a check run's conclusion, its status while it has none.
+func checkState(run github.CheckContext) model.CheckState {
+	return model.CheckState(cmp.Or(string(run.Conclusion), run.Status))
+}
+
 // codeOwners combines the `Code Owners Approval` check (the verdict) with the bot's
 // table (the details). The bot resolves team hierarchies, so a green check wins over the table.
 func (c *Classifier) codeOwners(raw *github.PullRequest) model.CodeOwnersStatus {
 	var status model.CodeOwnersStatus
+	var conclusion github.CheckConclusion
 	found := false
 	// The check's summary carries the same table as the comment, for the current head.
 	// The comment is created once when the PR opens, so on a long PR it falls out of
@@ -341,10 +343,7 @@ func (c *Classifier) codeOwners(raw *github.PullRequest) model.CodeOwnersStatus 
 		if ctx.Name != codeOwnersCheck {
 			continue
 		}
-		status.Check = ctx.Conclusion
-		if status.Check == "" {
-			status.Check = ctx.Status
-		}
+		conclusion, status.Check = ctx.Conclusion, checkState(ctx)
 		if rules, ok := ParseCodeOwners(ctx.Summary); ok {
 			status.Rules, found = rules, true
 		}
@@ -359,12 +358,12 @@ func (c *Classifier) codeOwners(raw *github.PullRequest) model.CodeOwnersStatus 
 			}
 		}
 	}
-	switch status.Check {
-	case "SUCCESS":
+	switch {
+	case conclusion == github.CheckSuccess:
 		status.State = model.CodeOwnersOK
-	case "FAILURE", "ERROR", "CANCELLED", "TIMED_OUT", "ACTION_REQUIRED", "STARTUP_FAILURE":
+	case conclusion.Failed():
 		status.State = model.CodeOwnersMissing
-	case "":
+	case status.Check == "":
 		status.State = model.CodeOwnersUnknown
 		if found {
 			status.State = model.CodeOwnersOK
@@ -402,7 +401,7 @@ func (f *facts) reviewers() []model.Reviewer {
 	}
 	for _, rv := range f.reviews {
 		r := get(rv.Author.Login)
-		if r.State == model.ReviewerPending && rv.State == "COMMENTED" {
+		if r.State == model.ReviewerPending && rv.State == github.ReviewCommented {
 			r.State = model.ReviewerCommented
 		}
 		r.At = rv.SubmittedAt
@@ -444,15 +443,15 @@ func (f *facts) reviewers() []model.Reviewer {
 	return reviewers
 }
 
-func reviewerState(state string) model.ReviewerState {
+func reviewerState(state github.ReviewState) model.ReviewerState {
 	switch state {
-	case "APPROVED":
+	case github.ReviewApproved:
 		return model.ReviewerApproved
-	case "CHANGES_REQUESTED":
+	case github.ReviewChangesRequested:
 		return model.ReviewerChangesRequested
-	case "DISMISSED":
+	case github.ReviewDismissed:
 		return model.ReviewerDismissed
-	case "COMMENTED":
+	case github.ReviewCommented:
 		return model.ReviewerCommented
 	}
 	return model.ReviewerPending

@@ -71,7 +71,7 @@ func (b *prBuilder) branch(name string) *prBuilder {
 }
 
 // status reports a status context, a TeamCity build, on the head commit.
-func (b *prBuilder) status(context, state string, t time.Time) *prBuilder {
+func (b *prBuilder) status(context string, state github.StatusState, t time.Time) *prBuilder {
 	c := &b.pr.Commits.Nodes[0].Commit
 	if c.StatusCheckRollup == nil {
 		c.StatusCheckRollup = &github.StatusCheckRollup{}
@@ -102,7 +102,7 @@ func (b *prBuilder) draft() *prBuilder {
 	return b
 }
 
-func (b *prBuilder) mergeable(state string) *prBuilder {
+func (b *prBuilder) mergeable(state github.MergeableState) *prBuilder {
 	b.pr.Mergeable = state
 	return b
 }
@@ -202,12 +202,12 @@ func (b *prBuilder) requestEvent(login string, t time.Time) *prBuilder {
 }
 
 // reviewed submits a review; APPROVED and CHANGES_REQUESTED also become the reviewer's latest opinion.
-func (b *prBuilder) reviewed(login, state string, t time.Time) *prBuilder {
+func (b *prBuilder) reviewed(login string, state github.ReviewState, t time.Time) *prBuilder {
 	return b.reviewedWith(login, state, t, 0)
 }
 
 // reviewedWith submits a review with that many thread comments.
-func (b *prBuilder) reviewedWith(login, state string, t time.Time, comments int) *prBuilder {
+func (b *prBuilder) reviewedWith(login string, state github.ReviewState, t time.Time, comments int) *prBuilder {
 	r := github.Review{Author: user(login), State: state, SubmittedAt: t, Comments: &github.Count{TotalCount: comments},
 		URL: fmt.Sprintf("%s#pullrequestreview-%d", b.pr.URL, 200+len(b.pr.Reviews.Nodes))}
 	b.pr.Reviews.Nodes = append(b.pr.Reviews.Nodes, r)
@@ -255,7 +255,7 @@ func (b *prBuilder) thread(resolved, outdated bool, comments ...threadComment) *
 	return b
 }
 
-func (b *prBuilder) check(name, conclusion string) *prBuilder {
+func (b *prBuilder) check(name string, conclusion github.CheckConclusion) *prBuilder {
 	c := &b.pr.Commits.Nodes[0].Commit
 	if c.StatusCheckRollup == nil {
 		c.StatusCheckRollup = &github.StatusCheckRollup{}
@@ -284,7 +284,7 @@ func (b *prBuilder) owners(rows ...ownerRow) *prBuilder {
 }
 
 // ownersCheck reports the code-owners check with the table in its summary, as the bot does.
-func (b *prBuilder) ownersCheck(conclusion string, rows ...ownerRow) *prBuilder {
+func (b *prBuilder) ownersCheck(conclusion github.CheckConclusion, rows ...ownerRow) *prBuilder {
 	b.check(codeOwnersCheck, conclusion)
 	contexts := &b.pr.Commits.Nodes[0].Commit.StatusCheckRollup.Contexts
 	contexts.Nodes[len(contexts.Nodes)-1].Summary = ownersTableHTML(rows)

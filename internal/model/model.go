@@ -200,8 +200,9 @@ func (r CodeOwnerRule) Approved() bool { return r.Mark == MarkApproved }
 
 type CodeOwnersStatus struct {
 	State CodeOwnersState `json:"state"`
-	// Check is the conclusion of the `Code Owners Approval` check, empty if absent.
-	Check string `json:"check,omitempty"`
+	// Check is the conclusion of the `Code Owners Approval` check (its status while it
+	// runs), empty if absent.
+	Check CheckState `json:"check,omitempty"`
 	// Rules is the bot's table; the ones not approved are what's missing.
 	Rules []CodeOwnerRule `json:"rules,omitempty"`
 }
@@ -229,10 +230,20 @@ type Thread struct {
 	Outdated   bool      `json:"outdated,omitempty"`
 }
 
+// CheckState is GitHub's: a check run's conclusion, its status while it has none, or a
+// status context's state.
+type CheckState string
+
+const (
+	CheckSuccess  CheckState = "SUCCESS"
+	CheckPending  CheckState = "PENDING"
+	CheckExpected CheckState = "EXPECTED"
+)
+
 type Check struct {
-	Name  string `json:"name"`
-	State string `json:"state"`
-	URL   string `json:"url,omitempty"`
+	Name  string     `json:"name"`
+	State CheckState `json:"state"`
+	URL   string     `json:"url,omitempty"`
 	// At is when a status context got its state; zero for check runs.
 	At time.Time `json:"at,omitzero"`
 }

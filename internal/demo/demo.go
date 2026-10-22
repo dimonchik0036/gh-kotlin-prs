@@ -153,9 +153,9 @@ func (c *Client) search(vars map[string]any) map[string]any {
 		mine := strings.EqualFold(pr.Author.LoginOrEmpty(), c.viewer)
 		whose := func(search string) {
 			switch {
-			case pr.State == "OPEN":
+			case pr.State == github.PROpen:
 				sections[search] = append(sections[search], map[string]any{"number": n, "author": pr.Author, "body": pr.Body, "assignees": pr.Assignees})
-			case pr.State == "MERGED" && pr.MergedAt != nil && !pr.MergedAt.Before(since):
+			case pr.State == github.PRMerged && pr.MergedAt != nil && !pr.MergedAt.Before(since):
 				sections[search+"Merged"] = append(sections[search+"Merged"], c.prs[n])
 			}
 		}
@@ -166,12 +166,12 @@ func (c *Client) search(vars map[string]any) map[string]any {
 			whose("assigned")
 		}
 		switch {
-		case pr.State == "MERGED":
+		case pr.State == github.PRMerged:
 			if mine && pr.MergedAt != nil && !pr.MergedAt.Before(since) {
 				sections["merged"] = append(sections["merged"], c.prs[n])
 			}
 			continue
-		case pr.State != "OPEN":
+		case pr.State != github.PROpen:
 			continue
 		case mine:
 			add("mine", n)
