@@ -153,10 +153,10 @@ func (d *Data) WithReviewRequests(requests map[int]ReviewRequests) *Data {
 			if !slices.ContainsFunc(pr.ReviewRequests.Nodes, func(rr github.ReviewRequest) bool {
 				return rr.RequestedReviewer != nil && strings.EqualFold(rr.RequestedReviewer.Login, login)
 			}) {
-				pr.ReviewRequests.Nodes = append(pr.ReviewRequests.Nodes, github.ReviewRequest{RequestedReviewer: &github.Reviewer{Typename: "User", Login: login}})
+				pr.ReviewRequests.Nodes = append(pr.ReviewRequests.Nodes, github.ReviewRequest{RequestedReviewer: &github.Reviewer{Typename: github.TypeUser, Login: login}})
 			}
 			pr.TimelineItems.Nodes = append(pr.TimelineItems.Nodes, github.TimelineItem{
-				Typename: "ReviewRequestedEvent", CreatedAt: rq.At, RequestedReviewer: &github.Reviewer{Typename: "User", Login: login},
+				Typename: github.TypeReviewRequestedEvent, CreatedAt: rq.At, RequestedReviewer: &github.Reviewer{Typename: github.TypeUser, Login: login},
 			})
 		}
 		out.prs[n] = &pr

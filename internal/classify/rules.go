@@ -575,7 +575,7 @@ func (f *facts) gates() []github.CheckContext {
 			continue
 		}
 		for _, ctx := range c.Commit.StatusCheckRollup.Contexts.Nodes {
-			if ctx.Typename == "StatusContext" {
+			if ctx.Typename == github.TypeStatusContext {
 				out = append(out, ctx)
 			}
 		}

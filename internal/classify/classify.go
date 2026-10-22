@@ -84,7 +84,7 @@ func Owners(cfg config.Config, raw *github.PullRequest) (owners []string, origin
 			original = &o
 		}
 	}
-	if raw.Author == nil || raw.Author.Typename != "Bot" && !cfg.IsBot(author) {
+	if raw.Author == nil || raw.Author.Typename != github.TypeBot && !cfg.IsBot(author) {
 		return []string{author}, original
 	}
 	for _, a := range raw.Assignees.Nodes {
@@ -206,7 +206,7 @@ func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *fact
 		}
 	}
 	for _, item := range raw.TimelineItems.Nodes {
-		if item.Typename == "ReviewRequestedEvent" && item.RequestedReviewer != nil && item.RequestedReviewer.Login != "" {
+		if item.Typename == github.TypeReviewRequestedEvent && item.RequestedReviewer != nil && item.RequestedReviewer.Login != "" {
 			login := strings.ToLower(item.RequestedReviewer.Login)
 			if item.CreatedAt.After(f.requestedAt[login]) {
 				f.requestedAt[login] = item.CreatedAt
@@ -278,9 +278,9 @@ func lastPush(raw *github.PullRequest) time.Time {
 	}
 	for _, item := range raw.TimelineItems.Nodes {
 		switch item.Typename {
-		case "HeadRefForcePushedEvent":
+		case github.TypeHeadRefForcePushedEvent:
 			later(item.CreatedAt)
-		case "PullRequestCommit":
+		case github.TypePullRequestCommit:
 			if item.Commit != nil {
 				later(item.Commit.CommittedDate)
 			}
@@ -299,7 +299,7 @@ func checkRuns(raw *github.PullRequest) []github.CheckContext {
 			continue
 		}
 		for _, ctx := range c.Commit.StatusCheckRollup.Contexts.Nodes {
-			if ctx.Typename == "CheckRun" {
+			if ctx.Typename == github.TypeCheckRun {
 				out = append(out, ctx)
 			}
 		}
@@ -315,9 +315,9 @@ func checks(raw *github.PullRequest) []model.Check {
 		}
 		for _, ctx := range c.Commit.StatusCheckRollup.Contexts.Nodes {
 			switch ctx.Typename {
-			case "CheckRun":
+			case github.TypeCheckRun:
 				out = append(out, model.Check{Name: ctx.Name, State: checkState(ctx), URL: ctx.DetailsURL})
-			case "StatusContext":
+			case github.TypeStatusContext:
 				out = append(out, model.Check{Name: ctx.Context, State: model.CheckState(ctx.State), URL: ctx.TargetURL, At: ctx.CreatedAt})
 			}
 		}
@@ -486,7 +486,7 @@ func firstLine(body string) string {
 }
 
 func (c *Classifier) isBot(a *github.Actor) bool {
-	return a != nil && (a.Typename == "Bot" || c.Config.IsBot(a.Login))
+	return a != nil && (a.Typename == github.TypeBot || c.Config.IsBot(a.Login))
 }
 
 func sameLogin(a, b string) bool { return a != "" && config.SameLogin(a, b) }

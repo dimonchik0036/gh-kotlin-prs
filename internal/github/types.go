@@ -4,16 +4,30 @@ package github
 
 import "time"
 
+// Typename is a GraphQL object's type (__typename), which tells the kinds of an actor, a
+// timeline item or a check context apart.
+type Typename string
+
+const (
+	TypeUser                    Typename = "User"
+	TypeBot                     Typename = "Bot"
+	TypePullRequestCommit       Typename = "PullRequestCommit"
+	TypeHeadRefForcePushedEvent Typename = "HeadRefForcePushedEvent"
+	TypeReviewRequestedEvent    Typename = "ReviewRequestedEvent"
+	TypeCheckRun                Typename = "CheckRun"
+	TypeStatusContext           Typename = "StatusContext"
+)
+
 type Actor struct {
-	Typename string `json:"__typename"`
-	Login    string `json:"login"`
+	Typename Typename `json:"__typename"`
+	Login    string   `json:"login"`
 }
 
 // Reviewer is a requested reviewer: a user (Login) or a team (Slug).
 type Reviewer struct {
-	Typename string `json:"__typename"`
-	Login    string `json:"login,omitempty"`
-	Slug     string `json:"slug,omitempty"`
+	Typename Typename `json:"__typename"`
+	Login    string   `json:"login,omitempty"`
+	Slug     string   `json:"slug,omitempty"`
 }
 
 type ReviewRequest struct {
@@ -77,7 +91,7 @@ type Comment struct {
 
 // TimelineItem is a PullRequestCommit, HeadRefForcePushedEvent or ReviewRequestedEvent.
 type TimelineItem struct {
-	Typename          string    `json:"__typename"`
+	Typename          Typename  `json:"__typename"`
 	Commit            *Commit   `json:"commit,omitempty"`
 	CreatedAt         time.Time `json:"createdAt"`
 	RequestedReviewer *Reviewer `json:"requestedReviewer,omitempty"`
@@ -123,7 +137,7 @@ func (s StatusState) Running() bool { return s == StatusPending || s == StatusEx
 
 // CheckContext is a CheckRun (Name, Conclusion, Status, Title, Summary) or a StatusContext (Context, State).
 type CheckContext struct {
-	Typename   string          `json:"__typename"`
+	Typename   Typename        `json:"__typename"`
 	Name       string          `json:"name,omitempty"`
 	Conclusion CheckConclusion `json:"conclusion,omitempty"`
 	// Status is a check run's progress (QUEUED, IN_PROGRESS, COMPLETED, …): only shown.
