@@ -713,6 +713,14 @@ scripts/fetch-fixtures.sh
   load, never the cache snapshot the TUI starts from, and a failed refresh keeps the last good one as the baseline. A
   restart starts a new baseline, so it repeats nothing but misses what changed while it was closed; keeping the last
   notified state (§13) is for later, with the daemon.
+- The baseline is settled (`notify.Settle`), so that GitHub answering with less than it knows, as it does while it's
+  degraded, notifies nothing twice once the full answer is back:
+  - a PR whose conflicts GitHub hasn't checked yet (`mergeable` UNKNOWN), which had conflicts, keeps them and its move
+    (Next) in the diff and the baseline: conflicts showing again aren't news, conflicts after none are;
+  - a merged PR stays merged in the baseline while it's in Recently merged (§1, 24h), whatever the snapshot has: a search
+    missing it, or still finding it open, makes no second `merged`;
+  - a PR of Review that the snapshot doesn't have there stays in the baseline for one snapshot more: a search missing
+    it once makes no second `reviewRequested`, a request removed and made again later does.
 - Events (config `notify.events`, all on by default):
   - `runPassed`, `runFailed`, `runRejected`: the latest dry-run or safe-merge of my PR reached that state, a new run or
     the one seen before; not when it's outdated. The link is the build, or the bot's reply for a rejection, whose
@@ -833,7 +841,8 @@ scripts/fetch-fixtures.sh
   plugin script's (`GH_KOTLIN_PRS_GH`), the gh the plugin itself runs. There's no config of our own for it.
 - Notifications: a plugin run whose data is newer than the baseline's (the oldest of its parts against the baseline's
   fetch time) diffs its rows with the baseline's, kept in the cache dir (`swiftbar-baseline.json`, with that time),
-  with `notify.Diff` and the `notify.events` of §14, and makes them the baseline. Whoever fetched the data counts:
+  with `notify.Diff` and the `notify.events` of §14, and makes them the baseline, settled (§14; the Review PRs kept
+  for one snapshot more as its `missed`). Whoever fetched the data counts:
   the plugin's own live run, or a cache entry the TUI, `list` or another run wrote, so nothing is lost when the TUI
   fetched first; data no newer than the baseline notifies nothing, so nothing is told twice. The first run only
   stores its rows; v0.5.2's baseline has no time, so any data is newer. Each event goes to `notify.command`, and unless `notify.swiftbar` is false to SwiftBar's

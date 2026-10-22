@@ -275,8 +275,11 @@ type PR struct {
 	Release bool `json:"release,omitempty"`
 	Draft   bool `json:"draft,omitempty"`
 	// Conflicts: GitHub found conflicts with the base branch. Not while it's still checking.
-	Conflicts bool    `json:"conflicts,omitempty"`
-	Section   Section `json:"section"`
+	Conflicts bool `json:"conflicts,omitempty"`
+	// ConflictsUnknown: GitHub hasn't checked yet (mergeable UNKNOWN), so Conflicts is false
+	// whatever there are. Only notifications read it (notify.Settle): not in the JSON.
+	ConflictsUnknown bool    `json:"-"`
+	Section          Section `json:"section"`
 	// Issues are the referenced issues, the primary one first.
 	Issues   []Issue   `json:"issues"`
 	Updated  time.Time `json:"updated,omitzero"`

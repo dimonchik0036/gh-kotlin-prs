@@ -85,7 +85,7 @@ func runSwiftbar(ctx context.Context, e env, global globalOptions, opts listOpti
 		if client.Cached == 0 {
 			menu.Rate = data.RateLimit
 		}
-		notifyChanges(ctx, e, cfg, data.Classify(cfg, now), client.Oldest, menu.Plugin, menu.GH)
+		notifyChanges(ctx, e, cfg, data.Classify(cfg, now), now, client.Oldest, menu.Plugin, menu.GH)
 	default:
 		menu.Err = err
 		if cached, ok := listing.Cached(ctx, client, cfg, now, sections, 0); ok {
@@ -372,15 +372,17 @@ func writePlugin(dir, name, script string, replaced []string) (string, error) {
 	return path, nil
 }
 
-// notifyChanges notifies of what changed since the baseline, when the data (fetched at
-// fetchedAt, the oldest of its parts) is newer than the baseline's, whoever fetched it:
-// the plugin's own live run, or a cached answer the TUI or another run wrote. That data
-// becomes the baseline; data no newer notifies nothing, so nothing is told twice, and
-// nothing seen is skipped. The first run has nothing to compare with. Events go through
-// SwiftBar (or AppleScript), whose click opens the interactive view with gh, unless
-// notify.swiftbar is off, and the notify.command hook either way. The baseline moves on
-// even with nothing to notify through, so turning SwiftBar's back on replays nothing.
-func notifyChanges(ctx context.Context, e env, cfg config.Config, prs []model.PR, fetchedAt time.Time, plugin, gh string) {
+// notifyChanges notifies of what changed since the baseline, when the data (classified at
+// now, fetched at fetchedAt, the oldest of its parts) is newer than the baseline's,
+// whoever fetched it: the plugin's own live run, or a cached answer the TUI or another
+// run wrote. That data becomes the baseline, settled (notify.Settle) so that a degraded
+// answer from GitHub isn't news twice; data no newer notifies nothing, so nothing is told
+// twice, and nothing seen is skipped. The first run has nothing to compare with. Events
+// go through SwiftBar (or AppleScript), whose click opens the interactive view with gh,
+// unless notify.swiftbar is off, and the notify.command hook either way. The baseline
+// moves on even with nothing to notify through, so turning SwiftBar's back on replays
+// nothing.
+func notifyChanges(ctx context.Context, e env, cfg config.Config, prs []model.PR, now, fetchedAt time.Time, plugin, gh string) {
 	if e.cacheDir == "" {
 		return
 	}
@@ -388,13 +390,14 @@ func notifyChanges(ctx context.Context, e env, cfg config.Config, prs []model.PR
 	if ok && !fetchedAt.After(prev.FetchedAt) {
 		return
 	}
-	if err := swiftbar.SaveBaseline(e.cacheDir, swiftbar.Baseline{PRs: prs, FetchedAt: fetchedAt}); err != nil {
+	rows, next := notify.Settle(prev.Baseline, prs, now.Add(-listing.MergedWindow))
+	if err := swiftbar.SaveBaseline(e.cacheDir, swiftbar.Baseline{Baseline: next, FetchedAt: fetchedAt}); err != nil {
 		writef(e.stderr, "notifications: %v\n", err)
 	}
 	if !ok {
 		return
 	}
-	deliver(ctx, e, cfg, notify.Diff(prev.PRs, prs), plugin, gh)
+	deliver(ctx, e, cfg, notify.Diff(prev.PRs, rows), plugin, gh)
 }
 
 // deliver sends the events notify.events enables through SwiftBar (or AppleScript),

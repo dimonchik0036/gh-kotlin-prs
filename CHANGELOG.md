@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- While GitHub is degraded, the TUI and the menu-bar plugin no longer notify the same thing again once GitHub's
+  answer is whole: a PR merged hours ago coming back after a search that missed it, a review request a search
+  missed once, or conflicts showing again after GitHub hadn't checked them for a refresh.
+
 ## v0.12.1 — 2026-10-21
 
 A build with the Go release that fixes certificate verification. The JSON output is unchanged (`"version": 1`).

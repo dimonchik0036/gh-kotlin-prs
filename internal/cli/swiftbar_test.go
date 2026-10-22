@@ -220,6 +220,52 @@ func TestSwiftbarNotifications(t *testing.T) {
 	}
 }
 
+// A degraded answer from GitHub (a search missing PRs, conflicts not checked yet) isn't
+// news twice across the plugin's runs: the baseline it keeps is settled. A conflict that's
+// new still notifies.
+func TestSwiftbarDegradedAnswer(t *testing.T) {
+	mergeable, degraded := "CONFLICTING", false
+	client := &fakeClient{t: t,
+		edit: func(number int, pr map[string]any) {
+			if number == 90005 {
+				pr["mergeable"] = mergeable
+			}
+		},
+		search: func(resp map[string]any) {
+			if degraded {
+				for _, key := range []string{"merged", "personal", "requested"} {
+					resp[key] = map[string]any{"nodes": []any{}}
+				}
+			}
+		}}
+	e, _, errOut := swiftbarEnv(t, client, "")
+	clock := now
+	e.now = func() time.Time { return clock }
+	var started [][]string
+	e.start = func(argv []string) error { started = append(started, argv); return nil }
+	menu := func(state string, missing bool) {
+		t.Helper()
+		mergeable, degraded, clock = state, missing, clock.Add(10*time.Minute)
+		if got := run(context.Background(), []string{"list", "--format", "swiftbar"}, e); got != exitOK {
+			t.Fatalf("exit %d, stderr %q", got, errOut.String())
+		}
+	}
+	menu("CONFLICTING", false)
+	menu("UNKNOWN", true)
+	menu("CONFLICTING", false)
+	if len(started) != 0 {
+		t.Errorf("the full answer back notified %q", started)
+	}
+	if b, _ := swiftbar.LoadBaseline(e.cacheDir); len(b.Missed) != 0 {
+		t.Errorf("missed %v with every PR back", b.Missed)
+	}
+	menu("MERGEABLE", false)
+	menu("CONFLICTING", false)
+	if len(started) != 1 || !strings.Contains(started[0][2], "title=%2390005%3A+your+move&body=conflicts") {
+		t.Errorf("new conflicts notified %q", started)
+	}
+}
+
 // A PR ready to merge but still waiting on a review shows so in the menu, and notifies
 // once that review is in, across the baseline the plugin keeps between its runs.
 func TestSwiftbarReviewsIn(t *testing.T) {

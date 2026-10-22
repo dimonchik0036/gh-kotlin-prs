@@ -22,10 +22,10 @@ const baselineFile = "swiftbar-baseline.json"
 // v0.5.2 and older) reads with a zero FetchedAt; another one is no baseline.
 const baselineFormat = 2
 
-// Baseline is the rows of the data notified up to, and when that data was fetched (the
-// oldest of its parts).
+// Baseline is the rows of the data notified up to (notify.Settle's baseline), and when
+// that data was fetched (the oldest of its parts).
 type Baseline struct {
-	PRs       []model.PR
+	notify.Baseline
 	FetchedAt time.Time
 }
 
@@ -33,6 +33,7 @@ type baselineDoc struct {
 	Format    int        `json:"format"`
 	FetchedAt time.Time  `json:"fetchedAt,omitzero"`
 	PRs       []model.PR `json:"prs"`
+	Missed    []int      `json:"missed,omitempty"`
 }
 
 // LoadBaseline is the baseline; false when there's none to compare with.
@@ -45,7 +46,7 @@ func LoadBaseline(dir string) (Baseline, bool) {
 	if err := json.Unmarshal(data, &b); err != nil || (b.Format != baselineFormat && b.Format != 1) {
 		return Baseline{}, false
 	}
-	return Baseline{PRs: b.PRs, FetchedAt: b.FetchedAt}, true
+	return Baseline{PRs: b.PRs, Missed: b.Missed, FetchedAt: b.FetchedAt}, true
 }
 
 // SaveBaseline replaces the baseline atomically (a temp file renamed over it).
@@ -53,7 +54,7 @@ func SaveBaseline(dir string, b Baseline) error {
 	if dir == "" {
 		return errors.New("no cache dir")
 	}
-	data, err := json.Marshal(baselineDoc{Format: baselineFormat, FetchedAt: b.FetchedAt.UTC(), PRs: b.PRs})
+	data, err := json.Marshal(baselineDoc{Format: baselineFormat, FetchedAt: b.FetchedAt.UTC(), PRs: b.PRs, Missed: b.Missed})
 	if err != nil {
 		return err
 	}

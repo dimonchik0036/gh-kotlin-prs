@@ -382,3 +382,80 @@ func TestPassThenAssignReviewers(t *testing.T) {
 		t.Errorf("myMove %+v", events[i])
 	}
 }
+
+// GitHub answering with less than it knows once (as it does while degraded) notifies
+// nothing when the full answer is back; what really changed still notifies.
+func TestSettle(t *testing.T) {
+	at := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	since := at.Add(-24 * time.Hour)
+	mine := model.PR{Number: 7, Section: model.SectionMine, Next: model.NextReviewers}
+	conflicting := mine
+	conflicting.Conflicts, conflicting.Next, conflicting.Reasons = true, model.NextMe, []model.Reason{{Text: "conflicts with master, rebase"}}
+	unknown := mine
+	unknown.ConflictsUnknown = true
+	review := model.PR{Number: 8, Section: model.SectionReview, Next: model.NextMe}
+	reviewConflicting := review
+	reviewConflicting.Conflicts, reviewConflicting.Next = true, model.NextAuthor
+	reviewUnknown := review
+	reviewUnknown.ConflictsUnknown = true
+	teams := review
+	teams.Section = model.SectionTeams
+	merged := model.PR{Number: 9, Section: model.SectionMerged, Next: model.NextDone, MergedAt: at.Add(-6 * time.Hour)}
+	stillOpen := merged
+	stillOpen.Section, stillOpen.Next, stillOpen.MergedAt = model.SectionMine, model.NextCI, time.Time{}
+	tests := []struct {
+		name      string
+		snapshots [][]model.PR
+		want      []string
+	}{
+		{"conflicts, then unknown, then conflicts", [][]model.PR{{conflicting}, {unknown}, {conflicting}}, nil},
+		{"unknown twice in a row", [][]model.PR{{conflicting}, {unknown}, {unknown}, {conflicting}}, nil},
+		{"no conflicts, then unknown, then conflicts", [][]model.PR{{mine}, {unknown}, {conflicting}}, []string{"myMove #7"}},
+		{"unknown from the start, then conflicts", [][]model.PR{{unknown}, {conflicting}}, []string{"myMove #7"}},
+		{"a review's conflicts unknown", [][]model.PR{{reviewConflicting}, {reviewUnknown}, {reviewConflicting}}, nil},
+		{"merged, missing, merged", [][]model.PR{{merged}, nil, {merged}}, nil},
+		{"merged, missing twice, merged", [][]model.PR{{merged}, nil, nil, {merged}}, nil},
+		{"merged, open in a stale search, merged", [][]model.PR{{merged}, {stillOpen}, {merged}}, nil},
+		{"open, then merged", [][]model.PR{{stillOpen}, {merged}}, []string{"merged #9"}},
+		{"a review missing once", [][]model.PR{{review}, nil, {review}}, nil},
+		{"a review missing once, twice over", [][]model.PR{{review}, nil, {review}, nil, {review}}, nil},
+		{"a review in Team requests once", [][]model.PR{{review}, {teams}, {review}}, nil},
+		{"a review request removed, then made again", [][]model.PR{{review}, nil, nil, {review}}, []string{"reviewRequested #8"}},
+	}
+	for _, tt := range tests {
+		var baseline Baseline
+		var got []string
+		for i, next := range tt.snapshots {
+			rows, settled := Settle(baseline, next, since)
+			if i > 0 {
+				got = append(got, kinds(Diff(baseline.PRs, rows))...)
+			}
+			baseline = settled
+		}
+		if !slices.Equal(got, tt.want) {
+			t.Errorf("%s: %v, want %v", tt.name, got, tt.want)
+		}
+	}
+
+	// A merged PR leaves the baseline with Recently merged, and nothing is kept twice.
+	_, b := Settle(Baseline{PRs: []model.PR{merged, review}}, nil, since)
+	if !slices.Equal(numbers(b.PRs), []int{9, 8}) || !slices.Equal(b.Missed, []int{8}) {
+		t.Errorf("kept %v, missed %v", numbers(b.PRs), b.Missed)
+	}
+	if _, b = Settle(b, nil, merged.MergedAt.Add(time.Second)); len(b.PRs) != 0 || len(b.Missed) != 0 {
+		t.Errorf("kept %v, missed %v after Recently merged", numbers(b.PRs), b.Missed)
+	}
+	// Settling leaves the snapshot as it is.
+	next := []model.PR{unknown}
+	if rows, _ := Settle(Baseline{PRs: []model.PR{conflicting}}, next, since); next[0].Conflicts || !rows[0].Conflicts || rows[0].Next != model.NextMe {
+		t.Errorf("next conflicts %t, rows conflicts %t, move %s", next[0].Conflicts, rows[0].Conflicts, rows[0].Next)
+	}
+}
+
+func numbers(prs []model.PR) []int {
+	var out []int
+	for _, pr := range prs {
+		out = append(out, pr.Number)
+	}
+	return out
+}

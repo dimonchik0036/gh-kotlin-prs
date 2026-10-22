@@ -2,6 +2,7 @@ package tui
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -675,6 +676,53 @@ func TestNotifications(t *testing.T) {
 	h.keys("r")
 	if diffs != 2 {
 		t.Errorf("a failed refresh was diffed: %d diffs", diffs)
+	}
+}
+
+// withoutMerged is the fixtures with a search that finds no merged PR while missing, as
+// GitHub's does now and then while it's degraded.
+type withoutMerged struct {
+	github.Client
+	missing *bool
+}
+
+func (c withoutMerged) DoWithContext(ctx context.Context, query string, vars map[string]any, resp any) error {
+	if !*c.missing || !strings.Contains(query, "mine: search") {
+		return c.Client.DoWithContext(ctx, query, vars, resp)
+	}
+	var search map[string]any
+	if err := c.Client.DoWithContext(ctx, query, vars, &search); err != nil {
+		return err
+	}
+	search["merged"] = map[string]any{"nodes": []any{}}
+	data, err := json.Marshal(search)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, resp)
+}
+
+// A refresh that misses a merged PR doesn't make it news when it's back: the baseline is
+// settled (notify.Settle). A PR merged since the last refresh still is.
+func TestNotificationsSettled(t *testing.T) {
+	missing := true
+	h := newHarness(t, func(h *harness, opts *Options) {
+		cfg, err := config.Parse([]byte("notify: {terminal: osc9, events: [merged]}\n"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		opts.Notifier = notify.New(cfg.Notify, nil, nil)
+		opts.Fetch = func(ctx context.Context) (*listing.Data, error) {
+			return listing.Fetch(ctx, withoutMerged{h.fixtures, &missing}, opts.Config, h.clock, allSections)
+		}
+	})
+	h.start()
+	for _, m := range []bool{false, true, false} {
+		missing, h.clock = m, h.clock.Add(time.Minute)
+		h.keys("r")
+	}
+	if len(h.raw) != 1 || !strings.Contains(h.raw[0], "#90004 merged") {
+		t.Errorf("terminal %q, want #90004 merged once", h.raw)
 	}
 }
 

@@ -175,6 +175,7 @@ type facts struct {
 
 func (c *Classifier) facts(raw *github.PullRequest, section model.Section) *facts {
 	pr := c.basics(raw, section)
+	pr.ConflictsUnknown = raw.Mergeable != "MERGEABLE" && raw.Mergeable != "CONFLICTING"
 	f := &facts{
 		c:              c,
 		pr:             &pr,

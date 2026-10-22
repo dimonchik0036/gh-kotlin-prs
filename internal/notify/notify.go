@@ -102,6 +102,58 @@ func Diff(prev, next []model.PR) []Event {
 	return events
 }
 
+// Baseline is what the next snapshot is diffed with: the last one as Settle left it.
+type Baseline struct {
+	PRs []model.PR
+	// Missed are the PRs of Review kept though the last snapshot didn't have them there.
+	Missed []int
+}
+
+// Settle is next as Diff takes it against the baseline prev, and the baseline that
+// follows, so that GitHub answering with less than it knows (as it does while it's
+// degraded) notifies nothing twice:
+//   - a PR GitHub hasn't checked for conflicts yet that had them keeps them, and its move:
+//     the conflicts showing again aren't news;
+//   - a merged PR stays merged in the baseline while it's in Recently merged (merged since
+//     mergedSince), whatever next has: a search missing it isn't news when it's back;
+//   - a PR of Review that next doesn't have there stays in the baseline one snapshot more:
+//     a search missing it once doesn't make its request new, a request removed and made
+//     again later still is.
+func Settle(prev Baseline, next []model.PR, mergedSince time.Time) ([]model.PR, Baseline) {
+	before := map[int]model.PR{}
+	for _, pr := range prev.PRs {
+		before[pr.Number] = pr
+	}
+	rows := slices.Clone(next)
+	index := map[int]int{}
+	for i := range rows {
+		pr := &rows[i]
+		index[pr.Number] = i
+		if old, ok := before[pr.Number]; ok && pr.ConflictsUnknown && old.Conflicts && old.Section == pr.Section {
+			pr.Conflicts, pr.Next = true, old.Next
+		}
+	}
+	baseline := Baseline{PRs: slices.Clone(rows)}
+	for _, old := range prev.PRs {
+		i, ok := index[old.Number]
+		switch {
+		case ok && rows[i].Section == old.Section:
+			continue
+		case old.Section == model.SectionMerged && !old.MergedAt.Before(mergedSince):
+		case old.Section == model.SectionReview && !slices.Contains(prev.Missed, old.Number):
+			baseline.Missed = append(baseline.Missed, old.Number)
+		default:
+			continue
+		}
+		if ok {
+			baseline.PRs[i] = old
+		} else {
+			baseline.PRs = append(baseline.PRs, old)
+		}
+	}
+	return rows, baseline
+}
+
 // runEvents: the run finished (passed, failed, rejected) since the last snapshot, a new
 // run or the old one. An outdated run is older than the last push: no news.
 func runEvents(old, run model.Run, pr model.PR) []Event {

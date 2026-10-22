@@ -30,6 +30,8 @@ type fakeClient struct {
 	teamRequest string
 	// edit changes a PR of the fixtures as it's fetched, alone (FetchPR) or in a batch.
 	edit func(number int, pr map[string]any)
+	// search changes the search's answer, searchResponse.
+	search func(resp map[string]any)
 	// latest is the tool's latest release ("" for none).
 	latest string
 }
@@ -62,7 +64,19 @@ func (f *fakeClient) DoWithContext(_ context.Context, query string, vars map[str
 		if !strings.Contains(vars["merged"].(string), "merged:>=2026-09-30T00:00:00Z") {
 			f.t.Errorf("merged query %q doesn't start at the UTC day 24h ago", vars["merged"])
 		}
-		return json.Unmarshal([]byte(searchResponse), resp)
+		if f.search == nil {
+			return json.Unmarshal([]byte(searchResponse), resp)
+		}
+		var search map[string]any
+		if err := json.Unmarshal([]byte(searchResponse), &search); err != nil {
+			return err
+		}
+		f.search(search)
+		data, err := json.Marshal(search)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(data, resp)
 	}
 	if n, ok := vars["number"].(int); ok {
 		data, err := os.ReadFile(filepath.Join("../../testdata/raw", fmt.Sprintf("pr-%d.json", n)))

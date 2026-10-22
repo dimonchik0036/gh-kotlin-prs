@@ -116,10 +116,10 @@ type Model struct {
 	fromCache    bool
 	prs          []model.PR // data classified at classifiedAt
 	classifiedAt time.Time
-	// live is the last live refresh classified at its time, the baseline of the next
-	// one's notifications; nil until the first (the cache snapshot never counts).
-	// liveAt is when that refresh started.
-	live   []model.PR
+	// live is the last live refresh classified at its time and settled (notify.Settle),
+	// the baseline of the next one's notifications; nil until the first (the cache
+	// snapshot never counts). liveAt is when that refresh started.
+	live   *notify.Baseline
 	liveAt time.Time
 
 	// started: Start's details were opened (or given up on); startCommand waits to be
@@ -419,14 +419,19 @@ func (m *Model) onFetched(msg fetchedMsg) tea.Cmd {
 	own := m.postedSince(m.liveAt)
 	m.forgetPosts(m.fetchStarted)
 	m.reclassify()
-	prev := m.live
-	m.live, m.liveAt = m.prs, m.fetchStarted
+	var prev notify.Baseline
+	first := m.live == nil
+	if !first {
+		prev = *m.live
+	}
+	rows, live := notify.Settle(prev, m.prs, m.classifiedAt.Add(-listing.MergedWindow))
+	m.live, m.liveAt = &live, m.fetchStarted
 	start := tea.Batch(m.openStart(true), m.checkUpdate())
-	if prev == nil || m.opts.Notifier == nil {
+	if first || m.opts.Notifier == nil {
 		return start
 	}
 	// A PR becoming my move right after I posted on it is my own doing, not news.
-	events := slices.DeleteFunc(m.diff(prev, m.prs), func(e notify.Event) bool { return e.Kind == notify.MyMove && own[e.Number] })
+	events := slices.DeleteFunc(m.diff(prev.PRs, rows), func(e notify.Event) bool { return e.Kind == notify.MyMove && own[e.Number] })
 	return tea.Batch(start, m.deliver(m.opts.Notifier.Enabled(events)))
 }
 

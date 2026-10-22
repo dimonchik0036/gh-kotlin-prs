@@ -165,11 +165,11 @@ func TestBaseline(t *testing.T) {
 	}
 	at := time.Date(2026, 10, 1, 13, 0, 0, 0, time.UTC)
 	prs := []model.PR{{Number: 7, Section: model.SectionMine, Next: model.NextMe}}
-	if err := SaveBaseline(dir, Baseline{PRs: prs, FetchedAt: at}); err != nil {
+	if err := SaveBaseline(dir, Baseline{PRs: prs, Missed: []int{8}, FetchedAt: at}); err != nil {
 		t.Fatal(err)
 	}
 	got, ok := LoadBaseline(dir)
-	if !ok || len(got.PRs) != 1 || got.PRs[0].Number != 7 || !got.FetchedAt.Equal(at) {
+	if !ok || len(got.PRs) != 1 || got.PRs[0].Number != 7 || !slices.Equal(got.Missed, []int{8}) || !got.FetchedAt.Equal(at) {
 		t.Errorf("baseline %+v, %v", got, ok)
 	}
 	entries, _ := os.ReadDir(dir)
