@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Built with golang.org/x/net v0.62.0, which fixes slow HTML parsing of crafted text (GO-2026-6860; the tool parses
+  the bot's code-owners comment with it), and bubbletea v2.1.1, which ignores implausible terminal size reports
+  (GHSA-qc58-pfg9-7pph).
+
 ## v0.12.2 — 2026-10-22
 
 No repeated notifications after GitHub's hiccups. The JSON output is unchanged (`"version": 1`).
