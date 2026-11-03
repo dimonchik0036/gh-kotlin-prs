@@ -116,8 +116,10 @@ We read the check first: the comment is old, so on a busy PR it falls out of `co
   parentheses is the href's; marks are then read only outside the `<code>`. Other forms, a name in the link
   (`<code>login</code> Name`, or a text that isn't the login) or after it, are kept only when there's exactly one that
   looks like a name; otherwise none.
-- Approval: a mark, then the people it refers to:
-  - `❌` no decision: the owners currently requested as reviewers, or `UNASSIGNED`;
+- Approval: a mark, then the people it refers to. Since 2026-11 each mark has a label (`✅ Approved`,
+  `🔴 Changes requested`, `🔄 Commented`, `❌ Review requested`), and `❌ No reviewer` alone stands where the cell
+  was `❌` with `UNASSIGNED`; only the mark counts:
+  - `❌` no decision: the owners currently requested as reviewers, or nobody (`UNASSIGNED`, `No reviewer`);
   - `🔄` an owner only commented and isn't requested again: they owe a decision and need a re-request;
   - `🔴` an owner requested changes (wins over the other marks of the row);
   - `✅` every rule of the row approved: the approvers, `🔒` after those whose approving review contains `/final`;

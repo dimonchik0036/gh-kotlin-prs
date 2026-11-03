@@ -214,6 +214,36 @@ func TestParseCodeOwnersOwnersCell(t *testing.T) {
 	}
 }
 
+// Since 2026-11 the bot labels its marks ("✅ Approved") and writes "❌ No reviewer", with
+// no <br> and no people, where it wrote "❌<br>UNASSIGNED".
+func TestParseCodeOwnersLabeledMarks(t *testing.T) {
+	judy := `<br><a href="https://github.com/judy_user"><b><code>judy_user</code></b></a>`
+	for _, tt := range []struct {
+		cell      string
+		mark      model.ApprovalMark
+		assignees []model.Assignee
+	}{
+		{"✅ Approved" + judy + " 🔒", model.MarkApproved, []model.Assignee{{Login: "judy_user", Final: true}}},
+		{"🔴 Changes requested" + judy, model.MarkChangesRequested, []model.Assignee{{Login: "judy_user"}}},
+		{"🔄 Commented" + judy + " ⏳", model.MarkReRequest, []model.Assignee{{Login: "judy_user", Unavailable: true}}},
+		{"❌ Review requested" + judy, model.MarkNoReview, []model.Assignee{{Login: "judy_user"}}},
+		{"❌ No reviewer", model.MarkNoReview, nil},
+	} {
+		t.Run(tt.cell, func(t *testing.T) {
+			body := "<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr><tr><td><code>/src/</code></td><td>" +
+				`<a href="https://github.com/judy_user"><b><code>judy_user</code></b></a>` +
+				`</td><td align="center">` + tt.cell + `</td></tr></table>` + "\n<!-- CODE_OWNERS_REVIEW_COMMENT -->"
+			rules, ok := ParseCodeOwners(body)
+			if !ok || len(rules) != 1 {
+				t.Fatalf("rules = %+v, %v", rules, ok)
+			}
+			if r := rules[0]; r.Mark != tt.mark || !slices.Equal(r.Assignees, tt.assignees) {
+				t.Errorf("approval = %s %+v, want %s %+v", r.Mark, r.Assignees, tt.mark, tt.assignees)
+			}
+		})
+	}
+}
+
 // Team links are recognized by their shape, whatever the organization.
 func TestParseCodeOwnersOtherOrg(t *testing.T) {
 	body := "<table><tr><th>Rule</th><th>Owners</th><th>Approval</th></tr>" +

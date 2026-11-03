@@ -112,7 +112,9 @@ func parseOwners(td *html.Node) (teams []string, owners []model.Owner) {
 	return teams, owners
 }
 
-// parseApproval reads "<mark><br><user link> 🔒, <user link>" or "<mark><br>UNASSIGNED".
+// parseApproval reads "<mark><br><user link> 🔒, <user link>" or "<mark><br>UNASSIGNED", or
+// since 2026-11 the same with a label after the mark ("✅ Approved<br>…") and "❌ No reviewer"
+// for UNASSIGNED: only the mark counts.
 func parseApproval(td *html.Node) (model.ApprovalMark, []model.Assignee) {
 	var lead strings.Builder
 	for c := range td.ChildNodes() {
