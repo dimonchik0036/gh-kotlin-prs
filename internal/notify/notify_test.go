@@ -362,6 +362,38 @@ func TestMergeErrorNotifiesFailure(t *testing.T) {
 	}
 }
 
+// A safe-merge that passed on a PR still open is the bot merging it (classify rule 5): the
+// pass notifies, no "your move — ready to /safe-merge", then the merge. Unmerged after the
+// timeout (rule 1), it's my move.
+func TestPassedSafeMergeWaitsForTheMerge(t *testing.T) {
+	running := model.PR{Number: 7, Title: "Example change", URL: "https://example.org/pull/7", Section: model.SectionMine, Next: model.NextCI,
+		SafeMerge: model.Run{Kind: model.SafeMerge, State: model.RunRunning, Started: time.Unix(100, 0), BuildURL: "https://ci.example.org/build/1"},
+		Reasons:   []model.Reason{{Text: "safe-merge running 1h ago"}}}
+	merging := running
+	merging.SafeMerge.State = model.RunPassed
+	merging.Reasons = []model.Reason{{Text: "safe-merge passed 1m ago, merging", URL: "https://ci.example.org/build/1"}}
+	merged := running
+	merged.Section, merged.Next, merged.Reasons = model.SectionMerged, model.NextDone, []model.Reason{{Text: "merged 1m ago"}}
+	unmerged := merging
+	unmerged.Next, unmerged.Reasons = model.NextMe, []model.Reason{{Text: "safe-merge passed 11m ago, not merged", URL: "https://ci.example.org/build/1"}}
+	for _, tt := range []struct {
+		name       string
+		prev, next model.PR
+		want       []string
+	}{
+		{"the gate passed", running, merging, []string{"runPassed #7"}},
+		{"the bot merged it", merging, merged, []string{"merged #7"}},
+		{"the bot didn't merge it", merging, unmerged, []string{"myMove #7"}},
+	} {
+		if got := kinds(Diff([]model.PR{tt.prev}, []model.PR{tt.next})); !slices.Equal(got, tt.want) {
+			t.Errorf("%s: %v, want %v", tt.name, got, tt.want)
+		}
+	}
+	if e := Diff([]model.PR{merging}, []model.PR{unmerged})[0]; e.Body != "safe-merge passed 11m ago, not merged" || e.URL != "https://ci.example.org/build/1" {
+		t.Errorf("myMove %+v", e)
+	}
+}
+
 // A run passing and the PR becoming my move for its reviewers (rule 2c, which waits for
 // runs) notifies both, deliberately: the pass, then "your move — assign reviewers".
 func TestPassThenAssignReviewers(t *testing.T) {

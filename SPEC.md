@@ -184,7 +184,8 @@ Checks:
 Query: `comments { authorAssociation reactions(content: ROCKET, first: 5) { nodes { user { login } } } }` and
 `... on CheckRun { name conclusion title summary }`.
 
-A successful safe-merge merges the PR, so it moves to Recently merged.
+A successful safe-merge merges the PR, so it moves to Recently merged. The bot merges seconds after it edits the gate
+comment to say it passed, so a refresh between the two still sees the PR open (rule 5 of §5 calls it merging).
 
 | Command | Effect |
 |---|---|
@@ -300,7 +301,8 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
 `A` either way). A failed run is rule 1's.
 1. **Me:** the latest dry-run or safe-merge failed (and isn't outdated), was rejected for a cause of mine, or got no
    response → "safe-merge failed 2h ago", "safe-merge failed: <error>" (§3), "dry-run rejected: <reason>", "dry-run
-   accepted 1h ago, no response". Whose a rejection is, by the bot's reason
+   accepted 1h ago, no response"; or it's a safe-merge that passed (rule 5) and the PR is still open 10 minutes after
+   the gate comment said so → "safe-merge passed 15m ago, not merged". Whose a rejection is, by the bot's reason
    (§3):
 
    | Reason | Whose |
@@ -332,8 +334,10 @@ set `Next` and their reasons come after all the others, so the PR is CI's (unles
    or thread comment whose author submitted an APPROVED review at the same time or later doesn't count: the approval
    is their last word (an unresolved thread awaiting my reply is still rule 3). Nor does one whose author was
    re-requested since.
-5. **CI:** a run is requested or running.
-6. **Me (ready):** `Code Owners Approval` is green, there's at least one approval, and no run is requested or running → "ready to /safe-merge".
+5. **CI:** a run is requested or running; or the latest run is a safe-merge that passed and isn't outdated, on a PR
+   still open: the bot is merging it → "safe-merge passed 1m ago, merging", for 10 minutes since the gate comment's
+   last edit (then rule 1). A failed merge is an `Error:` in that comment, so rule 1's.
+6. **Me (ready):** `Code Owners Approval` is green, there's at least one approval, and nothing is in progress (rule 5) → "ready to /safe-merge".
    A missing or outdated green dry-run doesn't block this (CI isn't a gate), but it's added as a hint: "no fresh dry-run".
    Nor does what the reason says along (`Ready`), in this order, each part only when there's someone:
    - ", waiting: alice_user": the people whose review is requested now, whoever asked and whether they own anything.

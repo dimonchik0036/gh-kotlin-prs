@@ -113,7 +113,12 @@ var teamRules = []rule{
 // stays until a newer command or run supersedes it, even if the build it collided with
 // finished later. One only reviewers resolve (missing code-owner approval) isn't my move:
 // the other rules say whose it is.
-func mineRunFailed(f *facts) []model.Reason { return runFailed(f, latest(f.pr.Runs)) }
+func mineRunFailed(f *facts) []model.Reason {
+	if run, ok := f.unmerged(); ok && f.c.Now.Sub(run.Updated) > mergeTimeout {
+		return linked(fmt.Sprintf("%s passed %s, not merged", run.Kind, model.Ago(f.c.Now, run.Updated)), run.Link())
+	}
+	return runFailed(f, latest(f.pr.Runs))
+}
 
 func runFailed(f *facts, run model.Run) []model.Reason {
 	switch {
@@ -285,9 +290,13 @@ func mineNewComment(f *facts) []model.Reason {
 	return linked(fmt.Sprintf("new %s from %s %s", latest.what, latest.login, model.Ago(f.c.Now, latest.at)), latest.url)
 }
 
-// 5. A run is requested or running.
+// 5. A run is requested or running, or a safe-merge passed and the bot is merging the PR
+// (unmerged, for mergeTimeout at most).
 func mineRunInProgress(f *facts) []model.Reason {
 	var reasons []model.Reason
+	if run, ok := f.merging(); ok {
+		reasons = append(reasons, model.Reason{Text: fmt.Sprintf("%s passed %s, merging", run.Kind, model.Ago(f.c.Now, run.Updated)), URL: run.Link()})
+	}
 	for _, run := range []model.Run{f.pr.SafeMerge, f.pr.DryRun} {
 		if inProgress(run) {
 			reason := fmt.Sprintf("%s %s %s", run.Kind, run.State, model.Ago(f.c.Now, run.Started))
@@ -794,7 +803,25 @@ func (f *facts) reRequestedSince(login string, t time.Time) bool {
 }
 
 func (f *facts) inProgress() bool {
-	return slices.ContainsFunc(f.pr.Runs, inProgress)
+	_, merging := f.merging()
+	return merging || slices.ContainsFunc(f.pr.Runs, inProgress)
+}
+
+// mergeTimeout is how long the bot gets to merge a PR whose safe-merge passed. It merges
+// seconds after the gate reports, or adds why it couldn't to the gate comment (rule 1).
+const mergeTimeout = 10 * time.Minute
+
+// unmerged is my latest run when it's a safe-merge that passed on the current head: the
+// PR, still open, waits for the bot to merge it.
+func (f *facts) unmerged() (model.Run, bool) {
+	run := latest(f.pr.Runs)
+	return run, run.Kind == model.SafeMerge && run.State == model.RunPassed && !run.Outdated && run.Error == ""
+}
+
+// merging is unmerged for at most mergeTimeout since the gate passed.
+func (f *facts) merging() (model.Run, bool) {
+	run, ok := f.unmerged()
+	return run, ok && f.c.Now.Sub(run.Updated) <= mergeTimeout
 }
 
 // missingRules: the code-owner rules still missing; none when the check is green.

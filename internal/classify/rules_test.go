@@ -73,6 +73,12 @@ func TestMineRule1RunFailed(t *testing.T) {
 			extra: []string{"ready to /safe-merge", "no fresh dry-run"},
 		},
 		{
+			name: "a passed safe-merge the bot didn't merge",
+			pr:   readyPR().says(me, "/safe-merge", at(90), rocket).gate(model.SafeMerge, 100, "passed", at(91), edited(at(105))),
+			next: model.NextMe, reason: "safe-merge passed 15m ago, not merged",
+			absent: []string{"merging"},
+		},
+		{
 			name: "rejected safe-merge",
 			pr:   readyPR().says(me, "/safe-merge", at(100)).rejected("GitHub has not yet finished checking for conflicts with the base branch.", at(101)),
 			next: model.NextMe, reason: "safe-merge rejected: GitHub has not yet finished checking for conflicts with the base branch.",
@@ -629,6 +635,19 @@ func TestMineRule5RunInProgress(t *testing.T) {
 			name: "requested just now",
 			pr:   readyPR().says(me, "/dry-run", at(118)),
 			next: model.NextCI, reason: "dry-run requested 2m ago",
+		},
+		{
+			// The bot merges seconds after the gate passes, but a snapshot can see it open between.
+			name: "a passed safe-merge, not merged yet",
+			pr:   readyPR().says(me, "/safe-merge", at(90), rocket).gate(model.SafeMerge, 100, "passed", at(91), edited(at(118))),
+			next: model.NextCI, reason: "safe-merge passed 2m ago, merging",
+			absent: []string{"ready to /safe-merge"},
+		},
+		{
+			name: "a passed safe-merge pushed over since is no merge to wait for",
+			pr:   readyPR().gate(model.SafeMerge, 100, "passed", at(-30), edited(at(-10))),
+			next: model.NextMe, reason: "ready to /safe-merge",
+			absent: []string{"merging", "not merged"},
 		},
 	})
 }

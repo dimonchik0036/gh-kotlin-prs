@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- A PR whose safe-merge passed but isn't merged yet is CI's move, "safe-merge passed 1m ago, merging", no longer
+  "ready to /safe-merge": a refresh in the seconds before the bot merges it doesn't notify "your move" any more. If
+  the PR is still open 10 minutes after the pass, it becomes your move: "safe-merge passed 15m ago, not merged".
 - Built with golang.org/x/net v0.62.0, which fixes slow HTML parsing of crafted text (GO-2026-6860; the tool parses
   the bot's code-owners comment with it), and bubbletea v2.1.1, which ignores implausible terminal size reports
   (GHSA-qc58-pfg9-7pph).
