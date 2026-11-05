@@ -6,6 +6,10 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+## v0.12.3 — 2026-11-05
+
+No "your move" right before a safe-merge lands. The JSON output is unchanged (`"version": 1`).
+
 - A PR whose safe-merge passed but isn't merged yet is CI's move, "safe-merge passed 1m ago, merging", no longer
   "ready to /safe-merge": a refresh in the seconds before the bot merges it doesn't notify "your move" any more. If
   the PR is still open 10 minutes after the pass, it becomes your move: "safe-merge passed 15m ago, not merged".
