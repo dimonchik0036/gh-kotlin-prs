@@ -8,6 +8,8 @@ breaking JSON changes and noted here.
 
 - Built with Go 1.27.4, which fixes a crash in `net/http`'s HTTP/1 server (GO-2026-6859). The tool runs no server,
   but govulncheck flags the version.
+- The TUI is built with bubbletea v2.1.2, which stops redrawing a screen that doesn't change and restores the
+  terminal after more kinds of failure, and bubbles v2.2.2, whose fixes cover the filter input and the scrolling view.
 
 ## v0.12.3 — 2026-11-05
 
