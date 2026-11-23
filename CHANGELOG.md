@@ -6,6 +6,9 @@ breaking JSON changes and noted here.
 
 ## Unreleased
 
+- Built with Go 1.27.4, which fixes a crash in `net/http`'s HTTP/1 server (GO-2026-6859). The tool runs no server,
+  but govulncheck flags the version.
+
 ## v0.12.3 — 2026-11-05
 
 No "your move" right before a safe-merge lands. The JSON output is unchanged (`"version": 1`).
